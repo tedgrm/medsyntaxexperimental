@@ -4,6 +4,7 @@
   --color-one-dark-text: rgb(11, 11, 107);
   --color-one-light: rgb(255, 231, 183);
   --color-one-dark: orange;
+  --color-gray: grey;
   --font-sans: Tahoma, Verdana, sans-serif;
   --font-serif: Courier New, serif;
 }
@@ -204,7 +205,7 @@ body {
   padding-left: 5px;
   padding-right: 5px;
   font-weight: bold;
-  font-family: var(--font-serif);
+  font-family: var(--font-);
 }
 
 .medsyntax-target div.brackets {
@@ -244,7 +245,8 @@ body {
 .medsyntax-target div.square-brackets {
   /* color: rgb(111, 111, 111); */
   padding-right: 2px;
-  font-family: var(--font-serif);
+  font-family: var(--font-sans);
+  color: var(--color-gray);
 }
 
 .medsyntax .medsyntax-target .search-string .square-brackets div {
@@ -255,21 +257,23 @@ body {
 .medsyntax-target div.near {
   padding-left: 5px;
   /* color: rgb(111, 111, 111); */
-  color: grey;
+  color: var(--color-gray);
   font-weight: bold;
-  font-family: var(--font-serif);
+  font-family: var(--font-sans);
 }
 
 .medsyntax-target div.embase {
   /* color: rgb(111, 111, 111); */
-  font-family: var(--font-serif);
+  font-family: var(--font-sans);
+  color: var(--color-gray);
 }
 
 .medsyntax-target div.pubmed {
   /* color: rgb(111, 111, 111); */
   padding-right: 3px;
   padding-left: 3px;
-  font-family: var(--font-serif);
+  font-family: var(--font-sans);
+  color: var(--color-gray);
 }
 
 p.warning-medsyntax {
