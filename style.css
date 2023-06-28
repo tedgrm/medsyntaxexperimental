@@ -227,7 +227,7 @@ body {
 .medsyntax-target div.brackets div.brackets div.brackets div.brackets div.brackets div.brackets div.brackets,
 .medsyntax-target div.brackets div.brackets div.brackets div.brackets div.brackets div.brackets div.brackets div.brackets div.brackets {
   border-style: solid;
-  border-width: 2px;
+  border-width: 3px;
   margin-top: 3px;
 }
 
@@ -238,7 +238,7 @@ body {
 .medsyntax-target div.brackets div.brackets div.brackets div.brackets div.brackets div.brackets div.brackets div.brackets div.brackets div.brackets {
   /* border-style: dashed; */
   border-style: solid;
-  border-width: 2px;
+  border-width: 3px;
   margin-top: 3px;
 }
 
