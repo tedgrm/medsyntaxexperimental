@@ -170,7 +170,7 @@ body {
   /* color: red; */
   border-bottom-style: dashed;
   border-bottom-color: lightgray;
-  padding-left: 5px;
+  margin-left: 5px;
 }
 
 .medsyntax div.search-string {
