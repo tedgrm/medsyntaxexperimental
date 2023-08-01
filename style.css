@@ -17,6 +17,17 @@
   display: block;
 }
 
+#nav-menu a {
+  display: inline-block;
+  border-style: solid;
+  border-color: whitesmoke;
+  margin-bottom: 5px;
+}
+
+#nav-menu a p {
+  margin: 0px;
+}
+
 .query-title {
   padding: 2px;
   margin-bottom: 5px;
