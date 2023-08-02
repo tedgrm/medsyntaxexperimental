@@ -181,6 +181,7 @@ body {
   /* color: red; */
   border-bottom-style: dashed;
   border-bottom-color: lightgray;
+  border-bottom-width: 1px;
   margin-left: 5px;
 }
 
