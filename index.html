@@ -359,8 +359,6 @@
         alert("Your input query included one (or some) unexpected types of double quote signs. "
           + "These quote signs have been replaced with regular quote signs using:\n\n"
           + "str.replace(/[“]|[”]|[″]|[‶]/g, '\"');");
-
-        $("#query-input1").val(strCleanedDoubleQuotes);
       }
       str = strCleanedDoubleQuotes;
 
@@ -369,8 +367,6 @@
         alert("Your input query included one (or some) unexpected types of single quote signs. "
           + "These quote signs have been replaced with regular quote signs using:\n\n"
           + "str.replace(/[“]|[”]|[″]|[‶]/g, '\"');");
-
-        $("#query-input1").val(strCleanedSingleQuotesr);
       }
       str = strCleanedSingleQuotes;
 
@@ -403,6 +399,7 @@
       if (grayscale) {
         $("#search-string").css("filter", "grayscale(100%)");
       }
+      $("#query-input1").val(str);
     }
 
     //*** Syntax 'parser' code ***//
