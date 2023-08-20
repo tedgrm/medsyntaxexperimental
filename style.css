@@ -19,7 +19,7 @@
   border-width: 1px;
   border-radius: 3px;
   border-color: crimson;
-  background-color: whitesmoke;
+  background-color: white;
   /* margin-right: 20px; */
   margin-top: 5px;
 }
@@ -43,6 +43,16 @@
   background-color: whitesmoke;
 }
 
+.grayscale {
+  padding: 5px;
+  border-style: solid;
+  border-width: 3px;
+  border-color: white;
+  border-radius: 10px;
+  /* margin-top: 10px; */
+  /* margin-right: 20px; */
+}
+
 .manual {
   padding: 5px;
   border-style: solid;
@@ -52,20 +62,12 @@
   margin-right: 20px;
   margin-top: 20px;
   margin-bottom: 20px;
-}
-
-.grayscale {
-  padding: 5px;
-  border-style: solid;
-  border-width: 5px;
-  border-color: whitesmoke;
-  border-radius: 10px;
-  margin-top: 10px;
-  margin-right: 20px;
+  /* background-color: aliceblue; */
 }
 
 .manual h3 {
   margin: 0px;
+  /* background-color: aliceblue; */
 }
 
 .manual p {
