@@ -11,6 +11,48 @@
 </head>
 
 <body>
+  <!-- #region Menu -->
+  <div class="dropdown">
+    <button onclick="myFunction()" class="dropbtn">menu</button>
+    <div id="myDropdown" class="dropdown-content">
+      <a href="https://www.linkedin.com/in/margotverleg/" target="_blank">
+        Contact us!
+      </a>
+      <a href="https://github.com/tedgrm/medsyntaxexperimental/issues" target="_blank">
+        Report any issues here
+      </a>
+      <a href="https://github.com/tedgrm/medsyntaxexperimental/blob/main/LICENSE" target="_blank">
+        License (GNU v3.0)
+      </a>
+      <a href="https://tedgrm.github.io/picomedsyntax/" target="_blank">
+        Medsyntax PICO
+      </a>
+    </div>
+  </div>
+  <script>
+    /* When the user clicks on the button, 
+    toggle between hiding and showing the dropdown content */
+    function myFunction() {
+      document.getElementById("myDropdown").classList.toggle("show");
+    }
+
+    // Close the dropdown if the user clicks outside of it
+    window.onclick = function (event) {
+      if (!event.target.matches('.dropbtn')) {
+        var dropdowns = document.getElementsByClassName("dropdown-content");
+        var i;
+        for (i = 0; i < dropdowns.length; i++) {
+          var openDropdown = dropdowns[i];
+          if (openDropdown.classList.contains('show')) {
+            openDropdown.classList.remove('show');
+          }
+        }
+      }
+    }
+  </script>
+  <br>
+  <!-- #endregion -->
+
   <input type="text" id="query-title1" class="query-title" name="query-title1" size="100"
     onkeyup='updateTitle("query-title1")' placeholder="Please input a title for your query here...">
   <button id="clear-button" onclick="clearButtonFunc()">
@@ -38,7 +80,6 @@
 
     <div id="medsyntax-target1" class="medsyntax-target">Please input search query in text area.</div>
   </div>
-
   <br>
 
   <!-- The button used to copy the query -->
@@ -61,7 +102,11 @@
     </button>
   </div>
 
-  <br>
+  <div id="notifications">
+    <p>During the IFLA WLIC 2023 you can reach me at <a href="tel:+31636456636">+31636456636</a> or at <a
+        href="mailto:someone@example.com">m.verleg@mzh.nl</a></p>
+  </div>
+  
   <br>
   <form name="myForm" class="grayscale">
     <input type="radio" name="myRadios" value="1" checked="checked" />
@@ -69,26 +114,7 @@
     <input type="radio" name="myRadios" value="2" />
     <label for="html">greyscale</label><br>
   </form>
-
   <br>
-  <div id="nav-menu">
-    <a href="https://www.medsyntax.org" target="_blank">
-      <p>Medsyntax Editor</p>
-    </a>
-    <a href="https://tedgrm.github.io/picomedsyntax/" target="_blank">
-      <p>Medsyntax PICO</p>
-    </a>
-    <a href="https://github.com/tedgrm/medsyntaxexperimental/blob/main/LICENSE" target="_blank">
-      <p>License (GNU v3.0)</p>
-    </a>
-    <a href="https://github.com/tedgrm/medsyntaxexperimental/issues" target="_blank">
-      <p>Please report any issues with this
-        version of Medsyntax by following this link</p>
-    </a>
-  </div>
-
-  <br>
-
 
   <div class="manual">
 
