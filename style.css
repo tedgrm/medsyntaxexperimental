@@ -453,3 +453,12 @@ p {
     width: 100%;
   }
 }
+
+/* jquery and jqueryui: */
+.ui-icon-gripsmall-diagonal-se {
+  background: lightcoral;
+  border-radius: 7px;
+  border-style: solid;
+  margin-right: -100px;
+  background-position: -64px -224px;
+}
