@@ -16,17 +16,19 @@
 #notifications {
   width: fit-content;
   border-style: dashed;
-  border-width: 1px;
-  border-radius: 3px;
-  border-color: crimson;
-  background-color: white;
+  border-width: 5px;
+  border-radius: 10px;
+  border-color: whitesmoke;
+  /* background-color: white; */
+  color: black;
   /* margin-right: 20px; */
   margin-top: 5px;
 }
 
 #notifications p {
   margin: 0px;
-  font-weight: bold;
+  /* font-weight: bold; */
+  font-style: italic;
 }
 
 #dynamic-input {
