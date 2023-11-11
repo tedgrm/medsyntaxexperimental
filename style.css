@@ -153,7 +153,7 @@ body {
   margin-bottom: 2px;
   /* padding-bottom: 2px; */
   /* padding-top: 2px; */
-  transition: all 0.3s ease-out;
+  transition: all 0.2s ease-out;
 }
 
 .medsyntax div.search-string div.boolean-error-or {
@@ -336,7 +336,7 @@ p {
   left: 50%;
   /* margin-left: -75px; */
   opacity: 0;
-  transition: opacity 0.3s;
+  transition: opacity 0.2s;
 }
 
 .tooltip .tooltiptext::after {
@@ -358,7 +358,7 @@ p {
 #myImg {
   border-radius: 5px;
   cursor: pointer;
-  transition: 0.3s;
+  transition: 0.2s;
 }
 
 #myImg:hover {
@@ -446,7 +446,7 @@ p {
   color: #f1f1f1;
   font-size: 40px;
   font-weight: bold;
-  transition: 0.3s;
+  transition: 0.2s;
 }
 
 .close:hover,

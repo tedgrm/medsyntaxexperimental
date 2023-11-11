@@ -449,6 +449,8 @@
     var embaseExact = "/";
     var specialColon = "isfgsvkhADSFVMQEREGQ";
     var specialSlash = "n7k8nkumhngbwSAVRUTY";
+    var specialBracketOpen = "n7k8nk436ghgsd";
+    var specialBracketClose = "kh35fgsifuhgw7853t";
     var special = "___";
 
     function nearOpFunction(x) {
@@ -487,6 +489,8 @@
       x = "<div class=quote-term>" + x + "</div>";
       x = x.replace(new RegExp('/', 'gi'), specialSlash);
       x = x.replace(new RegExp(':', 'gi'), specialColon);
+      x = x.replace(new RegExp('[(]', 'gi'), specialBracketOpen);
+      x = x.replace(new RegExp('[)]', 'gi'), specialBracketOpen);
       return x;
     }
 
@@ -521,6 +525,8 @@
       str = str.replace('class=embase', 'class=\"embase\"'); //un-special-fy embase
       str = str.replace('</div>.', '</div><div class="embase">.</div>'); //embas "." cleanup
       str = str.replace('class=quote-term', 'class=\"quote-term\"'); //un-special-fy quote
+      str = str.replace(new RegExp(specialBracketOpen, 'gi'), '('); //un-special-fy
+      str = str.replace(new RegExp(specialBracketClose, 'gi'), ')'); //un-special-fy
 
       // make stray words elements
       str = "<div id=\"search-string\" class=\"search-string\"><div class=\"dummy\"></div>" + str + "<div class=\"dummy\"></div></div>"
