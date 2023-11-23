@@ -1,15 +1,52 @@
 <!DOCTYPE html>
 
 <head>
-  <meta charset="utf-8">
-  <meta name="description" content="Syntax assistant for pubmed, embase and other (medical) database search engines">
-  <title>Query Workspace (by Medsyntax)</title>
-  <!-- <link rel="stylesheet" href="style.css"> -->
-  <!-- <link rel="stylesheet" href="//code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css"> -->
-  <script src="https://code.jquery.com/jquery-3.6.0.js"></script>
-  <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.js"></script>
+    <meta charset="utf-8">
+    <meta name="description" content="Query workspace using Medsyntax">
+    <title>Query Workspace (by Medsyntax)</title>
+    <!-- <link rel="stylesheet" href="style.css"> -->
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.js"></script>
+    <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.js"></script>
 </head>
 
 <body>
+    <ul id="myList"></ul>
 
+    <script>
+        function QueryObject(name, age, id) {
+            let qObject = Object.create(constructorObject);
+            qObject.type = "query";
+            qObject.name = name;
+            qObject.age = age;
+            qObject.iframeQueryString = "een niet per se unieke string"
+            qObject.id = id;
+            return qObject;
+        }
+
+        let constructorObject = {
+            speak: function () {
+                return "I am a cat"
+            }
+        }
+
+        let queryObject1 = QueryObject("Cat", 54, "test_1");
+        let queryObject2 = QueryObject("Cat", 54, "test_2");
+        let queryObject3 = QueryObject("Cat", 54, "test_3");
+
+        const cars = [];
+        cars[0] = QueryObject("Cat", 54, "test_1");
+        cars[1] = queryObject2;
+        cars[2] = queryObject2;
+
+        cars.forEach(queryFunction);
+
+        function queryFunction(item, index, arr) {
+            console.log(item);
+            var $li = $("<li>", { id: "li_" + item.id, "class": "item", });
+            // $li.click(function () { /* ... */ });
+            $li.append("<iframe id=\"page_is_fresh_" + item.id + "\" data-index=\"" + item.iframeQueryString + "\" src=\"../index.html\"></iframe>");
+            $("#myList").append($li);
+        }
+    </script>
 </body>
