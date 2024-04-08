@@ -5,6 +5,7 @@
     <meta name="description" content="Query workspace using Medsyntax">
     <title>Query Workspace (by Medsyntax)</title>
     <!-- <link rel="stylesheet" href="style.css"> -->
+    <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="//code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
     <script src="https://code.jquery.com/jquery-3.6.0.js"></script>
     <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.js"></script>
@@ -30,14 +31,10 @@
             }
         }
 
-        let queryObject1 = QueryObject("Cat", 54, "test_1");
-        let queryObject2 = QueryObject("Cat", 54, "test_2");
-        let queryObject3 = QueryObject("Cat", 54, "test_3");
-
         const cars = [];
         cars[0] = QueryObject("Cat", 54, "test_1");
-        cars[1] = queryObject2;
-        cars[2] = queryObject2;
+        cars[1] = QueryObject("Cat", 54, "test_2");;
+        cars[2] = QueryObject("Cat", 54, "test_3");;
 
         cars.forEach(queryFunction);
 
