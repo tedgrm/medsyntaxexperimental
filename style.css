@@ -303,6 +303,10 @@ p.warning-medsyntax {
   background-color: lightcoral;
 }
 
+.medsyntax {
+  margin-right: 20px;
+}
+
 h3 {
   color: black;
   background-color: lightgrey;
@@ -464,13 +468,13 @@ p {
 }
 
 /* jquery and jqueryui: */
-.ui-icon-gripsmall-diagonal-se {
+/* .ui-icon-gripsmall-diagonal-se {
   background: lightcoral;
   border-radius: 7px;
   border-style: solid;
   margin-right: -100px;
   background-position: -64px -224px;
-}
+} */
 
 /* for menu: */
 .dropbtn {

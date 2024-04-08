@@ -1,4 +1,7 @@
 iframe {
     width: 100%;
+}
+
+li.item {
     list-style-type: none;
 }
