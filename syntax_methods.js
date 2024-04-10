@@ -60,9 +60,9 @@ function afterParseFuntion(str, targetElementId, hasError, savedLatestInputTime)
                 return false; // breaks
             }
             $(this).siblings(".or").each(function () {
-                hasAmbiguousAndError = true;
-                return false; // breaks
-            }
+                    hasAmbiguousAndError = true;
+                    return false; // breaks
+                }
             )
         });
 
@@ -71,9 +71,9 @@ function afterParseFuntion(str, targetElementId, hasError, savedLatestInputTime)
                 return false; // breaks
             }
             $(this).siblings(".or").each(function () {
-                hasAmbiguousAndError = true;
-                return false; // breaks
-            }
+                    hasAmbiguousAndError = true;
+                    return false; // breaks
+                }
             )
         });
 
@@ -195,14 +195,12 @@ function makeEditScope(targetElementId, element) {
 
     try {
         addHoverThisAndNextElement(element);
-    }
-    catch (err) {
+    } catch (err) {
         // handle errors
     }
     try {
         addHoverThisAndPrevElement(element);
-    }
-    catch (err) {
+    } catch (err) {
         // handle errors
     }
 
@@ -244,4 +242,19 @@ function updateUrl(name, value) {
     // Replace current querystring with the new one
     history.replaceState(null, null, "?" + queryParams.toString());
     history.pushState(null, null, "?" + queryParams.toString());
+
+    if (isWorkspaceIndex) {
+        parentSrc = parent.document.getElementById("page_is_fresh_" + isWorkspaceIndex)
+            .getAttribute("src");
+        console.log(parentSrc);
+        var targetSrc = "../index.html?" + queryParams;
+        console.log(targetSrc);
+        if (parentSrc !== targetSrc) {
+            console.log(window.location);
+            console.log(isWorkspaceIndex);
+            console.log("page_is_fresh_" + isWorkspaceIndex);
+            parent.document.getElementById("page_is_fresh_" + isWorkspaceIndex)
+                .setAttribute("src", targetSrc);
+        }
+    }
 }

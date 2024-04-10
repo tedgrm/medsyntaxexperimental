@@ -12,38 +12,44 @@
 </head>
 
 <body>
-    <ul id="myList"></ul>
+<ul id="myList"></ul>
 
-    <script>
-        function QueryObject(name, age, id) {
-            let qObject = Object.create(constructorObject);
-            qObject.type = "query";
-            qObject.name = name;
-            qObject.age = age;
-            qObject.iframeQueryString = "een niet per se unieke string"
-            qObject.id = id;
-            return qObject;
+<script>
+    function QueryObject(name, age, id) {
+        let qObject = Object.create(constructorObject);
+        qObject.type = "query";
+        qObject.name = name;
+        qObject.age = age;
+        qObject.iframeQueryString = "een niet per se unieke string"
+        qObject.id = id;
+        return qObject;
+    }
+
+    let constructorObject = {
+        speak: function () {
+            return "I am a cat"
         }
+    }
 
-        let constructorObject = {
-            speak: function () {
-                return "I am a cat"
-            }
-        }
+    const cars = [];
+    cars[0] = QueryObject("Cat", 54, "test_1");
+    cars[1] = QueryObject("Cat", 54, "test_2");
+    ;
+    cars[2] = QueryObject("Cat", 54, "test_3");
+    ;
 
-        const cars = [];
-        cars[0] = QueryObject("Cat", 54, "test_1");
-        cars[1] = QueryObject("Cat", 54, "test_2");;
-        cars[2] = QueryObject("Cat", 54, "test_3");;
+    cars.forEach(queryFunction);
 
-        cars.forEach(queryFunction);
-
-        function queryFunction(item, index, arr) {
-            console.log(item);
-            var $li = $("<li>", { id: "li_" + item.id, "class": "item", });
-            // $li.click(function () { /* ... */ });
-            $li.append("<iframe id=\"page_is_fresh_" + item.id + "\" data-index=\"" + item.iframeQueryString + "\" src=\"../index.html\"></iframe>");
-            $("#myList").append($li);
-        }
-    </script>
+    function queryFunction(item, index, arr) {
+        console.log(item);
+        var $li = $("<li>", {id: "li_" + item.id, "class": "item",});
+        // $li.click(function () { /* ... */ });
+        $li.append("<iframe id=\"page_is_fresh_" + index + "\" data-index=\"" + index +
+            "\" src=\"../index.html?ws=" + index + "\"" +
+            " sandbox=\"allow-same-origin allow-scripts allow-top-navigation\"" +
+            " onload=\"this.style.height = this.contentWindow.document.body.scrollHeight + 'px';\"" +
+            "></iframe>");
+        $("#myList").append($li);
+    }
+</script>
 </body>
