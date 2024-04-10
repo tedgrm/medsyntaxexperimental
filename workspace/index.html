@@ -47,7 +47,7 @@
         $li.append("<iframe id=\"page_is_fresh_" + index + "\" data-index=\"" + index +
             "\" src=\"../index.html?ws=" + index + "\"" +
             " sandbox=\"allow-same-origin allow-scripts allow-top-navigation\"" +
-            " onload=\"this.style.height = this.contentWindow.document.body.scrollHeight + 'px';\"" +
+            " onload=\"this.style.height = (this.contentWindow.document.body.scrollHeight + 20) + 'px';\"" +
             "></iframe>");
         $("#myList").append($li);
     }
