@@ -156,7 +156,16 @@ function afterParseFuntion(str, targetElementId, hasError, savedLatestInputTime)
 
     // makeResizableTarget(targetElementId);
     console.log('duration: ' + (Date.now() - time) + 'ms');
+    resizeParentIFrame();
+}
 
+function resizeParentIFrame() {
+    if (isWorkspaceIndex) {
+        console.log("resize");
+        var parentIFrame = parent.document.getElementById("page_is_fresh_" + isWorkspaceIndex);
+        console.log(parentIFrame);
+        parentIFrame.style.height = (parentIFrame.contentWindow.document.body.scrollHeight + 20) + 'px';
+    }
 }
 
 function addHoverThisAndPrevElement(element) {
@@ -230,6 +239,8 @@ function textAreaAdjust(element, updateHeight, targetWidth) {
         element.style.height = "1px";
         element.style.height = (12 + element.scrollHeight) + "px";
     }
+
+    resizeParentIFrame();
 }
 
 function updateUrl(name, value) {
@@ -246,15 +257,16 @@ function updateUrl(name, value) {
     if (isWorkspaceIndex) {
         parentSrc = parent.document.getElementById("page_is_fresh_" + isWorkspaceIndex)
             .getAttribute("src");
-        console.log(parentSrc);
+        // console.log(parentSrc);
         var targetSrc = "../index.html?" + queryParams;
-        console.log(targetSrc);
+        // console.log(targetSrc);
+
         if (parentSrc !== targetSrc) {
-            console.log(window.location);
-            console.log(isWorkspaceIndex);
-            console.log("page_is_fresh_" + isWorkspaceIndex);
+            // console.log(window.location);
+            // console.log(isWorkspaceIndex);
+            // console.log("page_is_fresh_" + isWorkspaceIndex);
             parent.document.getElementById("page_is_fresh_" + isWorkspaceIndex)
-                .setAttribute("src", targetSrc);
+                .setAttribute("data-url", targetSrc);
         }
     }
 }

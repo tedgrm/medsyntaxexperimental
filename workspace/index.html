@@ -34,22 +34,22 @@
     const cars = [];
     cars[0] = QueryObject("Cat", 54, "test_1");
     cars[1] = QueryObject("Cat", 54, "test_2");
-    ;
     cars[2] = QueryObject("Cat", 54, "test_3");
-    ;
 
     cars.forEach(queryFunction);
 
     function queryFunction(item, index, arr) {
-        console.log(item);
+        // console.log(item);
         var $li = $("<li>", {id: "li_" + item.id, "class": "item",});
         // $li.click(function () { /* ... */ });
-        $li.append("<iframe id=\"page_is_fresh_" + index + "\" data-index=\"" + index +
-            "\" src=\"../index.html?ws=" + index + "\"" +
+        $li.append("<iframe id=\"page_is_fresh_" + index + "\"" +
+            " src=\"../index.html?ws=" + index + "\"" +
             " sandbox=\"allow-same-origin allow-scripts allow-top-navigation\"" +
             " onload=\"this.style.height = (this.contentWindow.document.body.scrollHeight + 20) + 'px';\"" +
             "></iframe>");
         $("#myList").append($li);
+        console.log($li);
+        console.log($li.children("iframe")[0]);
     }
 </script>
 </body>
