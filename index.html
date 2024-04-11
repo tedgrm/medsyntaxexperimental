@@ -6,6 +6,7 @@
           content="Syntax assistant for Pubmed, Embase, Scopus and other (medical) database search engines">
     <title>Medsyntax</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="styleIsWorkpaceIndex.css">
     <link rel="stylesheet" href="//code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
     <script src="https://code.jquery.com/jquery-3.6.0.js"></script>
     <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.js"></script>
@@ -13,7 +14,7 @@
     <script type="text/javascript" src="grayscale.js"></script>
 </head>
 
-<body class="grid-container">
+<body>
 <!-- #region Menu -->
 <div class="dropdown">
     <button onclick="myFunction()" class="dropbtn">menu</button>
@@ -219,21 +220,30 @@
         $("#query-title1").val(queryTitle);
         updateTitle("query-title1");
 
-        if (isWorkspaceIndex) {
-            console.log(isWorkspaceIndex);
-            $('.manual').hide();
-            $('#medsyntax-title').hide();
-            $('.dropdown').hide();
-
-            $('.grid-container').css('display', 'grid');
-        }
-
         $('.medsyntax-target').mouseleave(function (event) {
             $(".hover").removeClass('hover');
         });
 
         var input = document.getElementById("query-input1");
-        textAreaAdjust(input);
+        if (!isWorkspaceIndex) {
+            textAreaAdjust(input);
+        }
+
+        if (isWorkspaceIndex) {
+            //TODO hide input field and show "AND" h2 when a query is present
+
+            console.log(isWorkspaceIndex);
+            $('.manual').hide();
+            $('#medsyntax-title').hide();
+            $('.dropdown').hide();
+            $('body').addClass('grid-container');
+            $('.query-title').css('grid-area', 'menu_0').css('font-size', 'x-large').css('width', '200px');
+            $('#query-input1').css('grid-area', 'main_1').css('height', 'fit-content').attr('rows', '2');
+            $('#medsyntax').css('grid-area', 'main_2');
+            $('#clear-button').css('grid-area', 'menu_1').css('height', 'fit-content');
+            $('#copy-link-button').parent('.tooltip').css('grid-area', 'menu_2a');
+            $('#copy-query-button').parent('.tooltip').css('grid-area', 'menu_2b');
+        }
     });
 
     function copyQueryFunction() {
@@ -645,9 +655,7 @@
         $("#query-input1").val(str);
         syntaxCheck("query-input1", "medsyntax-target1", true);
     }
-</script>
 
-<script>
     // LZString is under MIT License from https://github.com/pieroxy Copyright (c) 2013 pieroxy
     var LZString = function () {
         var r = String.fromCharCode, o = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=",
