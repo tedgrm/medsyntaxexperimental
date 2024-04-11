@@ -13,7 +13,7 @@
     <script type="text/javascript" src="grayscale.js"></script>
 </head>
 
-<body>
+<body class="grid-container">
 <!-- #region Menu -->
 <div class="dropdown">
     <button onclick="myFunction()" class="dropbtn">menu</button>
@@ -224,6 +224,8 @@
             $('.manual').hide();
             $('#medsyntax-title').hide();
             $('.dropdown').hide();
+
+            $('.grid-container').css('display', 'grid');
         }
 
         $('.medsyntax-target').mouseleave(function (event) {
