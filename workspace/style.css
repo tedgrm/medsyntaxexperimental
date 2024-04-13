@@ -1,5 +1,10 @@
+body {
+    background-color: lightgray;
+}
+
 iframe {
     width: 100%;
+    border-width: 0;
 }
 
 li.item {
