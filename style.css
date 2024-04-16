@@ -241,7 +241,7 @@ body {
   margin-left: 3px;
   margin-right: 3px;
   margin-bottom: 3px;
-  filter: hue-rotate(110deg);
+  filter: hue-rotate(90deg);
 }
 
 .medsyntax-target div.brackets,
