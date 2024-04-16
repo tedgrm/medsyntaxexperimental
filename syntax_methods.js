@@ -162,9 +162,9 @@ function afterParseFuntion(str, targetElementId, hasError, savedLatestInputTime)
 
 function resizeParentIFrame() {
     if (isWorkspaceIndex) {
-        console.log("resize");
+        // console.log("resize");
         var parentIFrame = parent.document.getElementById("page_is_fresh_" + isWorkspaceIndex);
-        console.log(parentIFrame);
+        // console.log(parentIFrame);
         parentIFrame.style.height = (parentIFrame.contentWindow.document.body.scrollHeight + 20) + 'px';
     }
 }
@@ -275,7 +275,7 @@ function updateUrl(name, value) {
 }
 
 function colorUpdate() {
-    console.log('colorUpdate()');
+    // console.log('colorUpdate()');
     var favcolorValue = $('#favcolor').val();
     $('#medsyntax').css('border-width', '10px').css('border-style', 'solid').css('border-color', favcolorValue)
         .css('border-radius', '10px');
