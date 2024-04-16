@@ -157,6 +157,7 @@ function afterParseFuntion(str, targetElementId, hasError, savedLatestInputTime)
     // makeResizableTarget(targetElementId);
     console.log('duration: ' + (Date.now() - time) + 'ms');
     resizeParentIFrame();
+    colorUpdate();
 }
 
 function resizeParentIFrame() {
@@ -244,6 +245,8 @@ function textAreaAdjust(element, updateHeight, targetWidth) {
 }
 
 function updateUrl(name, value) {
+    // console.log('updateUrl');
+
     // Construct URLSearchParams object instance from current URL querystring
     let queryParams = new URLSearchParams(window.location.search);
 
@@ -269,4 +272,12 @@ function updateUrl(name, value) {
                 .setAttribute("data-url", targetSrc);
         }
     }
+}
+
+function colorUpdate() {
+    console.log('colorUpdate()');
+    var favcolorValue = $('#favcolor').val();
+    $('#medsyntax').css('border-width', '10px').css('border-style', 'solid').css('border-color', favcolorValue)
+        .css('border-radius', '10px');
+    $('.medsyntax-target div.brackets').css('border-color', favcolorValue);
 }
