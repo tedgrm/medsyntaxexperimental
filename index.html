@@ -225,24 +225,23 @@
         });
 
         var input = document.getElementById("query-input1");
-        if (!isWorkspaceIndex) {
-            textAreaAdjust(input);
-        }
 
         if (isWorkspaceIndex) {
-            //TODO hide input field and show "AND" h2 when a query is present
+            //TODO show "AND" h2 when a query is present
 
             console.log(isWorkspaceIndex);
             $('.manual').hide();
             $('#medsyntax-title').hide();
             $('.dropdown').hide();
             $('body').addClass('grid-container');
-            $('.query-title').css('grid-area', 'menu_0a').css('font-size', 'x-large');
-            $('#query-input1').css('grid-area', 'menu_0b').attr('rows', '2');
-            $('#medsyntax').css('grid-area', 'main_2');
-            $('#clear-button').css('grid-area', 'menu_1');
-            $('#copy-link-button').parent('.tooltip').css('grid-area', 'menu_2a');
-            $('#copy-query-button').parent('.tooltip').css('grid-area', 'menu_2b');
+            $('.query-title').css('grid-area', 'd').css('font-size', 'x-large');
+            $('#query-input1').css('grid-area', 'b').attr('rows', '2');
+            $('#medsyntax').css('grid-area', 'a');
+            $('#clear-button').hide();
+            $('#copy-link-button').parent('.tooltip').hide();
+            $('#copy-query-button').parent('.tooltip').css('grid-area', 'c');
+        } else {
+            textAreaAdjust(input);
         }
     });
 

@@ -1,9 +1,9 @@
 .grid-container {
     display: grid;
     grid-template-areas:
-    'menu_0a menu_0a menu_0a main_2'
-    'menu_1 menu_2a menu_2b main_2'
-    'menu_0b menu_0b menu_0b main_2';
+    'd d d a'
+    'b b b a'
+    '1 c 2 a';
     grid-template-columns: 100px 100px 100px auto;
     gap: 10px;
     grid-auto-rows: 0;
