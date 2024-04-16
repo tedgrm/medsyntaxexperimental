@@ -3,7 +3,7 @@
     grid-template-areas:
     'd d d a'
     'b b b a'
-    '1 c 2 a';
+    'e c 2 a';
     grid-template-columns: 100px 100px 100px auto;
     gap: 10px;
     grid-auto-rows: 0;

@@ -158,8 +158,8 @@
     var modalImg = document.getElementById("img01");
     var captionText = document.getElementById("caption");
     img.onclick = function () {
-        $("#medsyntax-target1").resizable();
-        $("#medsyntax-target1").resizable("destroy");
+        // $("#medsyntax-target1").resizable();
+        // $("#medsyntax-target1").resizable("destroy");
         modal.style.display = "block";
         modalImg.src = this.src;
         captionText.innerHTML = this.alt;
@@ -170,11 +170,11 @@
 
     // When the user clicks on <span> (x), close the modal
     span.onclick = function () {
-        $("#medsyntax-target1").resizable();
+        // $("#medsyntax-target1").resizable();
         modal.style.display = "none";
     }
     modal.onclick = function () {
-        $("#medsyntax-target1").resizable();
+        // $("#medsyntax-target1").resizable();
         modal.style.display = "none";
     }
 </script>
@@ -227,7 +227,7 @@
         var input = document.getElementById("query-input1");
 
         if (isWorkspaceIndex) {
-            //TODO show "AND" h2 when a query is present
+            //TODO hide #query-input1 on losing focus whilst a query is present; show "AND" h2 on losing focus whilst a query is present;
 
             console.log(isWorkspaceIndex);
             $('.manual').hide();
@@ -238,12 +238,23 @@
             $('#query-input1').css('grid-area', 'b').attr('rows', '2');
             $('#medsyntax').css('grid-area', 'a');
             $('#clear-button').hide();
-            $('#copy-link-button').parent('.tooltip').hide();
             $('#copy-query-button').parent('.tooltip').css('grid-area', 'c');
+
+            $('#copy-link-button').parent('.tooltip').replaceWith(
+                "<input type=\"color\" id=\"favcolor\" value=\"#FFAF85\" onchange='colorUpdate()'>");
+            colorUpdate()
+            $('#favcolor').css('grid-area', 'e');
         } else {
             textAreaAdjust(input);
         }
     });
+
+    function colorUpdate() {
+        console.log('colorUpdate');
+        var favcolorValue = $('#favcolor').val();
+        $('#medsyntax').css('border-width', '10px').css('border-style','solid').css('border-color', favcolorValue)
+            .css('border-radius', '10px');
+    }
 
     function copyQueryFunction() {
         var copyText = document.getElementById("myQueryInput");
@@ -568,8 +579,8 @@
     // Start edit on mouse down method
     function hoverMouseDown() {
         medsyntaxTargetWidth = $("#medsyntax-target1").width();
-        $("#medsyntax-target1").resizable();
-        $("#medsyntax-target1").resizable("destroy");
+        // $("#medsyntax-target1").resizable();
+        // $("#medsyntax-target1").resizable("destroy");
         $('.medsyntax-target div').off('mousemove');
 
         var text = $(".hover").text();
