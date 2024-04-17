@@ -239,6 +239,7 @@
             $('#medsyntax').css('grid-area', 'a');
             $('#clear-button').hide();
             $('#copy-query-button').parent('.tooltip').css('grid-area', 'c');
+            $('#medsyntax-target1').css('margin','0');
 
             $('#copy-link-button').parent('.tooltip').replaceWith(
                 "<input type=\"color\" id=\"favcolor\" value=\"#FFAF85\" onchange='colorUpdate()'>");
@@ -397,6 +398,8 @@
             $("#search-string").css("filter", "grayscale(100%)");
         }
         $("#query-input1").val(str);
+        $('#search-string').css('margin','0');
+
     }
 
     //*** Syntax 'parser' code ***//

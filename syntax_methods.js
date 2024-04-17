@@ -278,8 +278,8 @@ function colorUpdate() {
     if (isWorkspaceIndex) {
         // console.log('colorUpdate()');
         var favcolorValue = $('#favcolor').val();
-        $('#medsyntax').css('border-width', '10px').css('border-style', 'solid').css('border-color', favcolorValue)
-            .css('border-radius', '10px');
+        $('#medsyntax').css('border-width', '5px').css('border-style', 'solid').css('border-color', favcolorValue)
+            .css('border-radius', '10px').css('box-shadow', '500px 500px 500px 500px' + favcolorValue + ' inset');
         $('.medsyntax-target div.brackets').css('border-color', favcolorValue);
     }
 }
