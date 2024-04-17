@@ -275,9 +275,11 @@ function updateUrl(name, value) {
 }
 
 function colorUpdate() {
-    // console.log('colorUpdate()');
-    var favcolorValue = $('#favcolor').val();
-    $('#medsyntax').css('border-width', '10px').css('border-style', 'solid').css('border-color', favcolorValue)
-        .css('border-radius', '10px');
-    $('.medsyntax-target div.brackets').css('border-color', favcolorValue);
+    if (isWorkspaceIndex) {
+        // console.log('colorUpdate()');
+        var favcolorValue = $('#favcolor').val();
+        $('#medsyntax').css('border-width', '10px').css('border-style', 'solid').css('border-color', favcolorValue)
+            .css('border-radius', '10px');
+        $('.medsyntax-target div.brackets').css('border-color', favcolorValue);
+    }
 }

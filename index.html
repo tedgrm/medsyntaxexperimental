@@ -75,8 +75,8 @@
           onkeyup='syntaxCheck("query-input1","medsyntax-target1")'
           onchange='syntaxCheck("query-input1","medsyntax-target1")'
           onclick='syntaxCheck("query-input1","medsyntax-target1")'
+          onfocusout='syntaxCheck("query-input1","medsyntax-target1", true)'
           placeholder="Please input search query here..."></textarea>
-
 
 <p id="warning-bracket-open" class="warning-medsyntax">Too many ( in query. Or not enough ) in query.</p>
 <p id="warning-bracket-close" class="warning-medsyntax">Too many ) in query. Or not enough ( in query.</p>
@@ -349,7 +349,9 @@
 
         str = str.replace(/[\u000A\u000D\u2028\u2029]/g, ' ')
         str = str.replace(/\r?\n|\r/g, ' ');
-        str = str.replace(/  +/g, ' ');
+        if(force) {
+            str = str.replace(/  +/g, ' ');
+        }
 
         strCleanedDoubleQuotes = str.replace(/[“]|[”]|[″]|[‶]/g, '"');
         if (str != strCleanedDoubleQuotes) {
