@@ -24,20 +24,30 @@
         return qObject;
     }
 
-    //test commit :(
-
     let constructorObject = {
         speak: function () {
             return "I am a cat"
         }
     }
 
-    const cars = [];
-    cars[0] = QueryObject("Cat", 54, "test_1");
-    cars[1] = QueryObject("Cat", 54, "test_2");
-    cars[2] = QueryObject("Cat", 54, "test_3");
+    var list = [];
+    list[0] = QueryObject("Cat", 54, "test_1");
+    list[1] = QueryObject("Cat", 54, "test_2");
+    list[2] = QueryObject("Cat", 54, "test_3");
 
-    cars.forEach(queryFunction);
+    list.forEach(queryFunction);
+
+    function addItemAfter(index) {
+        list.splice(1, 0, QueryObject("Cat", 54, "test_" + (index + 1))); // at index position 1, remove 0 elements, then add "baz" to that position
+        $("#myList").html("");
+        list.forEach(queryFunction);
+    }
+
+    function removeThisItem(index) {
+        delete list[index];
+        $("#myList").html("");
+        list.forEach(queryFunction);
+    }
 
     function queryFunction(item, index, arr) {
         // console.log(item);
@@ -48,9 +58,11 @@
             " sandbox=\"allow-same-origin allow-scripts allow-top-navigation\"" +
             " onload=\"this.style.height = (this.contentWindow.document.body.scrollHeight + 20) + 'px';\"" +
             "></iframe>");
+        $li.append("<button onclick=\"removeThisItem(" + index + ")\">Remove #todo insert query-title here</button>")
+        $li.append("<button onclick=\"addItemAfter(" + index + ")\">Add</button>")
         $("#myList").append($li);
-        console.log($li);
-        console.log($li.children("iframe")[0]);
+        // console.log($li);
+        // console.log($li.children("iframe")[0]);
     }
 </script>
 </body>
