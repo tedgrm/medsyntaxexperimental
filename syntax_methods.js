@@ -60,9 +60,9 @@ function afterParseFuntion(str, targetElementId, hasError, savedLatestInputTime)
                 return false; // breaks
             }
             $(this).siblings(".or").each(function () {
-                    hasAmbiguousAndError = true;
-                    return false; // breaks
-                }
+                hasAmbiguousAndError = true;
+                return false; // breaks
+            }
             )
         });
 
@@ -71,9 +71,9 @@ function afterParseFuntion(str, targetElementId, hasError, savedLatestInputTime)
                 return false; // breaks
             }
             $(this).siblings(".or").each(function () {
-                    hasAmbiguousAndError = true;
-                    return false; // breaks
-                }
+                hasAmbiguousAndError = true;
+                return false; // breaks
+            }
             )
         });
 
@@ -162,10 +162,9 @@ function afterParseFuntion(str, targetElementId, hasError, savedLatestInputTime)
 
 function resizeParentIFrame() {
     if (isWorkspaceIndex) {
-        // console.log("resize");
+        console.log("resize");
         var parentIFrame = parent.document.getElementById("page_is_fresh_" + isWorkspaceIndex);
-        // console.log(parentIFrame);
-        parentIFrame.style.height = (parentIFrame.contentWindow.document.body.scrollHeight + 20) + 'px';
+        parentIFrame.style.height = (parentIFrame.contentWindow.document.body.scrollHeight + 1) + 'px';
     }
 }
 
