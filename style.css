@@ -147,6 +147,10 @@ body {
   border-bottom-style: solid;
 } */
 
+.medsyntax {
+  margin-right: 20px;
+}
+
 .medsyntax div {
   color: black;
   display: inline-block;

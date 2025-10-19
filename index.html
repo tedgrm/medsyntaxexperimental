@@ -720,7 +720,7 @@
 
         }
 
-        makeResizableTarget(targetElementId);
+        // makeResizableTarget(targetElementId);
         console.log('duration: ' + (Date.now() - time) + 'ms');
 
     }
@@ -799,17 +799,17 @@
         }
     }
 
-    function makeResizableTarget(targetElementId) {
-        $('#' + targetElementId).resizable();
-        $('#' + targetElementId).resizable("destroy");
-        if ($(window).width() > 1000) {
-            $("body").css("margin-left", "20px");
-            $('#' + targetElementId).resizable();
-            // console.log("resizable");
-            //    margin-right: 60px;
-            $('#' + targetElementId).css("margin-right", "160px");
-        }
-    }
+    // function makeResizableTarget(targetElementId) {
+    //     $('#' + targetElementId).resizable();
+    //     $('#' + targetElementId).resizable("destroy");
+    //     if ($(window).width() > 1000) {
+    //         $("body").css("margin-left", "20px");
+    //         $('#' + targetElementId).resizable();
+    //         // console.log("resizable");
+    //         //    margin-right: 60px;
+    //         $('#' + targetElementId).css("margin-right", "160px");
+    //     }
+    // }
 
     // Start edit on mouse down method
     function hoverMouseDown() {
