@@ -1,6 +1,6 @@
 # medsyntaxexperimental
 
-## Welcome to Medsyntax
+## Welcome to MedsyntaxQA
 
 syntax assistant for (medical) search engines with a scope-driven editor
 
