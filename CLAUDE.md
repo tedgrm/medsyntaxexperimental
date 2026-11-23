@@ -13,7 +13,10 @@ See `FEATURES.md` for the feature list and the TODO list. Keep it up to date whe
   - `third-party/`: vendored libraries: `lzstring.js` (MIT) and `iframe-resizer/` (GPLv3). **Read-only.** See Conventions.
   - `key-commands.js` is our own (a keyboard-handling stub that uses the global `editMode`).
 - `server.js`: a static dev server with no dependencies. It serves the repo root on `PORT` (default 8080).
-- `playwright/`: end-to-end tests. `playwright.config.js` starts `server.js` and sets `baseURL` to `http://127.0.0.1:8080`.
+- `playwright/`: end-to-end tests. `playwright.config.js` starts `server.js`, sets `baseURL` to `http://127.0.0.1:8080`, and starts every browser at a **1920x1080** viewport (set after each device preset, which has its own size). Keep that default. Only resize inside a test when the test is about another screen size.
+  - `editor.spec.ts`: EDITOR behaviour. `editor-layout.spec.ts`: EDITOR layout (structure checks plus screenshot comparisons).
+  - `editor-layout.spec.ts-snapshots/`: screenshot baselines, one per browser and OS (`-darwin`). After an intended layout change, refresh them with `npx playwright test editor-layout --update-snapshots`, look at the new images, and commit them.
+- `product-development/`: product development resources (research, roadmap, designs, feedback). Not part of the site's code. See its `README.md`.
 
 ## The two `index.html` files
 

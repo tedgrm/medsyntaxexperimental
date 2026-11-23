@@ -53,7 +53,9 @@ Medsyntax is a syntax assistant for (medical) search engine queries with a scope
 - [ ] `scripts/key-commands.js` is a stub (only `console.log`s); implement keyboard commands or remove it
 
 ### Testing
-- [ ] Rename `playwright/example.spec.ts` to something descriptive
+- [ ] Remove `playwright/example.spec.ts`. Move its tests first so nothing is lost:
+  - "Medsyntax has title" and "Demo query and custom input render combined medsyntax output" → `editor.spec.ts`
+  - "Workspace page loads with its scripts" → a new `workspace.spec.ts`
 - [ ] Add tests for each syntax warning (brackets, quotes, duplicate/ambiguous operators)
 - [ ] Add tests for URL sharing (query/title restored from link)
 - [ ] Add tests for copy buttons, clear button and greyscale mode

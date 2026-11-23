@@ -1,6 +1,10 @@
 // @ts-check
 import { defineConfig, devices } from '@playwright/test';
 
+/* All browsers start at 1920x1080. Set after the device preset, which
+   brings its own viewport. */
+const viewport = { width: 1920, height: 1080 };
+
 /**
  * Read environment variables from file.
  * https://github.com/motdotla/dotenv
@@ -37,17 +41,17 @@ export default defineConfig({
   projects: [
     {
       name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
+      use: { ...devices['Desktop Chrome'], viewport },
     },
 
     {
       name: 'firefox',
-      use: { ...devices['Desktop Firefox'] },
+      use: { ...devices['Desktop Firefox'], viewport },
     },
 
     {
       name: 'webkit',
-      use: { ...devices['Desktop Safari'] },
+      use: { ...devices['Desktop Safari'], viewport },
     },
 
     /* Test against mobile viewports. */
