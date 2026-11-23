@@ -10,7 +10,7 @@ See `FEATURES.md` for the feature list and the TODO list. Keep it up to date whe
 - `style.css`, `iframe.css`: styles for the main app.
 - `workspace/`: MedsyntaxQA (Query Augmentation), an experimental v0.1. It embeds several copies of `../index.html?ws=<n>&...` in iframes and loads `../scripts/...`, so it must be served from the **repo root**, not from `workspace/` on its own.
 - `scripts/`: client-side scripts loaded by the pages.
-  - `third-party/`: vendored libraries: `lzstring.js` (MIT) and `iframe-resizer/` (GPLv3). **Read-only.** See Conventions.
+  - `third-party/`: vendored libraries, currently `lzstring.js` (MIT) and `iframe-resizer/` (GPLv3). Anything added here later is third-party too. **Read-only**, and not to be tested. See Conventions.
   - `key-commands.js` is our own (a keyboard-handling stub that uses the global `editMode`).
 - `server.js`: a static dev server with no dependencies. It serves the repo root on `PORT` (default 8080).
 - `playwright/`: end-to-end tests. `playwright.config.js` starts `server.js`, sets `baseURL` to `http://127.0.0.1:8080`, and starts every browser at a **1920x1080** viewport (set after each device preset, which has its own size). Keep that default. Only resize inside a test when the test is about another screen size.
@@ -75,4 +75,5 @@ Run `npm run pw-test` after changing `index.html`, `workspace/` or `scripts/`, a
 - Scripts are loaded with relative paths (`scripts/...` from the root, `../scripts/...` from `workspace/`). Keep pages working when served from the repo root and on GitHub Pages under a sub-path, so never use absolute `/` URLs.
 - Shareable state (query, title, workspace items) lives in the URL query string, compressed with LZString. Changes must keep existing links loading.
 - In tests, navigate with relative paths (`page.goto('/index.html')`, `page.goto('/workspace/')`) so they use `baseURL`. Don't use `file://` URLs. Prefer role, text and id locators (`#medsyntax`, `#dynamic-input`, `#query-input1`).
+- **When deciding which tests to add, ignore everything in `scripts/third-party/`**, including any library added there later. Don't plan or write tests for those libraries themselves (today `lzstring.js` and `iframe-resizer/`); they're unmodified upstream code. Test our own behaviour that uses them (e.g. links restored via LZString, WORKSPACE items sized by iframe-resizer) through the EDITOR and WORKSPACE pages.
 - Give new functions and ids clear names. The existing generic names (`myFunction`, `myForm`, ...) are on the TODO list to be renamed.
