@@ -1,5 +1,7 @@
 // @ts-check
 import {test, expect} from '@playwright/test';
+import * as fs from 'fs';
+import * as path from 'path';
 
 // EDITOR (root index.html) tests. Recorded with `npm run pw-codegen`, then tidied.
 
@@ -40,6 +42,56 @@ test.describe('EDITOR with a PubMed query', () => {
         // normalises it first (syntaxCheck): line breaks become spaces and, on
         // blur, runs of spaces collapse to one.
         const normalisedQuery = pubmedQuery.replace(/\r?\n|\r/g, ' ').replace(/  +/g, ' ');
+        const shared = await page.context().newPage();
+        await shared.goto(page.url());
+        await expect(shared.getByRole('textbox', {name: 'query', exact: true})).toHaveValue(normalisedQuery);
+    });
+});
+
+// A real Embase.com search, copied from product-development/external documents/
+// embase string example.xlsx (sheet "string", cell B3). See playwright/fixtures/README.md.
+const embaseQuery = fs.readFileSync(path.join(__dirname, 'fixtures', 'embase-query.txt'), 'utf8');
+
+test.describe('EDITOR with an Embase query', () => {
+    test.beforeEach(async ({page}) => {
+        await page.goto('/index.html');
+        await enterQuery(page, embaseQuery);
+    });
+
+    test('renders the Embase syntax', async ({page}) => {
+        const target = page.locator('#medsyntax-target1');
+        await expect(target.locator('.embase')).toHaveCount(176);      // /de, /exp, :ti,ab,kw, /lim, ...
+        await expect(target.locator('.near')).toHaveCount(4);          // NEXT/2, NEAR/3
+        await expect(target.locator('.brackets')).toHaveCount(38);
+        await expect(target.locator('.boolean.and')).toHaveCount(11);
+        await expect(target.locator('.boolean.not')).toHaveCount(8);
+        await expect(target).toContainText("'aged'/de");
+        await expect(target).toContainText('NEAR/3');
+        await expect(target).toContainText('[english]/lim');
+    });
+
+    test('brackets inside quoted terms are not bracket groups', async ({page}) => {
+        // 'turkey (republic)' is an Emtree term; its brackets are part of the term.
+        await expect(page.locator('#medsyntax-target1')).toContainText("'turkey (republic)'");
+        await expect(page.locator('#warning-bracket-open')).toBeHidden();
+        await expect(page.locator('#warning-bracket-close')).toBeHidden();
+    });
+
+    test('shows only the ambiguous-operator warning', async ({page}) => {
+        // Correct: the export joins numbered lines (e.g. #18 OR #19) without extra
+        // brackets, so NOT/OR and AND/NOT mix at one level.
+        await expect(page.locator('#warning-ambiguous-and')).toBeVisible();
+        await expect(page.locator('.warning-medsyntax:visible')).toHaveCount(1);
+
+        const target = page.locator('#medsyntax-target1');
+        await expect(target.locator('.boolean-error-and')).toHaveCount(3);
+        await expect(target.locator('.boolean-error-or')).toHaveCount(9);
+    });
+
+    test('stores the query in a shareable URL', async ({page}) => {
+        await expect(page).toHaveURL(/[?&]query=/);
+
+        const normalisedQuery = embaseQuery.replace(/\r?\n|\r/g, ' ').replace(/  +/g, ' ');
         const shared = await page.context().newPage();
         await shared.goto(page.url());
         await expect(shared.getByRole('textbox', {name: 'query', exact: true})).toHaveValue(normalisedQuery);
