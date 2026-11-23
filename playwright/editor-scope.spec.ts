@@ -1,5 +1,6 @@
 // @ts-check
 import {test, expect} from '@playwright/test';
+import {enterQuery, normalise, queryBox, target} from './helpers';
 
 // EDITOR (root index.html): the scope-driven editor.
 //
@@ -14,16 +15,8 @@ import {test, expect} from '@playwright/test';
 
 const query = '(heart OR cardiac) AND ("myocardial infarction"[Mesh] OR infarct*[tiab]) NOT child*[tiab]';
 
-const target = (page) => page.locator('#medsyntax-target1');
 const highlighted = (page) => target(page).locator('.hover');
 const dynamicInput = (page) => page.locator('#dynamic-input');
-const queryBox = (page) => page.getByRole('textbox', {name: 'query', exact: true});
-
-async function enterQuery(page, text) {
-    await queryBox(page).fill(text);
-    // The EDITOR renders on keyup/change/focusout; fill() fires none of these.
-    await queryBox(page).blur();
-}
 
 async function scopeText(page) {
     return (await highlighted(page).allTextContents()).join('');
@@ -36,8 +29,6 @@ async function startEdit(page, part) {
     await expect(dynamicInput(page)).toBeVisible();
 }
 
-// Spaces around an edit are not significant; compare queries with collapsed whitespace.
-const normalise = (text) => text.replace(/\s+/g, ' ').trim();
 
 test.describe('EDITOR scope-driven editor', () => {
     // Alerts block the page, so dismiss each one and keep its message.

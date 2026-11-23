@@ -1,5 +1,6 @@
 // @ts-check
 import {test, expect} from '@playwright/test';
+import {enterQuery} from './helpers';
 
 // EDITOR (root index.html) layout checks.
 //
@@ -10,13 +11,6 @@ import {test, expect} from '@playwright/test';
 //      npx playwright test editor-layout --update-snapshots
 
 const shortQuery = '(heart OR cardiac) AND ("myocardial infarction"[Mesh] OR infarct*[tiab]) NOT child*[tiab]';
-
-async function enterQuery(page, query) {
-    const queryBox = page.getByRole('textbox', {name: 'query', exact: true});
-    await queryBox.fill(query);
-    // The EDITOR renders on keyup/change/focusout; fill() fires none of these.
-    await queryBox.blur();
-}
 
 async function topOf(locator) {
     const box = await locator.boundingBox();
