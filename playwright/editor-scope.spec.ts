@@ -131,6 +131,36 @@ test.describe('EDITOR scope-driven editor', () => {
             await expect(target(page).locator('.brackets')).toHaveCount(3);
         });
 
+        test('editing a nested scope in the demo query', async ({page}) => {
+            // The demo query nests "(medical OR … OR junior )" two bracket levels deep.
+            // Moved here from the original example.spec.ts.
+            const oldGroup = '(medical OR academic OR research OR special OR college OR junior )';
+            const newGroup = '(medical OR academic OR research OR special OR college OR test value )';
+            // Spacing around brackets can change after an edit (")) " vs ") )"),
+            // so compare queries without any whitespace.
+            const compact = (text) => text.replace(/\s+/g, '');
+
+            // beforeEach entered a query, which hides the demo button; clear it first.
+            await page.locator('#clear-button').click();
+            await page.locator('#demo-button').click();
+            const demoQuery = await queryBox(page).inputValue();
+            expect(demoQuery).toContain(oldGroup);
+            const bracketGroups = await target(page).locator('.brackets').count();
+
+            await startEdit(page, target(page).locator('.term', {hasText: 'junior'}));
+            await expect(dynamicInput(page)).toHaveValue(oldGroup);
+            await dynamicInput(page).fill(newGroup);
+            await dynamicInput(page).press('Enter');
+
+            await expect(dynamicInput(page)).toHaveCount(0);
+            await expect.poll(async () => compact(await queryBox(page).inputValue()))
+                .toBe(compact(demoQuery.replace(oldGroup, newGroup)));
+            await expect(queryBox(page)).not.toHaveValue(/junior/);
+            await expect(target(page).locator('.term', {hasText: 'test value'})).toBeVisible();
+            await expect(target(page).locator('.brackets')).toHaveCount(bracketGroups);
+            await expect(page.locator('.warning-medsyntax:visible')).toHaveCount(0);
+        });
+
         test('clicking outside the input cancels the edit', async ({page}) => {
             await startEdit(page, target(page).locator('.term', {hasText: 'cardiac'}));
             await dynamicInput(page).fill('(this edit is thrown away)');
