@@ -10,7 +10,7 @@ See `FEATURES.md` for the feature list and the TODO list. Keep it up to date whe
 - `style.css`, `iframe.css`: styles for the main app.
 - `workspace/`: MedsyntaxQA (Query Augmentation), an experimental v0.1. It embeds several copies of `../index.html?ws=<n>&...` in iframes and loads `../scripts/...`, so it must be served from the **repo root**, not from `workspace/` on its own.
 - `scripts/`: client-side scripts loaded by the pages.
-  - `lzstring.js` and `iframe-resizer/` are **third-party** (MIT / GPLv3). Do not edit them.
+  - `third-party/`: vendored libraries: `lzstring.js` (MIT) and `iframe-resizer/` (GPLv3). **Read-only.** See Conventions.
   - `key-commands.js` is our own (a keyboard-handling stub that uses the global `editMode`).
 - `server.js`: a static dev server with no dependencies. It serves the repo root on `PORT` (default 8080).
 - `playwright/`: end-to-end tests. `playwright.config.js` starts `server.js` and sets `baseURL` to `http://127.0.0.1:8080`.
@@ -28,6 +28,7 @@ Run `npm run pw-test` after changing `index.html`, `workspace/` or `scripts/`, a
 
 ## Conventions
 
+- **Never edit, reformat, rename or delete anything in `scripts/third-party/`.** These are unmodified upstream copies, kept for licensing and attribution. If one needs a fix or an upgrade, stop and ask the user. Put our own code in `scripts/` (outside `third-party/`) and wrap or extend the library from there.
 - Keep the site static: no bundler, no framework, and no new runtime dependencies unless asked. jQuery 3.6 comes from the CDN.
 - Scripts are loaded with relative paths (`scripts/...` from the root, `../scripts/...` from `workspace/`). Keep pages working when served from the repo root and on GitHub Pages under a sub-path, so never use absolute `/` URLs.
 - Shareable state (query, title, workspace items) lives in the URL query string, compressed with LZString. Changes must keep existing links loading.
