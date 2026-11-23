@@ -56,12 +56,13 @@ Medsyntax is a syntax assistant for (medical) search engine queries with a scope
 - [ ] Remove `playwright/example.spec.ts`. Move its tests first so nothing is lost:
   - "Medsyntax has title" and "Demo query and custom input render combined medsyntax output" → `editor.spec.ts`
   - "Workspace page loads with its scripts" → a new `workspace.spec.ts`
-- [ ] Add tests for each syntax warning (brackets, quotes, duplicate/ambiguous operators)
+- [x] Add tests for the bracket warnings `( )` and `[ ]`: `playwright/editor-warnings.spec.ts`
+- [ ] Add tests for the other syntax warnings (quotes, duplicate/ambiguous operators) in `editor-warnings.spec.ts`
 - [ ] Add tests for URL sharing (query/title restored from link)
 - [ ] Add tests for copy buttons, clear button and greyscale mode
 - [x] Add tests for cancelling an edit (click outside the dynamic input): `playwright/editor-scope.spec.ts`
 - [ ] Run Playwright tests in GitHub Actions
-- [ ] Enable all browsers again: uncomment the `chromium` and `firefox` projects in `playwright.config.js` (only Safari/WebKit runs for now), check that their `editor-layout` screenshot baselines still match (refresh with `--update-snapshots` if the layout changed on purpose), and update the Commands section of `CLAUDE.md`
+- [ ] Enable all browsers again: uncomment the `chromium` and `firefox` projects in `playwright.config.js` (only Safari/WebKit runs for now), check that their `editor-layout` screenshot baselines still match (refresh with `--update-snapshots` if the layout changed on purpose; `editor-with-warning-chromium-darwin.png` and `-firefox-darwin.png` still show the old double bracket warning and must be refreshed), and update the Commands section of `CLAUDE.md`
 
 ### Code quality
 - [ ] Move inline `<script>` blocks from `index.html` into separate JS files

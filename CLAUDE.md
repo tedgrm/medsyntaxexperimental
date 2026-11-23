@@ -14,7 +14,7 @@ See `FEATURES.md` for the feature list and the TODO list. Keep it up to date whe
   - `key-commands.js` is our own (a keyboard-handling stub that uses the global `editMode`).
 - `server.js`: a static dev server with no dependencies. It serves the repo root on `PORT` (default 8080).
 - `playwright/`: end-to-end tests. `playwright.config.js` starts `server.js`, sets `baseURL` to `http://127.0.0.1:8080`, and starts every browser at a **1920x1080** viewport (set after each device preset, which has its own size). Keep that default. Only resize inside a test when the test is about another screen size.
-  - `editor.spec.ts`: EDITOR behaviour. `editor-layout.spec.ts`: EDITOR layout (structure checks plus screenshot comparisons). `editor-scope.spec.ts`: the scope-driven editor (hover to pick a scope, click to edit, Enter to confirm, click outside to cancel, alerts on invalid edits).
+  - `editor.spec.ts`: EDITOR behaviour. `editor-layout.spec.ts`: EDITOR layout (structure checks plus screenshot comparisons). `editor-warnings.spec.ts`: syntax warnings (bracket warnings so far). `editor-scope.spec.ts`: the scope-driven editor (hover to pick a scope, click to edit, Enter to confirm, click outside to cancel, alerts on invalid edits).
   - `editor-layout.spec.ts-snapshots/`: screenshot baselines, one per browser and OS (`-darwin`). After an intended layout change, refresh them with `npx playwright test editor-layout --update-snapshots`, look at the new images, and commit them.
 - `product-development/`: product development resources (research, roadmap, designs, feedback). Not part of the site's code. See its `README.md`.
   - `external documents/`: source documents from outside the project. **Read-only.** See Conventions.

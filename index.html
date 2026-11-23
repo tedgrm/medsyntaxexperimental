@@ -765,7 +765,11 @@
             document.getElementById(warningBracketCloseElementId).hidden = false;
             hasError = true;
         }
-        if (str.indexOf("(") > str.indexOf(")")) {
+        // wrong order: a ) before the first (. Only compare when there is a ),
+        // because indexOf returns -1 when it is missing.
+        const firstBracketOpen = str.indexOf("(");
+        const firstBracketClose = str.indexOf(")");
+        if (firstBracketClose !== -1 && firstBracketOpen > firstBracketClose) {
             document.getElementById(warningBracketCloseElementId).hidden = false;
             document.getElementById(warningBracketOpenElementId).hidden = false;
         }
@@ -781,7 +785,10 @@
             document.getElementById(warningSquareBracketCloseElementId).hidden = false;
             hasError = true;
         }
-        if (str.indexOf("[") > str.indexOf("]")) {
+        // wrong order: a ] before the first [. Only compare when there is a ].
+        const firstSquareBracketOpen = str.indexOf("[");
+        const firstSquareBracketClose = str.indexOf("]");
+        if (firstSquareBracketClose !== -1 && firstSquareBracketOpen > firstSquareBracketClose) {
             document.getElementById(warningSquareBracketCloseElementId).hidden = false;
             document.getElementById(warningSquareBracketOpenElementId).hidden = false;
         }
