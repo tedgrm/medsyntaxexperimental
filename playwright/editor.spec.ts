@@ -1,8 +1,7 @@
 // @ts-check
 import {test, expect} from '@playwright/test';
 import {enterQuery} from './helpers';
-import * as fs from 'fs';
-import * as path from 'path';
+import embaseFixture from './fixtures/embase-query.json';
 
 // EDITOR (root index.html) tests. Recorded with `npm run pw-codegen`, then tidied.
 
@@ -45,8 +44,6 @@ test.describe('EDITOR with a PubMed query', () => {
 // A real Embase.com search, copied from product-development/external documents/
 // embase string example.xlsx. The fixture's "source" field says where from; see
 // also playwright/fixtures/README.md.
-const embaseFixture = JSON.parse(
-    fs.readFileSync(path.join(__dirname, 'fixtures', 'embase-query.json'), 'utf8'));
 const embaseQuery: string = embaseFixture.query;
 
 test.describe('EDITOR with an Embase query', () => {
