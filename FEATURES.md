@@ -59,7 +59,7 @@ Medsyntax is a syntax assistant for (medical) search engine queries with a scope
 - [ ] Add tests for each syntax warning (brackets, quotes, duplicate/ambiguous operators)
 - [ ] Add tests for URL sharing (query/title restored from link)
 - [ ] Add tests for copy buttons, clear button and greyscale mode
-- [ ] Add tests for cancelling an edit (click outside the dynamic input)
+- [x] Add tests for cancelling an edit (click outside the dynamic input): `playwright/editor-scope.spec.ts`
 - [ ] Run Playwright tests in GitHub Actions
 
 ### Code quality
