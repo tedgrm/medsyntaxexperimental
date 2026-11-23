@@ -49,7 +49,7 @@ Medsyntax is a syntax assistant for (medical) search engine queries with a scope
 ## TODO
 
 ### Bugs / code questions
-- [ ] Clear button leaves syntax warnings visible: `clearButtonFunc` in `index.html` should call `hideWarnings()`. Test: `editor-controls.spec.ts` "hides the syntax warnings of the cleared query" (marked `test.fail`; remove that line once fixed)
+- [x] Clear button: hide syntax warnings, and reset `stringLatestString` so re-entering the same query renders it again (`clearButtonFunc` in `index.html`; tests in `editor-controls.spec.ts`)
 - [ ] Verify the `savedLatestInputTime !== latestInputTime` check in `afterParseFunction` actually works (`index.html` TODO)
 - [ ] `scripts/key-commands.js` is a stub (only `console.log`s); implement keyboard commands or remove it
 

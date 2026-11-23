@@ -336,6 +336,11 @@
         updateUrl('query', '');
         document.getElementById("demo-button").hidden = false;
         $('#medsyntax-target1').text('');
+        // No warnings for an empty query.
+        hideWarnings();
+        // Forget the cleared text, so re-entering the same query renders it again
+        // (syntaxCheck skips input equal to stringLatestString).
+        stringLatestString = "";
     }
 
 

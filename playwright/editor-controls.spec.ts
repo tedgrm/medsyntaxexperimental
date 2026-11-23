@@ -58,10 +58,6 @@ test.describe('EDITOR clear button', () => {
     });
 
     test('hides the syntax warnings of the cleared query', async ({page}) => {
-        // Known bug: clearButtonFunc never calls hideWarnings, so a warning stays
-        // visible above an empty query box. Remove this line once fixed.
-        test.fail(true, 'Known bug: the clear button leaves syntax warnings visible');
-
         await enterQuery(page, '(heart OR cardiac');
         await expectWarnings(page, ['warning-bracket-open']);
 
@@ -69,6 +65,23 @@ test.describe('EDITOR clear button', () => {
 
         await expect(queryBox(page)).toHaveValue('');
         await expectWarnings(page, []);
+    });
+
+    test('the cleared query renders again when re-entered without a click', async ({page}) => {
+        const query = '(heart OR cardiac) AND lung';
+        await enterQuery(page, query);
+        await page.locator('#clear-button').click();
+        await expect(target(page)).toHaveText('');
+
+        // Keyboard focus and a key press, as when pasting: no click (which
+        // re-renders the empty box) and no blur (which forces a render).
+        await queryBox(page).focus();
+        await queryBox(page).fill(query);
+        await queryBox(page).press('End');
+
+        await expect(target(page).locator('.brackets')).toHaveCount(1);
+        await expect(page).toHaveURL(/[?&]query=[^&]/);
+        await expect(page.locator('#demo-button')).toBeHidden();
     });
 });
 
