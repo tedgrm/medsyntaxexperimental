@@ -17,6 +17,9 @@ See `FEATURES.md` for the feature list and the TODO list. Keep it up to date whe
   - `editor.spec.ts`: EDITOR behaviour. `editor-layout.spec.ts`: EDITOR layout (structure checks plus screenshot comparisons).
   - `editor-layout.spec.ts-snapshots/`: screenshot baselines, one per browser and OS (`-darwin`). After an intended layout change, refresh them with `npx playwright test editor-layout --update-snapshots`, look at the new images, and commit them.
 - `product-development/`: product development resources (research, roadmap, designs, feedback). Not part of the site's code. See its `README.md`.
+  - `external documents/`: source documents from outside the project. **Read-only.** See Conventions.
+    - `Zoekstrategie Medsyntax Ted.docx`: a PubMed search strategy, the query used in `playwright/editor.spec.ts`.
+    - `embase string example.xlsx`: an Embase.com search strategy as 28 numbered lines (`#1`–`#28`, with result counts and syntax explanations) and as one combined string.
 
 ## The two `index.html` files
 
@@ -62,6 +65,7 @@ Run `npm run pw-test` after changing `index.html`, `workspace/` or `scripts/`, a
 
 ## Conventions
 
+- **Never edit, overwrite, convert, rename, move or delete anything in `product-development/external documents/`.** These are originals from other people. Read them (unzip the `.docx`/`.xlsx` XML) and copy what you need elsewhere, for example a query into a test. To add or replace a document, ask the user to do it. `.claude/settings.json` also denies file edits there.
 - **Never edit, reformat, rename or delete anything in `scripts/third-party/`.** These are unmodified upstream copies, kept for licensing and attribution. If one needs a fix or an upgrade, stop and ask the user. Put our own code in `scripts/` (outside `third-party/`) and wrap or extend the library from there.
 - Keep the site static: no bundler, no framework, and no new runtime dependencies unless asked. jQuery 3.6 comes from the CDN.
 - Scripts are loaded with relative paths (`scripts/...` from the root, `../scripts/...` from `workspace/`). Keep pages working when served from the repo root and on GitHub Pages under a sub-path, so never use absolute `/` URLs.

@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "deny": [
+      "Edit(/product-development/external documents/**)",
+      "Edit(product-development/external documents/**)"
+    ]
+  }
+}
