@@ -15,6 +15,37 @@ See `FEATURES.md` for the feature list and the TODO list. Keep it up to date whe
 - `server.js`: a static dev server with no dependencies. It serves the repo root on `PORT` (default 8080).
 - `playwright/`: end-to-end tests. `playwright.config.js` starts `server.js` and sets `baseURL` to `http://127.0.0.1:8080`.
 
+## The two `index.html` files
+
+There are two pages, both called `index.html`. Each has a short identifier. Use it in chat, plans, commit messages and docs instead of a bare "index.html":
+
+- **EDITOR**: the Medsyntax query editor, `index.html` at the repo root
+- **WORKSPACE**: the MedsyntaxQA workspace, `workspace/index.html`. It holds a list of EDITORs. A single EDITOR embedded in the WORKSPACE is an **item** (as in the code: `addItemAfter`, `removeThisItem`, `li_item_<n>`).
+
+If the user just says "index.html", ask which one they mean, unless the context makes it clear.
+
+| | EDITOR (Medsyntax app) | WORKSPACE (MedsyntaxQA workspace) |
+|---|---|---|
+| File | `index.html` (repo root) | `workspace/index.html` |
+| `<title>` | `Medsyntax` | `MedsyntaxQA` |
+| URL (dev) | http://127.0.0.1:8080/index.html | http://127.0.0.1:8080/workspace/ |
+| Styles | `style.css`, plus `iframe.css` when embedded | `workspace/style.css` |
+| Version | 1.0 (`README.md`) | 0.1, experimental (`workspace/README.md`) |
+| Role | Edits **one** query: input, syntax visualisation, warnings, scope editor, copy and share | Holds a **list** of Medsyntax apps, each in its own iframe, with Add/Remove buttons |
+
+**How they work together:**
+- The workspace builds each list item as `<iframe id="page_is_fresh_<n>" src="../index.html?ws=<n>&...">` (`queryFunction`). Each item gets a random coloured border and is sized with iframe-resizer.
+- The app detects workspace mode from the `ws` URL parameter. In that mode it adds the `ws-iframe-body` class and sends messages to the parent with `window.parent.postMessage`:
+  - `updateUrl`: payload `"<n>%index%<app query string without ws>"`. The workspace stores it in its own URL as `<n padded to 9 digits>iframequery`, compressed with LZString.
+  - `setEditMode`: payload `true`/`false`. The workspace stores it in its global `editMode`, which `scripts/key-commands.js` reads.
+- The workspace only accepts messages from its own origin, so both pages must be served from the same server.
+- When the workspace loads, it rebuilds the list from its `…iframequery` parameters. If there are none, it starts with three empty apps.
+
+**When editing:**
+- A change to the root `index.html` affects both the stand-alone app and every workspace item. Test both.
+- If you change the message types or payload formats, update both files together.
+- When opened without `ws`, the app must keep working on its own.
+
 ## Commands
 
 - `npm start`: serve the site at http://127.0.0.1:8080/ (workspace: `/workspace/`)
