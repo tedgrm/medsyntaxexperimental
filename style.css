@@ -36,6 +36,9 @@
 }
 
 .query-title {
+    /* size="100" in index.html, but never wider than the screen */
+    max-width: 100%;
+    box-sizing: border-box;
     padding: 2px;
     margin-bottom: 5px;
     border-radius: 3px;
@@ -341,6 +344,9 @@ p {
 .tooltip .tooltiptext {
     visibility: hidden;
     width: 400px;
+    /* fit narrow screens; long "Copied: <link>" text wraps */
+    max-width: 60vw;
+    overflow-wrap: anywhere;
     background-color: #555;
     color: #fff;
     text-align: center;

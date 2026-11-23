@@ -49,6 +49,7 @@ Medsyntax is a syntax assistant for (medical) search engine queries with a scope
 ## TODO
 
 ### Bugs / code questions
+- [x] EDITOR scrolled sideways on narrow screens (375px): the title box (`size="100"`) and the hidden 400px copy tooltips were wider than the screen, and without a viewport tag phones zoomed out a 980px layout. Fixed with `max-width` on `.query-title` and `.tooltiptext` and a viewport meta tag (tests: `editor-layout.spec.ts` "no horizontal page scroll at 375px wide")
 - [x] WORKSPACE dropped new empty items on reload (stored as `Q`, skipped by the ready handler); every item is now restored (`workspace/index.html`; test: `workspace.spec.ts` "reloading the link keeps empty items too")
 - [x] Clear button: hide syntax warnings, and reset `stringLatestString` so re-entering the same query renders it again (`clearButtonFunc` in `index.html`; tests in `editor-controls.spec.ts`)
 - [ ] Verify the `savedLatestInputTime !== latestInputTime` check in `afterParseFunction` actually works (`index.html` TODO)

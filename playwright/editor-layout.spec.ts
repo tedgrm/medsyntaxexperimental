@@ -81,12 +81,6 @@ test.describe('EDITOR layout: structure', () => {
 
     for (const width of [1920, 375]) {
         test(`no horizontal page scroll at ${width}px wide`, async ({page}) => {
-            // Known issue: #query-title1 has size="100" (about 814px wide), so the
-            // EDITOR scrolls sideways on phone-sized screens. This test is marked
-            // as expected to fail at 375px; once that is fixed, Playwright reports
-            // it as "passed unexpectedly", and this line should be removed.
-            test.fail(width === 375, 'Known issue: #query-title1 is wider than a phone screen');
-
             // Load at the target size: the query box takes its width at page load.
             await page.setViewportSize({width, height: 1080});
             await page.reload();
