@@ -61,6 +61,7 @@ Medsyntax is a syntax assistant for (medical) search engine queries with a scope
 - [ ] Add tests for copy buttons, clear button and greyscale mode
 - [x] Add tests for cancelling an edit (click outside the dynamic input): `playwright/editor-scope.spec.ts`
 - [ ] Run Playwright tests in GitHub Actions
+- [ ] Enable all browsers again: uncomment the `chromium` and `firefox` projects in `playwright.config.js` (only Safari/WebKit runs for now), check that their `editor-layout` screenshot baselines still match (refresh with `--update-snapshots` if the layout changed on purpose), and update the Commands section of `CLAUDE.md`
 
 ### Code quality
 - [ ] Move inline `<script>` blocks from `index.html` into separate JS files
