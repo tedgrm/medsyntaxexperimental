@@ -39,7 +39,7 @@ Medsyntax is a syntax assistant for (medical) search engine queries with a scope
 - iframe-resizer support for embedding in other pages
 
 ## Tooling
-- Playwright end-to-end tests (`npm run pw-test`, `npm run pw-test-ui`)
+- Playwright end-to-end tests (`npm run pw-test`, `npm run pw-test-ui`), also as Claude Code skills (`/pw-test`, `/pw-test-gui`, `/pw-codegen`, `/pw-report`)
 - GitHub Pages deployment via `.github/workflows/static.yml`
 - Qodana code analysis config
 - `workspace/`: MedsyntaxQA (Query Augmentation) experimental version (v0.1)

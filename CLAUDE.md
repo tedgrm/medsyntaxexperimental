@@ -20,6 +20,7 @@ See `FEATURES.md` for the feature list and the TODO list. Keep it up to date whe
   - `helpers.ts`: shared test helpers. EDITOR: `enterQuery`, `queryBox`, `target`, `captureAlerts`, `expectWarnings`. WORKSPACE: `waitForItems`, `itemFrame`, `enterItemQuery`, `itemQuery`, `linkQueries`. Use them in new tests. Tests that document a known bug use `test.fail(true, 'Known bug: …')`; remove that line when the bug is fixed.
   - `fixtures/`: test inputs copied from `product-development/external documents/` (tests never read the originals). See its `README.md` for each file's source.
   - `editor-layout.spec.ts-snapshots/`: screenshot baselines, one per browser and OS (`-darwin`). After an intended layout change, refresh them with `npx playwright test editor-layout --update-snapshots`, look at the new images, and commit them.
+- `.claude/skills/`: skills (slash commands) that run the Playwright commands below. Only `/pw-test` can be started by Claude itself; the others open windows, so only the user starts them.
 - `product-development/`: product development resources (research, roadmap, designs, feedback). Not part of the site's code. See its `README.md`.
   - `external documents/`: source documents from outside the project. **Read-only.** See Conventions.
     - `Zoekstrategie Medsyntax Ted.docx`: a PubMed search strategy, the query used in `playwright/editor.spec.ts`.
@@ -59,11 +60,11 @@ If the user just says "index.html", ask which one they mean, unless the context 
 ## Commands
 
 - `npm start`: serve the site at http://127.0.0.1:8080/ (workspace: `/workspace/`)
-- `npm run pw-test`: run all Playwright tests in Safari (WebKit). Chromium and Firefox are commented out in `playwright.config.js`. The server starts on its own.
-- `npm run pw-test-gui`: Playwright UI mode
-- `npm run pw-test-ui`: headed run (browser windows visible)
-- `npm run pw-codegen`: record a new test
-- `npx playwright show-report`: open the last HTML report
+- `npm run pw-test` (skill `/pw-test`): run all Playwright tests in Safari (WebKit). Chromium and Firefox are commented out in `playwright.config.js`. The server starts on its own.
+- `npm run pw-test-gui` (skill `/pw-test-gui`): Playwright UI mode
+- `npm run pw-test-ui`: headed run (browser windows visible). **Flaky**, so there is no skill for it: on 2026-11-24, 2 of 4 headed WebKit runs of `editor-quotes` had one failing test, a different one each time (one timed out closing the browser; fewer workers did not help), while the headless runs passed. The cause is unknown. Use `npm run pw-test` to decide whether a test really fails
+- `npm run pw-codegen` (skill `/pw-codegen`): record a new test
+- `npx playwright show-report` (skill `/pw-report`): open the last HTML report
 
 Run `npm run pw-test` after changing `index.html`, `workspace/` or `scripts/`, and make sure everything passes.
 
