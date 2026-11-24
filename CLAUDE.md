@@ -15,7 +15,7 @@ See `FEATURES.md` for the feature list and the TODO list. Keep it up to date whe
 - `server.js`: a static dev server with no dependencies. It serves the repo root on `PORT` (default 8080).
 - `playwright/`: end-to-end tests. `playwright.config.js` starts `server.js`, sets `baseURL` to `http://127.0.0.1:8080`, and starts every browser at a **1920x1080** viewport (set after each device preset, which has its own size). Keep that default. Only resize inside a test when the test is about another screen size.
   - `editor.spec.ts`: EDITOR behaviour with a PubMed query and an Embase query. `editor-layout.spec.ts`: EDITOR layout (structure checks plus screenshot comparisons). `editor-warnings.spec.ts`: syntax warnings (bracket warnings so far). `editor-scope.spec.ts`: the scope-driven editor (hover to pick a scope, click to edit, Enter to confirm, click outside to cancel, alerts on invalid edits).
-  - `editor-parser.spec.ts`: how queries are rendered and cleaned up. `editor-quotes.spec.ts`: conversion of curly and look-alike quotes. `editor-controls.spec.ts`: title, demo/clear/copy buttons, menu, colour mode, help image. `editor-sharing.spec.ts`: restoring query and title from a link. `editor-embedded.spec.ts`: the EDITOR inside the WORKSPACE (`?ws=<n>`, messages to the parent).
+  - `editor-parser.spec.ts`: how queries are rendered and cleaned up. `editor-quotes.spec.ts`: conversion of curly and look-alike quotes. `editor-controls.spec.ts`: title, demo/clear/copy buttons, menu, colour mode, help image. `editor-sharing.spec.ts`: restoring query and title from a link. `editor-edge-cases.spec.ts`: unusual input, including the known bugs listed in `FEATURES.md` (as `test.fail`). `editor-embedded.spec.ts`: the EDITOR inside the WORKSPACE (`?ws=<n>`, messages to the parent).
   - `workspace.spec.ts`: the WORKSPACE (items, Add/Remove, query sync to its link, edit mode, reload, item sizing).
   - `helpers.ts`: shared test helpers. EDITOR: `enterQuery`, `queryBox`, `target`, `captureAlerts`, `expectWarnings`. WORKSPACE: `waitForItems`, `itemFrame`, `enterItemQuery`, `itemQuery`, `linkQueries`. Use them in new tests. Tests that document a known bug use `test.fail(true, 'Known bug: …')`; remove that line when the bug is fixed.
   - `fixtures/`: test inputs copied from `product-development/external documents/` (tests never read the originals). See its `README.md` for each file's source.
@@ -60,7 +60,7 @@ If the user just says "index.html", ask which one they mean, unless the context 
 ## Commands
 
 - `npm start`: serve the site at http://127.0.0.1:8080/ (workspace: `/workspace/`)
-- `npm run pw-test` (skill `/pw-test`): run all Playwright tests in Safari (WebKit). Chromium and Firefox are commented out in `playwright.config.js`. The server starts on its own.
+- `npm run pw-test` (skill `/pw-test`): run all Playwright tests in Chromium, Firefox and Safari (WebKit). Add `--project=webkit` (or another name) for one browser. The server starts on its own.
 - `npm run pw-test-gui` (skill `/pw-test-gui`): Playwright UI mode
 - `npm run pw-test-ui`: headed run (browser windows visible). **Flaky**, so there is no skill for it: on 2026-11-24, 2 of 4 headed WebKit runs of `editor-quotes` had one failing test, a different one each time (one timed out closing the browser; fewer workers did not help), while the headless runs passed. The cause is unknown. Use `npm run pw-test` to decide whether a test really fails
 - `npm run pw-codegen` (skill `/pw-codegen`): record a new test

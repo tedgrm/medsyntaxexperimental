@@ -37,17 +37,17 @@ export default defineConfig({
     trace: 'on-first-retry',
   },
 
-  /* Only Safari (WebKit) runs. Uncomment chromium/firefox to test those again. */
+  /* All three browsers run. Use --project=<name> to run one. */
   projects: [
-    // {
-    //   name: 'chromium',
-    //   use: { ...devices['Desktop Chrome'], viewport },
-    // },
+    {
+      name: 'chromium',
+      use: { ...devices['Desktop Chrome'], viewport },
+    },
 
-    // {
-    //   name: 'firefox',
-    //   use: { ...devices['Desktop Firefox'], viewport },
-    // },
+    {
+      name: 'firefox',
+      use: { ...devices['Desktop Firefox'], viewport },
+    },
 
     {
       name: 'webkit',
