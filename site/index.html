@@ -11,6 +11,15 @@
         // Embedded in the WORKSPACE (?ws=<id>): the look of an item, before anything is shown.
         if (new URLSearchParams(window.location.search).get('ws')) {
             document.documentElement.classList.add('ws-embedded');
+            // The WORKSPACE's theme; on its own, an item follows the system.
+            let theme;
+            try {
+                theme = window.parent.document.documentElement.dataset.theme;
+            } catch (error) {
+                // embedded in a page from another origin
+            }
+            document.documentElement.dataset.theme = theme
+                || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
             document.write('<link id="iframeCss" rel="stylesheet" href="./iframe.css" type="text/css" media="all">');
         }
     </script>

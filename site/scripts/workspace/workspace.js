@@ -229,7 +229,7 @@ function luminance(hex) {
 
 // White if it has at least 4.5:1 contrast on the colour, otherwise dark.
 function inkOn(hex) {
-    return 1.05 / (luminance(hex) + 0.05) >= 4.5 ? '#ffffff' : '#1c2525';
+    return 1.05 / (luminance(hex) + 0.05) >= 4.5 ? '#ffffff' : 'var(--badge-dark-ink)';
 }
 
 function itemColor(position) {
@@ -321,8 +321,12 @@ function sendToItem(item, type, payload) {
 
 function sendItemState(item) {
     const position = items.indexOf(item);
-    sendToItem(item, 'itemState', {color: itemColor(position), number: position + 1});
+    sendToItem(item, 'itemState', {
+        color: itemColor(position), number: position + 1, theme: currentTheme(),
+    });
 }
+
+document.addEventListener('medsyntax:theme', () => items.forEach(sendItemState));
 
 // message: 'focusItem' for the item itself, in its tree, or 'editQuery' for its query box. Waits until the
 // item has loaded.

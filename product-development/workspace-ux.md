@@ -24,7 +24,7 @@ Make the WORKSPACE easy to recognise, scan and rearrange.
 - The WORKSPACE and the items in it get the new style. An EDITOR opened directly (without `ws`) stays exactly as it was. Items also hide their query box when it is not being edited (ITEM-11).
 - The colours that carry meaning in the visualisation (operators, brackets, quotes, warnings, the scope highlight) stay, as in the fork.
 - The style is inspired by the Medsyntax Framework page in [mrgtverleg-lgtm/MedsyntaxQA](https://github.com/mrgtverleg-lgtm/MedsyntaxQA/tree/Medsyntax-Framework/framework) (commit `12f5d75`, GPL-3.0).
-- The WORKSPACE and its items have a dark mode that follows the system setting, with the fork's dark colours. There is no switch on the page. The visualisation stays white, like paper, as in the fork, because its colours carry meaning.
+- The WORKSPACE and its items have a dark mode with the fork's dark colours, and a greyscale mode: the light colours, all in grey. A switch in the header chooses System (the default, follows the system setting), Light, Dark or Greyscale. The choice is kept in the browser, not in the link. The visualisation stays white, like paper, as in the fork, because its colours carry meaning.
 - Border colours of cards and buttons are the fork's.
 - Item colours: 1–4 are the borders of the four textareas of [Medsyntax PICO](https://tedgrm.github.io/picomedsyntax/) (`#query-input1` to `#query-input4`), 5 is a blue, and 6–10 are chosen to differ from those and each other. No pink, which marks the current item. Dark mode lightens them where they are used as lines.
 - Each item has a number and a colour from a fixed palette. Both follow its position: nothing is stored in the link for them. They change when the item moves, or when an item above it is added or deleted, also by a reload.
@@ -34,7 +34,7 @@ Make the WORKSPACE easy to recognise, scan and rearrange.
 - Alt+Up / Alt+Down expands a collapsed item, instead of skipping it.
 - Besides style, the first version is about managing items and keyboard navigation. [keyboard-navigation.md](keyboard-navigation.md) is part of these requirements. Its rules stay in that file; this one adds only what the card, its buttons and the new actions change.
 
-**Not in the first version:** a light/dark switch, web fonts (IBM Plex would be a new external dependency), drag and drop, combining items into one query, choosing a colour, a WORKSPACE title, copying all queries, and frameworks such as PICO.
+**Not in the first version:** web fonts (IBM Plex would be a new external dependency), drag and drop, combining items into one query, choosing a colour, a WORKSPACE title, copying all queries, and frameworks such as PICO.
 
 ## Terms
 
@@ -87,8 +87,10 @@ Dark mode:
 | STYLE-8 | Items have no grey background. The query box is white, monospace, with a 3px border in the item's colour and a 1px line in the text field border colour around it, because some item colours have less than 3:1 on white. | Must |
 | STYLE-9 | The visualisation is on white, in a frame with a 3px border in the item's colour and an 8px radius. Its syntax colours stay as now. | Must |
 | STYLE-10 | Warnings in items are dark red on light red with a dark red left edge. | Must |
-| STYLE-11 | With a dark system setting, the WORKSPACE and its items use the dark colours, and change at once when the setting changes. The visualisation, and a scope edit in it, stay light. | Must |
-| STYLE-12 | Dark mode doesn't reach an EDITOR opened directly. | Must |
+| STYLE-11 | With Dark, or with System and a dark system setting, the WORKSPACE and its items use the dark colours. They change at once when the choice or the setting changes, without reloading items. The visualisation, and a scope edit in it, stay light. | Must |
+| STYLE-12 | Dark mode and the switch don't reach an EDITOR opened directly. | Must |
+| STYLE-13 | With Greyscale, the WORKSPACE and its items, including the visualisation, have the light look in grey. | Must |
+| STYLE-14 | The choice is remembered in the browser. If it can't be stored, it lasts until the page closes. | Must |
 
 ### Managing items
 
@@ -143,7 +145,7 @@ All requirements and decisions in [keyboard-navigation.md](keyboard-navigation.m
 
 | ID | Requirement | Priority |
 |---|---|---|
-| A11Y-1 | Text has at least 4.5:1 contrast; the focus outline at least 3:1 (WCAG 2.2 AA). Button borders may be lighter, because the button's text or arrow identifies it. This holds in light and dark mode. | Must |
+| A11Y-1 | Text has at least 4.5:1 contrast; the focus outline at least 3:1 (WCAG 2.2 AA). Button borders may be lighter, because the button's text or arrow identifies it. This holds in light, dark and greyscale mode. | Must |
 | A11Y-2 | An item is never recognised by colour alone: its number is always visible. | Must |
 | A11Y-3 | Buttons and iframes have a name with the item's number ("Remove query 2"). Edit, Copy and Clear query are named after the title instead, or the number without one ("Clear query Population", "Clear query 2"), and follow changes of either. The More button is "More actions for query 2". A button's name starts with its visible text. | Must |
 | A11Y-4 | Keyboard focus is visible and never lost after an action: add, duplicate and show example → the (first) new title; move → the same button, or the opposite one at an edge; remove → the Collapse button of the item now in that place (the last item if there is none), or the title of the clear item; undo → the restored item; clear and copy query → the same button, or More; edit query → the query box. | Must |
@@ -193,6 +195,7 @@ To become Playwright tests. Unless stated otherwise: three items with the titles
 27. **Copy query:** it copies the query and says so; if the browser refuses, it says that.
 28. **More menu:** every action works from it and closes it.
 29. **Closing the menu:** each way of ITEM-18.
+30. **Colour switch:** choose Dark, Greyscale and Light: the page and all items change at once, and the link stays the same. After a reload the last choice is still there.
 
 ## As built
 

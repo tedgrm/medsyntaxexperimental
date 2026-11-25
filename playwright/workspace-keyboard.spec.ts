@@ -345,4 +345,14 @@ test.describe('WORKSPACE keyboard navigation', () => {
             await expect(duplicate).toBeFocused();
         }
     });
+
+    test('the arrow keys change the colours, without moving through items', async ({page}) => {
+        await page.getByRole('radio', {name: 'System', exact: true}).focus();
+        for (const name of ['Light', 'Dark', 'Greyscale']) {
+            await page.keyboard.press('ArrowRight');
+            await expect(page.getByRole('radio', {name, exact: true})).toBeChecked();
+            await expect(page.getByRole('radio', {name, exact: true})).toBeFocused();
+            await expect(page.locator('html')).toHaveAttribute('data-theme', name.toLowerCase());
+        }
+    });
 });

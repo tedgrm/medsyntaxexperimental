@@ -822,3 +822,94 @@ test.describe('WORKSPACE style', () => {
         }
     });
 });
+
+test.describe('WORKSPACE colour switch', () => {
+    const choice = (page: Page, name: string) => page.getByRole('radio', {name, exact: true});
+    const key = 'medsyntaxqa-color-mode';
+
+    async function expectTheme(page: Page, theme: string, count: number) {
+        await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
+        await expect(page.locator('body')).toHaveCSS('background-color',
+            {light: 'rgb(230, 234, 234)', dark: 'rgb(19, 25, 25)', greyscale: 'rgb(233, 233, 233)'}[theme]!);
+        for (const part of ['header', 'main', '#undo-toast']) {
+            await expect(page.locator(part)).toHaveCSS('filter', theme === 'greyscale' ? 'grayscale(1)' : 'none');
+        }
+        for (let n = 0; n < count; n++) {
+            await expect(itemFrame(page, n).locator('html')).toHaveAttribute('data-theme', theme);
+            await expect(itemFrame(page, n).locator('body')).toHaveCSS('background-color',
+                theme === 'dark' ? 'rgb(34, 44, 43)' : 'rgb(255, 255, 255)');
+            await expect(visual(page, n)).toHaveCSS('background-color', 'rgb(255, 255, 255)');
+        }
+    }
+
+    test('30. each choice changes the page and all items, and the link stays the same', async ({page}) => {
+        await openWorkspace(page, [A, B]);
+        const url = page.url();
+        await expect(choice(page, 'System')).toBeChecked();
+        for (const name of ['Dark', 'Greyscale', 'Light']) {
+            await choice(page, name).check();
+            await expectTheme(page, name.toLowerCase(), 2);
+        }
+        expect(page.url()).toBe(url);
+    });
+
+    test('System follows the system setting at once; another choice ignores it', async ({page}) => {
+        await openWorkspace(page, [A]);
+        await page.emulateMedia({colorScheme: 'dark'});
+        await expectTheme(page, 'dark', 1);
+        await choice(page, 'Light').check();
+        await expectTheme(page, 'light', 1);
+        await page.emulateMedia({colorScheme: 'light'});
+        await page.emulateMedia({colorScheme: 'dark'});
+        await expectTheme(page, 'light', 1);
+        await choice(page, 'System').check();
+        await expectTheme(page, 'dark', 1);
+    });
+
+    test('the choice survives a reload, and new items get it', async ({page}) => {
+        await openWorkspace(page, [A]);
+        await choice(page, 'Dark').check();
+        await page.reload();
+        await waitForItems(page, 1);
+        await expect(choice(page, 'Dark')).toBeChecked();
+        await expectTheme(page, 'dark', 1);
+        await button(page, '+ Add query after 1').click();
+        await waitForItems(page, 2);
+        await expect(itemFrame(page, 1).locator('html')).toHaveAttribute('data-theme', 'dark');
+    });
+
+    test('switching does not reload items or lose an unfinished query', async ({page}) => {
+        await openWorkspace(page, [A]);
+        await itemFrame(page, 0).locator('html').evaluate((html) => html.setAttribute('data-not-reloaded', ''));
+        await openItemBox(page, 0);
+        await itemBox(page, 0).fill('(unfinished');
+        await choice(page, 'Dark').check();
+        await expectTheme(page, 'dark', 1);
+        await expect(itemBox(page, 0)).toHaveValue('(unfinished');
+        await expect(itemFrame(page, 0).locator('html')).toHaveAttribute('data-not-reloaded', '');
+    });
+
+    test('an unknown stored choice, or blocked storage, gives System', async ({page}) => {
+        await page.addInitScript((name) => localStorage.setItem(name, 'purple'), key);
+        await openWorkspace(page, [A]);
+        await expect(choice(page, 'System')).toBeChecked();
+
+        await page.addInitScript(() => Object.defineProperty(window, 'localStorage', {
+            get() {
+                throw new DOMException('blocked', 'SecurityError');
+            },
+        }));
+        await page.reload();
+        await waitForItems(page, 1);
+        await expect(choice(page, 'System')).toBeChecked();
+        await choice(page, 'Dark').check();
+        await expectTheme(page, 'dark', 1);
+    });
+
+    test('a stored choice does not reach an EDITOR opened directly', async ({page}) => {
+        await page.addInitScript((name) => localStorage.setItem(name, 'dark'), key);
+        await page.goto('/index.html');
+        await expect(page.locator('html')).not.toHaveAttribute('data-theme');
+        await expect(page.locator('body')).toHaveCSS('background-color', 'rgb(211, 211, 211)');
+    });
+});

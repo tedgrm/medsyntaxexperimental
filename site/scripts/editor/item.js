@@ -69,6 +69,7 @@ if (ws) {
         if (event.data.type === 'itemState') {
             itemNumber = event.data.payload.number;
             document.documentElement.style.setProperty('--item-color', event.data.payload.color);
+            document.documentElement.dataset.theme = event.data.payload.theme;
             updateTreeLabel();
         }
         if (event.data.type === 'focusItem') {
