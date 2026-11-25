@@ -144,7 +144,7 @@ function rebuildTree() {
     treeElement.replaceChildren(root);
     updateTreeLabel();
     if (hadFocus) {
-        selectNode(currentPath, {scroll: false});
+        selectNode(currentPath);
     } else {
         updateTabStop();
     }
@@ -165,12 +165,12 @@ function updateTabStop() {
     nodeElement(currentPath).tabIndex = 0;
 }
 
-function selectNode(path, {scroll = true} = {}) {
+function selectNode(path) {
     currentPath = validPath(path);
     updateTabStop();
     nodeElement(currentPath).focus({preventScroll: true});
     const visible = currentPath.length ? scopeAt(currentPath).nodes.find((node) => node.scrollIntoView) : document.body;
-    if (visible && scroll) {
+    if (visible) {
         visible.scrollIntoView({block: 'nearest'});
     }
     drawMarker();

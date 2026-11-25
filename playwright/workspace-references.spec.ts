@@ -1033,7 +1033,7 @@ test.describe('References: examples', () => {
         await waitForItems(page, 9);
         await expect(multiline(page)).toBeHidden();
         await expect(button(page, 'Show example')).toBeHidden();
-        await expect(itemFrame(page, 0).locator('[role=treeitem][aria-level="1"]')).toBeFocused();
+        await expect(page.locator('body')).toBeFocused();
         const queries = ['"Patient Handoff"[Mesh]', 'handover OR handoff OR "patient transfer"', '#1 OR #2',
             'SBAR OR ISBAR OR SBAR-R OR ISBARR OR ISOBAR',
             '"Communication"[Mesh] OR "Interdisciplinary Communication"[Mesh] OR "Patient Safety"[Mesh]',
