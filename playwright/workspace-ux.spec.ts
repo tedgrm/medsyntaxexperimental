@@ -2,7 +2,7 @@
 import {test, expect, type Page} from '@playwright/test';
 import {
     captureAlerts, enterItemQuery, enterItemTitle, enterQuery, itemBox, itemFrame, itemQuery, linkQueries, linkTitles,
-    openItemBox, openWorkspace, titleField, waitForItems, workspaceItem, workspaceItems,
+    openItemBox, openWorkspace, stableMiddle, titleField, waitForItems, workspaceItem, workspaceItems,
 } from './helpers';
 
 // WORKSPACE UX: product-development/workspace-ux.md. The numbers are its scenarios; 14-17 are in
@@ -723,8 +723,8 @@ test.describe('WORKSPACE query box', () => {
         await expect(visual(page, 0)).toHaveText('(heart OR lung)');
 
         // A slow click on a button below the box.
-        const add = (await button(page, '+ Add query after 1').boundingBox())!;
-        await page.mouse.move(add.x + add.width / 2, add.y + add.height / 2);
+        const add = await stableMiddle(page, button(page, '+ Add query after 1'));
+        await page.mouse.move(add.x, add.y);
         await page.mouse.down();
         await page.waitForTimeout(400);
         await expect(itemBox(page, 0)).toBeVisible();
@@ -748,9 +748,8 @@ test.describe('WORKSPACE query box', () => {
     test('a slow click in an item below reaches its target', async ({page}) => {
         await openWorkspace(page, [A, B]);
         await openItemBox(page, 0);
-        await page.waitForTimeout(400);
-        const box = (await button(page, 'Edit query B').boundingBox())!;
-        await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+        const edit = await stableMiddle(page, button(page, 'Edit query B'));
+        await page.mouse.move(edit.x, edit.y);
         await page.mouse.down();
         await page.waitForTimeout(400);
         await page.mouse.up();
