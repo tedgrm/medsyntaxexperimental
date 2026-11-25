@@ -40,9 +40,9 @@ Medsyntax is a syntax assistant for (medical) search engine queries with a scope
 
 ## Tooling
 - Playwright end-to-end tests (`npm run pw-test`, `npm run pw-test-ui`), also as Claude Code skills (`/pw-test`, `/pw-test-gui`, `/pw-codegen`, `/pw-report`)
-- GitHub Pages deployment via `.github/workflows/static.yml`
+- GitHub Pages deployment via `.github/workflows/static.yml` (publishes only `site/`)
 - Qodana code analysis config
-- `workspace/`: MedsyntaxQA (Query Augmentation) experimental version (v0.1)
+- `site/workspace/`: MedsyntaxQA (Query Augmentation) experimental version (v0.1)
 
 ---
 
@@ -50,10 +50,10 @@ Medsyntax is a syntax assistant for (medical) search engine queries with a scope
 
 ### Bugs / code questions
 - [x] EDITOR scrolled sideways on narrow screens (375px): the title box (`size="100"`) and the hidden 400px copy tooltips were wider than the screen, and without a viewport tag phones zoomed out a 980px layout. Fixed with `max-width` on `.query-title` and `.tooltiptext` and a viewport meta tag (tests: `editor-layout.spec.ts` "no horizontal page scroll at 375px wide")
-- [x] WORKSPACE dropped new empty items on reload (stored as `Q`, skipped by the ready handler); every item is now restored (`workspace/index.html`; test: `workspace.spec.ts` "reloading the link keeps empty items too")
-- [x] Clear button: hide syntax warnings, and reset `stringLatestString` so re-entering the same query renders it again (`clearButtonFunc` in `index.html`; tests in `editor-controls.spec.ts`)
-- [ ] Verify the `savedLatestInputTime !== latestInputTime` check in `afterParseFunction` actually works (`index.html` TODO)
-- [ ] `scripts/key-commands.js` is a stub (only `console.log`s); implement keyboard commands or remove it
+- [x] WORKSPACE dropped new empty items on reload (stored as `Q`, skipped by the ready handler); every item is now restored (`site/workspace/index.html`; test: `workspace.spec.ts` "reloading the link keeps empty items too")
+- [x] Clear button: hide syntax warnings, and reset `stringLatestString` so re-entering the same query renders it again (`clearButtonFunc` in `site/index.html`; tests in `editor-controls.spec.ts`)
+- [ ] Verify the `savedLatestInputTime !== latestInputTime` check in `afterParseFunction` actually works (`site/index.html` TODO)
+- [ ] `site/scripts/key-commands.js` is a stub (only `console.log`s); implement keyboard commands or remove it
 - [ ] EDITOR bugs with a `test.fail` test in `playwright/editor-edge-cases.spec.ts` (remove that line when fixed):
   - [ ] **Security (XSS):** HTML in a query, also from a shared link, runs as code (`innerHTML`, unescaped)
   - [ ] Fast typing in Safari stops rendering: over 100 history changes in 10 seconds (`updateUrl` calls `replaceState` and `pushState`)
@@ -87,14 +87,14 @@ Medsyntax is a syntax assistant for (medical) search engine queries with a scope
 - [x] Refresh `editor-with-warning-chromium-darwin.png` and `editor-with-warning-firefox-darwin.png` (they showed the old double bracket warning)
 
 ### Code quality
-- [ ] Move inline `<script>` blocks from `index.html` into separate JS files
+- [ ] Move inline `<script>` blocks from `site/index.html` into separate JS files
 - [ ] Give generic functions clearer names (e.g. `myFunction`, `myForm`, `myRadios`)
 - [ ] Host jQuery locally or add an SRI hash to the CDN `<script>`
 - [ ] Remove or reduce commented-out `console.log` calls
 
 ### Docs / housekeeping
 - [ ] Update `README.md` (still says "medsyntaxexperimental"; add usage and dev instructions)
-- [ ] Document how `workspace/` (MedsyntaxQA) relates to the main app
+- [ ] Document how `site/workspace/` (MedsyntaxQA) relates to the main app
 
 ### Ideas
 - [ ] Support more search engine syntaxes (PubMed, Ovid, etc.)

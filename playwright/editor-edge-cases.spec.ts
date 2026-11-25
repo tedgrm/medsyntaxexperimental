@@ -2,7 +2,7 @@
 import {test, expect, type Page} from '@playwright/test';
 import {captureAlerts, enterQuery, expectWarnings, queryBox, target} from './helpers';
 
-// EDITOR (root index.html): unusual input. Tests marked 'Known bug' describe
+// EDITOR (site/index.html): unusual input. Tests marked 'Known bug' describe
 // the wanted behaviour and are expected to fail; remove their test.fail line
 // when the bug is fixed. The bugs are listed in FEATURES.md.
 

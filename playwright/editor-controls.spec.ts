@@ -2,7 +2,7 @@
 import {test, expect, type Page} from '@playwright/test';
 import {enterQuery, expectWarnings, queryBox, target} from './helpers';
 
-// EDITOR (root index.html): title, buttons, colour mode, menu and help image.
+// EDITOR (site/index.html): title, buttons, colour mode, menu and help image.
 
 const titleBox = (page: Page) => page.locator('#query-title1');
 

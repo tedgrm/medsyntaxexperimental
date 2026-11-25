@@ -75,7 +75,7 @@ export default defineConfig({
     // },
   ],
 
-  /* Serve the repo (including /workspace/) before starting the tests */
+  /* Serve site/ (including /workspace/) before starting the tests */
   webServer: {
     command: 'node server.js',
     url: 'http://127.0.0.1:8080/workspace/',

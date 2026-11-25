@@ -1,6 +1,6 @@
 ---
 name: pw-test
-description: Run the Playwright tests (all, or a file / -g pattern). Use after changing the EDITOR, the WORKSPACE, scripts/ or tests, or when asked to run the tests.
+description: Run the Playwright tests (all, or a file / -g pattern). Use after changing the EDITOR, the WORKSPACE, site/scripts/ or tests, or when asked to run the tests.
 argument-hint: "[spec file] [-g pattern] [other playwright options]"
 ---
 

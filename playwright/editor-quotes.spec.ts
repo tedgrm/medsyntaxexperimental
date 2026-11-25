@@ -2,7 +2,7 @@
 import {test, expect} from '@playwright/test';
 import {captureAlerts, enterQuery, expectWarnings, queryBox, target} from './helpers';
 
-// EDITOR (root index.html): converting quote signs (syntaxCheck).
+// EDITOR (site/index.html): converting quote signs (syntaxCheck).
 // Curly and other look-alike quotes, e.g. from Word, are replaced with straight
 // quotes, and an alert says so: one alert per kind (double, single).
 

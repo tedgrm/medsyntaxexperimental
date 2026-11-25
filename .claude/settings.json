@@ -3,8 +3,8 @@
     "deny": [
       "Edit(/product-development/external documents/**)",
       "Edit(product-development/external documents/**)",
-      "Edit(/scripts/third-party/**)",
-      "Edit(scripts/third-party/**)"
+      "Edit(/site/scripts/third-party/**)",
+      "Edit(site/scripts/third-party/**)"
     ]
   }
 }

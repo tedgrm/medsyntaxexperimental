@@ -2,7 +2,7 @@
 import {test, expect} from '@playwright/test';
 import {enterQuery, expectWarnings, queryBox, target} from './helpers';
 
-// EDITOR (root index.html): how syntaxParser turns a query into visualisation
+// EDITOR (site/index.html): how syntaxParser turns a query into visualisation
 // elements, and how syntaxCheck cleans up the input first.
 
 test.describe('EDITOR parser output', () => {

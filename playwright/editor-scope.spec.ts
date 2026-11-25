@@ -2,7 +2,7 @@
 import {test, expect} from '@playwright/test';
 import {enterQuery, normalise, queryBox, target} from './helpers';
 
-// EDITOR (root index.html): the scope-driven editor.
+// EDITOR (site/index.html): the scope-driven editor.
 //
 // How it works:
 //  1. Hover over the visualisation: the part under the mouse and its scope get the `.hover` class.

@@ -2,7 +2,7 @@
 import {test, expect} from '@playwright/test';
 import {enterQuery} from './helpers';
 
-// EDITOR (root index.html) layout checks.
+// EDITOR (site/index.html) layout checks.
 //
 // 1. Structural checks: run everywhere, no baseline images needed.
 // 2. Visual checks: compare full-page screenshots with stored baselines in

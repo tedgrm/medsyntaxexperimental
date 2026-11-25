@@ -1,5 +1,5 @@
 // Minimal static file server for local development and Playwright tests.
-// Serves the repository root so /workspace/ can resolve its ../scripts and
+// Serves the site/ folder so /workspace/ can resolve its ../scripts and
 // ../index.html references. No dependencies beyond Node itself.
 //
 // Usage: node server.js            (PORT defaults to 8080)
@@ -9,7 +9,7 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 
-const ROOT = __dirname;
+const ROOT = path.join(__dirname, 'site');
 const PORT = Number(process.env.PORT) || 8080;
 const HOST = process.env.HOST || '127.0.0.1';
 
