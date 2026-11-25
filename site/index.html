@@ -8,6 +8,10 @@
     <title>Medsyntax</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://code.jquery.com/jquery-3.6.0.js"></script>
+    <!-- jQuery fallbacks. Keep one script tag each: every check must wait for the script before it. -->
+    <script>window.jQuery || document.write('<script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.js"><\/script>')</script>
+    <script>window.jQuery || document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.js"><\/script>')</script>
+    <script>window.jQuery || document.write('<script src="scripts/third-party/jquery/jquery-3.6.0.js"><\/script>')</script>
     <script src="scripts/third-party/iframe-resizer/js/iframeResizer.contentWindow.js"></script>
     <script src="scripts/third-party/lzstring.js"></script>
 </head>
