@@ -1,17 +1,20 @@
 # CLAUDE.md
 
-Medsyntax is a syntax assistant for (medical) search-engine queries, with a scope-driven editor. It is a plain static site (HTML + inline JS + jQuery), with no build step and no framework. It is deployed to GitHub Pages by `.github/workflows/static.yml`, which publishes only the `site/` folder (the Pages source must be GitHub Actions).
+Medsyntax is a syntax assistant for (medical) search-engine queries, with a scope-driven editor. It is a plain static site (HTML + JS + jQuery), with no build step and no framework. It is deployed to GitHub Pages by `.github/workflows/static.yml`, which publishes only the `site/` folder (the Pages source must be GitHub Actions).
 
 See `FEATURES.md` for the feature list and the TODO list. Keep it up to date when you add or finish features.
 
 ## Layout
 
 - `site/`: the published site. Everything the pages load is in here; nothing outside it is served or published. Paths in URLs are relative to it (`site/workspace/` is `/workspace/`).
-- `site/index.html`: the main Medsyntax app. Most of the logic is in inline `<script>` blocks: parsing and rendering (`syntaxCheck`), warnings, the scope editor (`setEditMode`, dynamic input), URL sharing (`updateUrl`, `getParameterByName`) and copy buttons.
+- `site/index.html`: the main Medsyntax app (markup only; its logic is in `site/scripts/editor/`).
 - `site/style.css`, `site/iframe.css`: styles for the main app.
 - `site/workspace/`: MedsyntaxQA (Query Augmentation), an experimental v0.1. It embeds several copies of `../index.html?ws=<n>&...` in iframes and loads `../scripts/...`, so it must be served from **`site/`**, not from `site/workspace/` on its own.
 - `site/scripts/`: client-side scripts loaded by the pages.
   - `third-party/`: vendored libraries, currently `lzstring.js` (MIT) and `iframe-resizer/` (GPLv3). Anything added here later is third-party too. **Read-only**, and not to be tested. See Conventions.
+  - `editor/`: the EDITOR's own scripts, loaded by `site/index.html` in this order. They are plain scripts (not modules) that share globals and are called from inline `on…` handlers, and they need the elements above their `<script>` tags, so keep the tags where they are.
+    - `menu.js` (dropdown menu), `color-mode.js` (colour/greyscale), `help-image.js` (help image modal).
+    - `editor.js`: most of the logic: parsing and rendering (`syntaxCheck`), warnings, the scope editor (`setEditMode`, dynamic input), URL sharing (`updateUrl`, `getParameterByName`) and copy buttons.
   - `key-commands.js` is our own (a keyboard-handling stub that uses the global `editMode`).
 - `server.js`: a static dev server with no dependencies. It serves `site/` on `PORT` (default 8080).
 - `playwright/`: end-to-end tests. `playwright.config.js` starts `server.js`, sets `baseURL` to `http://127.0.0.1:8080`, and starts every browser at a **1920x1080** viewport (set after each device preset, which has its own size). Keep that default. Only resize inside a test when the test is about another screen size.
@@ -56,7 +59,7 @@ If the user just says "index.html", ask which one they mean, unless the context 
 - When the workspace loads, it rebuilds the list from its `…iframequery` parameters. If there are none, it starts with three empty apps.
 
 **When editing:**
-- A change to `site/index.html` affects both the stand-alone app and every workspace item. Test both.
+- A change to `site/index.html` or `site/scripts/editor/` affects both the stand-alone app and every workspace item. Test both.
 - If you change the message types or payload formats, update both files together.
 - When opened without `ws`, the app must keep working on its own.
 
