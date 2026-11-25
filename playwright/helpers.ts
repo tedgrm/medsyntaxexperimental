@@ -1,6 +1,6 @@
 // Shared helpers for the EDITOR (site/index.html) tests. Not a spec file, so
 // Playwright does not run it as tests.
-import {expect, type Page} from '@playwright/test';
+import {expect, type Locator, type Page} from '@playwright/test';
 
 /** The EDITOR's query text area. */
 export const queryBox = (page: Page) => page.getByRole('textbox', {name: 'query', exact: true});
@@ -115,6 +115,26 @@ export async function openWorkspace(page: Page, items: {title?: string, query?: 
     }, items);
     await page.goto('/workspace/' + link);
     await waitForItems(page, items.length);
+}
+
+/**
+ * The middle of an element in the WORKSPACE, for the mouse, once its place is final: every shown item fits its
+ * content, and the element has not moved for a while. Items grow a moment after their query changes.
+ */
+export async function stableMiddle(page: Page, locator: Locator): Promise<{x: number, y: number}> {
+    let last = '';
+    let same = 0;
+    await expect.poll(async () => {
+        const fits = await page.evaluate(() => [...document.querySelectorAll<HTMLIFrameElement>('#myList iframe')]
+            .every((frame) => !frame.offsetHeight
+                || Math.abs(frame.offsetHeight - frame.contentDocument!.body.getBoundingClientRect().height) < 3));
+        const box = JSON.stringify(await locator.boundingBox());
+        same = fits && box === last ? same + 1 : 0;
+        last = box;
+        return same;
+    }, {intervals: [50]}).toBeGreaterThanOrEqual(3);
+    const box = (await locator.boundingBox())!;
+    return {x: box.x + box.width / 2, y: box.y + box.height / 2};
 }
 
 /** The titles stored in the WORKSPACE link, in item order. */
