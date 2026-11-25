@@ -270,9 +270,6 @@ function createItem(queryString) {
         if (item.focusOnLoad) {
             focusItem(item, item.focusOnLoad);
         }
-        if (item === itemToStart) {
-            startNavigation();
-        }
     });
     setUpTitle(item);
     setFrameSource(item);
@@ -504,7 +501,6 @@ function focusItem(item, message = 'focusItem') {
 
 // A pending focus of another item must not take the focus away again.
 function clearPendingFocus() {
-    itemToStart = null;
     items.forEach((item) => {
         item.focusOnLoad = null;
     });
@@ -515,24 +511,6 @@ function selectItem(item) {
     clearPendingFocus();
     setCollapsed(item, false);
     focusItem(item);
-}
-
-// Ready for the keyboard, with no text field active: after opening the page and loading an example, the first item
-// is current, as soon as it has loaded. The page doesn't scroll. Not if the user is somewhere else by then.
-let itemToStart = null;
-
-function startNavigation() {
-    if (document.activeElement !== document.body && document.activeElement !== null) {
-        itemToStart = null;
-        return;
-    }
-    itemToStart = items[0];
-    if (itemToStart.loaded) {
-        itemToStart.frame.focus({preventScroll: true});
-        itemToStart.frame.contentWindow.focus();
-        sendToItem(itemToStart, 'focusItem', {keepScroll: true});
-        itemToStart = null;
-    }
 }
 
 function focusPart(item, name) {
@@ -678,8 +656,8 @@ function showExample(example) {
         }).toString()), position);
     });
     refreshList();
-    document.activeElement.blur(); // the button, which is hidden now
-    startNavigation();
+    // Nothing is selected and no text field is active, as after opening the page.
+    document.activeElement.blur();
     announce('Example added: ' + example.length + ' queries');
 }
 
@@ -969,4 +947,3 @@ if (items.length === 0) {
     placeItem(createItem(), 0);
 }
 refreshList();
-startNavigation();
