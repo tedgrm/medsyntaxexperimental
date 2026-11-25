@@ -22,7 +22,8 @@ a { color: var(--link); }
 
 header { padding: 18px 0 14px; border-bottom: 1px solid var(--line); }
 .brand { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; }
-.brand-mark { background: var(--accent); color: var(--accent-ink); font-weight: 700; padding: 6px 14px; border-radius: 6px; }
+/* A wordmark: no fill, border or rounded corners, so it doesn't look like a button. */
+.brand-mark { color: var(--link); font-size: 1.6rem; font-weight: 800; letter-spacing: -.02em; line-height: 1.25; padding-right: 14px; border-right: 2px solid var(--line); }
 h1 { font-size: 1.25rem; margin: 0; line-height: 1.25; }
 .brand p { margin: 0; color: var(--muted); font-size: .9rem; }
 nav { display: flex; flex-wrap: wrap; gap: 4px 16px; margin-top: 10px; font-size: .9rem; }
@@ -60,6 +61,8 @@ main.wrap { padding-top: 18px; padding-bottom: 90px; }
     .more-menu .btn { text-align: left; }
 }
 @media (max-width: 420px) {
+    .brand { gap: 6px 10px; }
+    .brand-mark { font-size: 1.15rem; padding-right: 10px; }
     .actions > .btn, .more > .btn { padding-inline: 8px; }
 }
 .keys { margin-top: 10px; font-size: .9rem; }
