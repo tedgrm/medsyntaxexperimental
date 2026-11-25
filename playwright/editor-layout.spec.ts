@@ -97,7 +97,7 @@ test.describe('EDITOR layout: visual', () => {
     const screenshotOptions = (page) => ({
         fullPage: true,
         mask: [page.locator('#myImg')],
-        maxDiffPixelRatio: 0.01,
+        maxDiffPixelRatio: 0,
     });
 
     // Screenshots use the default 1920x1080 viewport from playwright.config.js.
