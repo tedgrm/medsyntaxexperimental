@@ -17,7 +17,6 @@ body.ws-iframe-body {
     --card: #fff; --ink: #1c2525; --muted: #586867;
     --line: #c6d0cf; --field-line: #748382;
     --accent: #127c79; --danger-bg: #fbe4e4; --danger-ink: #8b1d1d;
-    --marker: #b00060;
     --item-color: #748382; /* until the WORKSPACE sends the item's colour */
     --item-line: var(--item-color);
     background: var(--card);
@@ -29,7 +28,6 @@ body.ws-iframe-body {
     --card: #222c2b; --ink: #e2eae9; --muted: #9bafad;
     --line: #34413f; --field-line: #82928f;
     --accent: #3db6b1; --danger-bg: #3b1d1d; --danger-ink: #f4b4b4;
-    --marker: #ff7ab8;
     /* As lines on a dark card, the darker colours must be lighter. */
     --item-line: color-mix(in srgb, var(--item-color) 55%, white);
 }
@@ -181,17 +179,47 @@ body.ws-iframe-body {
     outline: none;
 }
 
-.item-is-current body {
-    outline: 3px solid var(--marker);
-    outline-offset: -3px;
-    border-radius: 8px;
+/* The marker of the current item or scope: black dashes on a white line. Next to any item colour, one of the two
+   has enough contrast. */
+.item-is-current body::before,
+#item-marker .current-scope {
+    border: 3px solid #fff;
+    border-radius: 6px;
+    pointer-events: none;
+}
+
+
+.item-is-current body::before,
+.item-is-current body::after {
+    content: "";
+    position: fixed;
+    z-index: 1;
+    inset: 13px 5px; /* against the borders inside it */
+    pointer-events: none;
+}
+
+/* Dashes of 9px with gaps of 4px, slightly longer than those of a scope: CSS can't set that for a dashed border. */
+.item-is-current body::after {
+    --dashes-across: repeating-linear-gradient(90deg, #000 0 9px, transparent 9px 13px);
+    --dashes-down: repeating-linear-gradient(180deg, #000 0 9px, transparent 9px 13px);
+    background:
+        var(--dashes-across) top / 100% 3px no-repeat,
+        var(--dashes-across) bottom / 100% 3px no-repeat,
+        var(--dashes-down) left / 3px 100% no-repeat,
+        var(--dashes-down) right / 3px 100% no-repeat;
+    border-radius: 6px;
 }
 
 #item-marker .current-scope {
     position: absolute;
     box-sizing: border-box;
-    pointer-events: none;
-    border: 3px solid #b00060;
+}
+
+#item-marker .current-scope::after {
+    content: "";
+    position: absolute;
+    inset: -3px;
+    border: 3px dashed #000;
     border-radius: 6px;
 }
 

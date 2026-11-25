@@ -91,7 +91,7 @@ At an edge (first, last, or no scope inside) the key does nothing. Navigation do
 
 | ID | Requirement | Priority |
 |---|---|---|
-| A11Y-1 | The marker of the current node is clear without colour, works in greyscale, has at least 3:1 contrast, and differs from the hover highlight. | Must |
+| A11Y-1 | The marker of the current node is clear without colour, works in greyscale, has at least 3:1 contrast, and differs from the hover highlight. It is a line of black and white dashes, so it also differs from the solid borders around it. | Must |
 | A11Y-2 | There is no keyboard trap: Tab and Shift+Tab always lead out of an item and its iframe. | Must |
 | A11Y-3 | Single-letter keys work only in navigation mode (WCAG 2.1.4). | Must |
 | A11Y-4 | Each item's tree is labelled with the item's title, or its position if it has none. Screen readers announce the item or scope, its level and its text. | Must |

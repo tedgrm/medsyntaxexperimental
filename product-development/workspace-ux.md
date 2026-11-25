@@ -26,7 +26,7 @@ Make the WORKSPACE easy to recognise, scan and rearrange.
 - The style is inspired by the Medsyntax Framework page in [mrgtverleg-lgtm/MedsyntaxQA](https://github.com/mrgtverleg-lgtm/MedsyntaxQA/tree/Medsyntax-Framework/framework) (commit `12f5d75`, GPL-3.0).
 - The WORKSPACE and its items have a dark mode with the fork's dark colours, and a greyscale mode: the light colours, all in grey. A switch in the header chooses System (the default, follows the system setting), Light, Dark or Greyscale. The choice is kept in the browser, not in the link. The visualisation stays white, like paper, as in the fork, because its colours carry meaning.
 - Border colours of cards and buttons are the fork's.
-- Item colours: 1–4 are the borders of the four textareas of [Medsyntax PICO](https://tedgrm.github.io/picomedsyntax/) (`#query-input1` to `#query-input4`), 5 is a blue, and 6–10 are chosen to differ from those and each other. No pink, which marks the current item. Dark mode lightens them where they are used as lines.
+- Item colours: 1–4 are the borders of the four textareas of [Medsyntax PICO](https://tedgrm.github.io/picomedsyntax/) (`#query-input1` to `#query-input4`), 5 is a blue, and 6–10 are chosen to differ from those and each other. The marker of the current item is black and white, so that it differs from all of them. Dark mode lightens them where they are used as lines.
 - Each item has a number and a colour from a fixed palette. Both follow its position: nothing is stored in the link for them. They change when the item moves, or when an item above it is added or deleted, also by a reload.
 - Removing the last item leaves one clear item, so the list is never empty. Its link opens with one clear item too. A new WORKSPACE (`/workspace/`) also starts with one, instead of three.
 - Clear items are deleted on reload, anywhere in the list. If all items are clear, one is left. This replaces the earlier choice to keep empty items on reload (see `FEATURES.md`).
@@ -69,7 +69,7 @@ Dark mode:
 | Danger: text, background, border | `#f4b4b4`, `#3b1d1d`, `#703636` | text 8.72:1 |
 | Item badge | the same colours and text as in light mode | text: at least 4.57:1 |
 | Item edge, query box and visualisation border | the item colour, 55% mixed with white | at least 5.00:1 on a card |
-| Marker of the current item | `#ff7ab8` (light mode, and scopes on white: `#b00060`) | 5.97:1 on a card; 6.97:1 on white |
+| Marker of the current item or scope (every mode) | black (`#000`) dashes on a white (`#fff`) line, 3px. Around an item the dashes are slightly longer (9px, gaps 4px) | black or white has at least 4.5:1 on any colour |
 
 ## Requirements
 

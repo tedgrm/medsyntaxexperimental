@@ -2,7 +2,7 @@
 import {test, expect, type Page} from '@playwright/test';
 import {
     captureAlerts, itemBox, itemFrame, itemQuery, linkQueries, normalise, openWorkspace, titleField,
-    waitForItems,
+    waitForItems, workspaceItem,
 } from './helpers';
 
 // Keyboard navigation in the WORKSPACE: product-development/keyboard-navigation.md (its scenarios have a
@@ -354,5 +354,42 @@ test.describe('WORKSPACE keyboard navigation', () => {
             await expect(page.getByRole('radio', {name, exact: true})).toBeFocused();
             await expect(page.locator('html')).toHaveAttribute('data-theme', name.toLowerCase());
         }
+    });
+
+    test('the marker of an item or scope is black dashes on white, and takes no space', async ({page}) => {
+        const lines = (selector: string, pseudo: string) => itemFrame(page, 0).locator(selector).evaluate((element, name) => {
+            const style = getComputedStyle(element, name);
+            return style.content === 'none' ? '' : [style.borderTopWidth, style.borderTopStyle, style.borderTopColor].join(' ');
+        }, pseudo);
+        const white = 'solid rgb(255, 255, 255)', black = 'dashed rgb(0, 0, 0)';
+        const height = () => workspaceItem(page, 0).locator('iframe').evaluate((frame) => frame.offsetHeight);
+
+        expect(await lines('body', '::before')).toBe('3px ' + white);
+        expect(await itemFrame(page, 0).locator('body').evaluate((body) => {
+            const style = getComputedStyle(body, '::after');
+            return style.backgroundSize + (/rgb\(0, 0, 0\) 0(px|%)?(,| 9px)/.test(style.backgroundImage) ? ' black' : '');
+        })).toBe('100% 3px, 100% 3px, 3px 100%, 3px 100% black');
+        const marked = await height();
+        expect(await itemFrame(page, 0).locator('body').evaluate((body) => getComputedStyle(body, '::before').boxShadow))
+            .toBe('none');
+        // The marker's inner edge is against the visualisation.
+        const gaps = await itemFrame(page, 0).locator('body').evaluate((body) => {
+            const style = getComputedStyle(body, '::after');
+            const edge = (side: string) => parseFloat(style.getPropertyValue(side)) + 3;
+            const box = document.getElementById('medsyntax-target1')!.getBoundingClientRect();
+            return [box.top - edge('top'), box.left - edge('left'), window.innerWidth - edge('right') - box.right,
+                window.innerHeight - edge('bottom') - box.bottom];
+        });
+        gaps.forEach((gap) => expect(Math.abs(gap)).toBeLessThanOrEqual(1));
+
+        await press(page, 'ArrowDown', 0, outer);
+        expect(await lines('body', '::before')).toBe('');
+        expect(await lines('body', '::after')).toBe('');
+        expect(await lines('.current-scope', '')).toBe('3px ' + white);
+        expect(await lines('.current-scope', '::after')).toBe('3px ' + black);
+
+        await titleField(page, 0).focus();
+        await expect(markers(page, 0)).toHaveCount(0);
+        expect(await height()).toBe(marked);
     });
 });
