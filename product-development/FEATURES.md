@@ -56,7 +56,7 @@ Medsyntax is a syntax assistant for (medical) search engine queries with a scope
 
 ## Tooling
 - jQuery fallbacks in the EDITOR and WORKSPACE: code.jquery.com, then jsDelivr, then cdnjs, then a local copy; the CDN files are checked with an SRI hash
-- Playwright end-to-end tests (`npm run pw-test`, `npm run pw-test-ui`), also as Claude Code skills (`/.pw-test`, `/.pw-test-all`, `/.pw-test-gui`, `/.pw-codegen`, `/.pw-report`)
+- Playwright end-to-end tests (`npm run pw-test`, `npm run pw-test-ui`), also as Claude Code skills (`/.pw-test-chromium`, `/.pw-test-all`, `/.pw-test-gui`, `/.pw-codegen`, `/.pw-report`)
 - Claude Code hooks that report how long each shell command took (`.claude/settings.json`, needs `jq`)
 - GitHub Pages deployment via `.github/workflows/static.yml` (publishes only `site/`)
 - Qodana code analysis config

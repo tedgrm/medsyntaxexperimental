@@ -29,7 +29,7 @@ See `product-development/FEATURES.md` for the feature list and the TODO list. Ke
   - `helpers.ts`: shared test helpers. EDITOR: `enterQuery`, `queryBox`, `target`, `captureAlerts`, `expectWarnings`. WORKSPACE: `openWorkspace`, `waitForItems`, `workspaceItem`, `itemFrame`, `titleField`, `itemBox`, `openItemBox`, `enterItemQuery`, `enterItemTitle`, `itemQuery`, `linkQueries`, `linkTitles` (items by position, from 0). Use them in new tests. Tests that document a known bug use `test.fail(true, 'Known bug: …')`; remove that line when the bug is fixed.
   - `fixtures/`: test inputs copied from `product-development/external documents/` (tests never read the originals). See its `README.md` for each file's source.
   - `editor-layout.spec.ts-snapshots/`: screenshot baselines, one per browser and OS (`-darwin`). After an intended layout change, refresh them with `npx playwright test editor-layout --update-snapshots`, look at the new images, and commit them.
-- `.claude/skills/`: skills (slash commands) that run the Playwright commands below. Only `/.pw-test` can be started by Claude itself; the others open windows or (`/.pw-test-all`) take long, so only the user starts them.
+- `.claude/skills/`: skills (slash commands) that run the Playwright commands below. Only `/.pw-test-chromium` can be started by Claude itself; the others open windows or (`/.pw-test-all`) take long, so only the user starts them.
 - `product-development/`: product development resources (research, roadmap, designs, feedback). Not part of the site's code. See its `README.md`.
   - `FEATURES.md`: the feature list, the TODO list and known risks.
   - `keyboard-navigation.md`: requirements for keyboard navigation in the WORKSPACE. Built.
@@ -77,7 +77,7 @@ If the user just says "index.html", ask which one they mean, unless the context 
 ## Commands
 
 - `npm start`: serve the site at http://127.0.0.1:8080/ (workspace: `/workspace/`)
-- `npm run pw-test` (skill `/.pw-test-all`; `/.pw-test` runs only Chromium by default): run all Playwright tests in Chromium, Firefox and Safari (WebKit). Add `--project=webkit` (or another name) for one browser. The server starts on its own.
+- `npm run pw-test` (skill `/.pw-test-all`; `/.pw-test-chromium` runs only Chromium): run all Playwright tests in Chromium, Firefox and Safari (WebKit). Add `--project=webkit` (or another name) for one browser. The server starts on its own.
 - `npm run pw-test-gui` (skill `/.pw-test-gui`): Playwright UI mode
 - `npm run pw-test-ui`: headed run (browser windows visible). **Flaky**, so there is no skill for it: on 2026-11-24, 2 of 4 headed WebKit runs of `editor-quotes` had one failing test, a different one each time (one timed out closing the browser; fewer workers did not help), while the headless runs passed. The cause is unknown. Use `npm run pw-test` to decide whether a test really fails
 - `npm run pw-codegen` (skill `/.pw-codegen`): record a new test
@@ -95,5 +95,5 @@ After changing anything in `site/`, `playwright/`, `playwright.config.js` or `se
 - Shareable state (query, title, workspace items) lives in the URL query string, compressed with LZString. Changes must keep existing links loading.
 - In tests, navigate with relative paths (`page.goto('/index.html')`, `page.goto('/workspace/')`) so they use `baseURL`. Don't use `file://` URLs. Prefer role, text and id locators (`#medsyntax`, `#dynamic-input`, `#query-input1`).
 - **When deciding which tests to add, ignore everything in `site/scripts/third-party/`**, including any library added there later. Don't plan or write tests for those libraries themselves (today `lzstring.js`, `iframe-resizer/` and `jquery/`); they're unmodified upstream code. Test our own behaviour that uses them (e.g. links restored via LZString, WORKSPACE items sized by iframe-resizer) through the EDITOR and WORKSPACE pages.
-- Names of our own skills start with `.` (`/.pw-test`). Set this in the `name` field of `SKILL.md`; the folder name has no dot (`.claude/skills/pw-test/`).
+- Names of our own skills start with `.` (`/.pw-test-chromium`). Set this in the `name` field of `SKILL.md`; the folder name has no dot (`.claude/skills/pw-test-chromium/`).
 - Give new functions and ids clear names. The existing generic names (`myFunction`, `myForm`, ...) are on the TODO list to be renamed.
