@@ -356,7 +356,7 @@ test.describe('WORKSPACE example', () => {
         ['P (Population/Problem)', 'handover OR "Patient Handoff"[Mesh] OR handoff OR "patient transfer"'],
         ['I (Intervention)', 'SBAR OR ISBAR OR SBAR-R OR ISBARR OR ISOBAR'],
         ['C (Comparison/Control)', ''],
-        ['O (Outcome)', 'teamwork OR "inter-professional communication" OR "communication"[Mesh] OR communication OR "Interdisciplinary Communication"[Mesh] OR "Patient Safety"[Mesh] OR "patient safety" OR "safety culture"'],
+        ['O (Outcome)', 'teamwork OR "inter-professional communication" OR ("communication"[Mesh] OR communication OR ("Interdisciplinary Communication"[Mesh] AND ("Patient Safety"[Mesh] OR "patient safety" OR "safety culture")))'],
     ];
     const show = (page: Page) => button(page, 'Show example');
 

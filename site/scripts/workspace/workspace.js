@@ -16,14 +16,15 @@ let editMode = false;
 
 const titlePlaceholder = 'Please input a title for your query here...';
 
-// The titles and queries of the demo in https://tedgrm.github.io/picomedsyntax/
+// The titles and queries of the demo in https://tedgrm.github.io/picomedsyntax/, with the query of O nested
+// (brackets in brackets in brackets)
 const picoExample = [
     ['P (Population/Problem)', 'handover OR "Patient Handoff"[Mesh] OR handoff OR "patient transfer"'],
     ['I (Intervention)', 'SBAR OR ISBAR OR SBAR-R OR ISBARR OR ISOBAR'],
     ['C (Comparison/Control)', ''],
-    ['O (Outcome)', 'teamwork OR "inter-professional communication" OR "communication"[Mesh] OR communication'
-        + ' OR "Interdisciplinary Communication"[Mesh] OR "Patient Safety"[Mesh] OR "patient safety"'
-        + ' OR "safety culture"'],
+    ['O (Outcome)', 'teamwork OR "inter-professional communication" OR ("communication"[Mesh] OR communication'
+        + ' OR ("Interdisciplinary Communication"[Mesh] AND ("Patient Safety"[Mesh] OR "patient safety"'
+        + ' OR "safety culture")))'],
 ];
 
 let items = [];
@@ -148,6 +149,7 @@ function createItem(queryString) {
         clearOnLoad: false};
     frame.addEventListener('load', () => {
         item.loaded = true;
+        frame.contentWindow.addEventListener('wheel', stopCentering, {passive: true});
         sendItemState(item);
         sendToItem(item, 'setTitle', part(item, 'title').value);
         if (item.clearOnLoad) {
@@ -181,8 +183,8 @@ function setUpTitle(item) {
     });
     title.addEventListener('keydown', (event) => {
         if (event.key === 'Escape' && !event.isComposing) {
-            setCollapsed(item, false);
-            focusItem(item);
+            event.preventDefault(); // Safari: stay in full screen
+            selectItem(item);
         }
     });
 }
@@ -305,7 +307,37 @@ function fitItem(item) {
     if (height > 0) { // 0 while collapsed
         item.frame.style.height = height + 'px';
     }
+    if (centeredItem) {
+        scrollToCenter(centeredItem);
+    }
 }
+
+// --- Centering the selected item. Its height, or that of one above it, can still change just after it was
+// selected (expanding, loading, a query box that hides): it is centered again, unless the user scrolls.
+
+const centeringTime = 500;
+let centeredItem = null;
+let centeringTimer = null;
+
+function stopCentering() {
+    clearTimeout(centeringTimer);
+    centeredItem = null;
+}
+
+function scrollToCenter(item) {
+    const card = item.element.querySelector('.card');
+    // Too tall: its title and the start of its query.
+    card.scrollIntoView({block: card.offsetHeight > window.innerHeight ? 'start' : 'center'});
+}
+
+function centerItem(item) {
+    stopCentering();
+    scrollToCenter(item);
+    centeredItem = item;
+    centeringTimer = setTimeout(stopCentering, centeringTime);
+}
+
+document.addEventListener('wheel', stopCentering, {passive: true});
 
 function announce(text) {
     document.getElementById('workspace-status').textContent = text;
@@ -341,11 +373,23 @@ function focusItem(item, message = 'focusItem') {
     sendToItem(item, message, null);
 }
 
-function focusPart(item, name) {
-    // A pending focus of another item must not take it away again.
-    items.forEach((other) => {
-        other.focusOnLoad = null;
+// A pending focus of another item must not take the focus away again.
+function clearPendingFocus() {
+    items.forEach((item) => {
+        item.focusOnLoad = null;
     });
+}
+
+// Make the item itself current in navigation mode.
+function selectItem(item) {
+    clearPendingFocus();
+    setCollapsed(item, false);
+    focusItem(item);
+}
+
+function focusPart(item, name) {
+    stopCentering();
+    clearPendingFocus();
     // Not shown: in the closed More menu.
     const button = part(item, name).offsetParent ? part(item, name) : part(item, 'more');
     button.focus({preventScroll: true});
@@ -392,10 +436,67 @@ document.addEventListener('focusin', (event) => {
 window.addEventListener('blur', closeMenu);
 document.addEventListener('keydown', (event) => {
     if (event.key === 'Escape' && itemWithMenu) {
+        event.preventDefault(); // Safari: stay in full screen
         const item = itemWithMenu;
         closeMenu();
         part(item, 'more').focus();
     }
+});
+
+// --- Number keys: a digit selects the item with that number. A digit soon after it extends the number, if
+// there is such an item. The focus goes to another iframe in between, so the number is kept here.
+
+const numberPause = 1000;
+let typedNumber = '';
+let typedNumberTimer = null;
+
+function clearTypedNumber() {
+    clearTimeout(typedNumberTimer);
+    typedNumber = '';
+}
+
+function selectByDigit(digit) {
+    const number = [typedNumber + digit, digit].find((candidate) => items[candidate - 1]);
+    clearTypedNumber();
+    if (!number) {
+        announce('No query ' + digit);
+        return;
+    }
+    closeMenu();
+    typedNumber = number;
+    typedNumberTimer = setTimeout(clearTypedNumber, numberPause);
+    selectItem(items[number - 1]);
+}
+
+// The switch. Off: only in navigation mode (WCAG 2.1.4).
+const numberKeysStorageKey = 'medsyntaxqa-number-keys';
+const numberKeysSwitch = document.getElementById('number-keys');
+
+function numberKeysEverywhere() {
+    return numberKeysSwitch.checked;
+}
+
+try {
+    numberKeysSwitch.checked = localStorage.getItem(numberKeysStorageKey) !== 'off';
+} catch (error) {
+    numberKeysSwitch.checked = true; // storage is blocked
+}
+numberKeysSwitch.addEventListener('change', () => {
+    try {
+        localStorage.setItem(numberKeysStorageKey, numberKeysSwitch.checked ? 'on' : 'off');
+    } catch (error) {
+        // storage is blocked: the choice lasts until the page closes
+    }
+});
+
+document.addEventListener('keydown', (event) => {
+    if (!/^[0-9]$/.test(event.key) || event.ctrlKey || event.altKey || event.metaKey || event.repeat
+        || event.isComposing || event.target.matches('textarea, input:not([type=radio], [type=checkbox])')
+        || !numberKeysEverywhere()) {
+        return;
+    }
+    event.preventDefault();
+    selectByDigit(event.key);
 });
 
 // --- Actions
@@ -586,6 +687,9 @@ function hideQueryBoxes() {
 
 function setPointerDown(isDown) {
     pointerIsDown = isDown;
+    if (isDown) {
+        stopCentering();
+    }
     if (!isDown) {
         setTimeout(hideQueryBoxes, 50);
     }
@@ -625,13 +729,24 @@ window.addEventListener('message', (event) => {
         }
         case 'moveFocus': {
             // Alt+Up (-1) or Alt+Down (1) in an item
+            clearTypedNumber();
             const neighbour = items[items.indexOf(item) + event.data.payload];
             if (neighbour) {
-                setCollapsed(neighbour, false);
-                focusItem(neighbour);
+                selectItem(neighbour);
             }
             break;
         }
+        case 'selectNumber': {
+            // A digit in an item, in its tree or not
+            const {digit, inTree} = event.data.payload;
+            if (/^[0-9]$/.test(digit) && (inTree || numberKeysEverywhere())) {
+                selectByDigit(digit);
+            }
+            break;
+        }
+        case 'centerItem':
+            centerItem(item);
+            break;
         case 'itemResized':
             fitItem(item);
             break;
