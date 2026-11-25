@@ -1,22 +1,67 @@
-body {
-    background-color: lightgray;
+/* WORKSPACE (index.html). The look of the items themselves is in ../iframe.css. */
+:root {
+    --bg: #e6eaea; --card: #fff; --ink: #1c2525; --muted: #586867;
+    --line: #c6d0cf; --field-line: #748382;
+    --accent: #127c79; --accent-ink: #fff; --danger-bg: #fbe4e4; --danger-ink: #8b1d1d; --danger-line: #e3a5a5;
+    --link: #0e6663;
 }
+@media (prefers-color-scheme: dark) {
+    :root {
+        color-scheme: dark;
+        --bg: #131919; --card: #222c2b; --ink: #e2eae9; --muted: #9bafad;
+        --line: #34413f; --field-line: #82928f;
+        --accent: #3db6b1; --accent-ink: #052120; --danger-bg: #3b1d1d; --danger-ink: #f4b4b4; --danger-line: #703636;
+        --link: #3db6b1;
+    }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
+.wrap { max-width: 1240px; margin: 0 auto; padding: 0 16px; }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+a { color: var(--link); }
 
-iframe {
-    /*width en min-width nodig voor auto adjust van iframe grootte*/
-    width: 1px;
-    min-width: 98%;
-    /*min-width: 97vw;*/
-}
+header { padding: 18px 0 14px; border-bottom: 1px solid var(--line); }
+.brand { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; }
+.brand-mark { background: var(--accent); color: var(--accent-ink); font-weight: 700; padding: 6px 14px; border-radius: 6px; }
+h1 { font-size: 1.25rem; margin: 0; line-height: 1.25; }
+.brand p { margin: 0; color: var(--muted); font-size: .9rem; }
+nav { display: flex; flex-wrap: wrap; gap: 4px 16px; margin-top: 10px; font-size: .9rem; }
+nav [aria-current] { color: var(--ink); font-weight: 600; text-decoration: none; }
 
-li.item {
-    list-style-type: none;
-}
+main.wrap { padding-top: 18px; padding-bottom: 90px; }
+.btn { font: inherit; font-size: .9rem; font-weight: 500; color: inherit; background: var(--card); border: 1px solid var(--line); border-radius: 7px; padding: 5px 12px; min-height: 32px; cursor: pointer; }
+.btn:hover:enabled { border-color: var(--accent); }
+.btn:disabled { opacity: .45; cursor: default; }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.btn.danger { background: var(--danger-bg); border-color: var(--danger-line); color: var(--danger-ink); }
 
-.first-button {
-    margin-left: 20px;
+#myList { list-style: none; margin: 14px 0 0; padding: 0; display: grid; gap: 14px; }
+.item { --item-line: var(--item-color); min-width: 0; }
+.card { background: var(--card); border: 1px solid var(--line); border-left: 3px solid var(--item-line); border-radius: 10px; padding: 10px 12px; }
+@media (prefers-color-scheme: dark) {
+    /* As lines on a dark card, the darker colours must be lighter. */
+    .item { --item-line: color-mix(in srgb, var(--item-color) 55%, white); }
 }
+.item-head { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.badge { display: inline-grid; place-items: center; min-width: 26px; height: 26px; padding: 0 6px; border-radius: 5px; background: var(--item-color); color: var(--item-ink); font-weight: 700; font-size: .85rem; }
+.item-title { flex: 1 1 200px; min-width: 0; font: inherit; font-weight: 600; color: inherit; background: var(--card); border: 1px solid var(--field-line); border-radius: 7px; padding: 4px 10px; min-height: 32px; text-overflow: ellipsis; }
+.item-title::placeholder { color: var(--muted); opacity: 1; font-weight: 400; }
+.list-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.actions { display: flex; flex-wrap: wrap; gap: 6px; }
+.keys { margin-top: 10px; font-size: .9rem; }
+.keys summary { cursor: pointer; width: fit-content; }
+.keys ul { margin: 6px 0 0; padding-left: 20px; }
+.after { margin-top: 10px; }
 
-#myList {
-    margin-top: 10px;
-}
+.is-collapsed .item-editor { display: none; }
+
+[hidden] { display: none !important; }
+#undo-toast { position: fixed; left: 50%; bottom: 18px; transform: translateX(-50%); display: flex; align-items: center; gap: 14px; width: max-content; max-width: calc(100% - 32px); background: var(--ink); color: var(--bg); padding: 8px 14px; border-radius: 8px; }
+#undo-toast .btn { flex: none; color: var(--ink); }
+#undo-toast :focus-visible { outline-color: var(--bg); }
+.visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+
+.item-editor { margin-top: 6px; }
+/* iframe-resizer sets the height, and needs width and min-width like this to fit the content. Until it
+   has, the height of a clear item, so that what is below a new item doesn't move while it loads. */
+.item-editor iframe { display: block; width: 1px; min-width: 100%; height: 150px; border: 0; }

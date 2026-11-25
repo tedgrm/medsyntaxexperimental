@@ -69,8 +69,8 @@ for (const [index, working] of order.entries()) {
         test('WORKSPACE loads its items and keeps a query in its link', async ({page}) => {
             const {requested, errors} = await serveJqueryFrom(page, working);
             await page.goto('/workspace/');
-            await waitForItems(page, 3);
-            await enterItemQuery(page, 1, 'heart OR lung');
+            await waitForItems(page, 1);
+            await enterItemQuery(page, 0, 'heart OR lung');
             await expect.poll(() => linkQueries(page)).toContain('heart OR lung');
             expect(requested).toEqual(expected);
             expect(errors).toEqual([]);
@@ -95,11 +95,11 @@ test.describe('jQuery SRI', () => {
     test('WORKSPACE and its items refuse a changed file from every CDN and use the local copy', async ({page}) => {
         const {requested, errors} = await serveJqueryFrom(page, 'local', 'changed file');
         await page.goto('/workspace/');
-        await waitForItems(page, 3);
-        await enterItemQuery(page, 1, 'heart OR lung');
+        await waitForItems(page, 1);
+        await enterItemQuery(page, 0, 'heart OR lung');
         await expect.poll(() => linkQueries(page)).toContain('heart OR lung');
         expect(requested).toEqual(order);
-        expect(await changedJqueryRan(page)).toEqual([false, false, false, false]);
+        expect(await changedJqueryRan(page)).toEqual([false, false]);
         expect(errors).toEqual([]);
     });
 

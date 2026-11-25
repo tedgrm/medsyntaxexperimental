@@ -7,6 +7,13 @@
           content="Syntax assistant for Pubmed, Embase, Scopus and other (medical) database search engines">
     <title>Medsyntax</title>
     <link rel="stylesheet" href="style.css">
+    <script>
+        // Embedded in the WORKSPACE (?ws=<id>): the look of an item, before anything is shown.
+        if (new URLSearchParams(window.location.search).get('ws')) {
+            document.documentElement.classList.add('ws-embedded');
+            document.write('<link id="iframeCss" rel="stylesheet" href="./iframe.css" type="text/css" media="all">');
+        }
+    </script>
     <script src="https://code.jquery.com/jquery-3.6.0.js" integrity="sha256-H+K7U5CnXl1h5ywQfKtSj8PCmoN9aaq30gDh27Xc0jk=" crossorigin="anonymous"></script>
     <!-- jQuery fallbacks. Keep one script tag each: every check must wait for the script before it.
          All three CDNs serve the same file, so they share one SRI hash. -->
@@ -149,4 +156,8 @@
 <script src="scripts/editor/help-image.js"></script>
 
 <script src="scripts/editor/editor.js"></script>
+
+<!-- Only for items of the WORKSPACE: without ws these do nothing. -->
+<script src="scripts/editor/item.js"></script>
+<script src="scripts/editor/item-keyboard.js"></script>
 </body>
