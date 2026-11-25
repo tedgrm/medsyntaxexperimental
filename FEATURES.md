@@ -54,6 +54,7 @@ Medsyntax is a syntax assistant for (medical) search engine queries with a scope
 - [x] Clear button: hide syntax warnings, and reset `stringLatestString` so re-entering the same query renders it again (`clearButtonFunc` in `site/index.html`; tests in `editor-controls.spec.ts`)
 - [ ] Verify the `savedLatestInputTime !== latestInputTime` check in `afterParseFunction` actually works (`site/index.html` TODO)
 - [ ] `site/scripts/key-commands.js` is a stub (only `console.log`s); implement keyboard commands or remove it
+- [x] Typing in the query box during a scope edit did not update the visualisation; it now renders the query and cancels the edit (`syntaxCheck` in `site/index.html`; tests: `editor-edge-cases.spec.ts` "during a scope edit")
 - [ ] EDITOR bugs with a `test.fail` test in `playwright/editor-edge-cases.spec.ts` (remove that line when fixed):
   - [ ] **Security (XSS):** HTML in a query, also from a shared link, runs as code (`innerHTML`, unescaped)
   - [ ] Fast typing in Safari stops rendering: over 100 history changes in 10 seconds (`updateUrl` calls `replaceState` and `pushState`)
@@ -65,7 +66,6 @@ Medsyntax is a syntax assistant for (medical) search engine queries with a scope
   - [ ] Operators between tabs or non-breaking spaces are not recognised
   - [ ] The clean-up adds spaces where it should not (`"heart AND(lung)"`, `(door)ORAL drug`, `FOR(heart)`)
   - [ ] HTML, entities and `___` are changed in the visualisation, and can be lost when a scope edit is confirmed
-  - [ ] Typing in the query box during a scope edit does not update the visualisation
   - [ ] The Back button changes the link but not the query
   - [ ] A link with malformed percent-encoding stops the start-up code
   - [ ] Emptying the query box by hand does not bring back the demo button

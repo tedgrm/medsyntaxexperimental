@@ -468,14 +468,12 @@
 
     function syntaxCheck(sourceElementId, targetElementId, force) {
         // console.log('syntaxCheck');
-        if ($('#dynamic-input').is(":visible") && !force) {
-            return false;
-        }
-
         latestInputTime = Date.now();
         const savedLatestInputTime = latestInputTime;
         let str = document.getElementById(sourceElementId).value;
 
+        // Nothing new to render. This also keeps an open scope edit open; when the
+        // query did change, rendering it again cancels that edit.
         if (stringLatestString && stringLatestString === str && !force) {
             return false;
         } else {
@@ -533,6 +531,7 @@
             $("#search-string").css("filter", "grayscale(100%)");
         }
         $("#query-input1").val(str);
+        stringLatestString = str; // after clean-up, as it is now in the query box
     }
 
     //*** Syntax 'parser' code ***//

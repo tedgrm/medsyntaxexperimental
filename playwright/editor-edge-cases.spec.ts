@@ -249,11 +249,37 @@ test.describe('EDITOR edge cases', () => {
         });
 
         test('typing in the query box keeps the visualisation in step', async ({page}) => {
-            knownBug('the visualisation is not updated while a scope edit is open');
             await queryBox(page).focus();
             await page.keyboard.type('s');
             await expect(queryBox(page)).toHaveValue('(heart OR cardiac) AND lungs');
             await expect(target(page)).toHaveText('(heart OR cardiac) AND lungs');
+        });
+
+        test('typing in the query box cancels the edit', async ({page}) => {
+            await dynamicInput(page).fill('(thrown away)');
+            await queryBox(page).focus();
+            await page.keyboard.type('s');
+            await expect(dynamicInput(page)).toHaveCount(0);
+            await expect(queryBox(page)).toHaveValue('(heart OR cardiac) AND lungs');
+            await expect(target(page)).not.toContainText('thrown away');
+        });
+
+        test('keys that do not change the query keep the edit open', async ({page}) => {
+            await dynamicInput(page).fill('(heart OR coronary)');
+            await queryBox(page).focus();
+            await page.keyboard.press('ArrowLeft');
+            await page.keyboard.press('Shift');
+            await expect(dynamicInput(page)).toHaveValue('(heart OR coronary)');
+        });
+
+        test('keys keep the edit open after the query was cleaned up', async ({page}) => {
+            await page.locator('#clear-button').click();
+            await enterQuery(page, '(heart OR cardiac)AND(lung)');
+            await expect(queryBox(page)).toHaveValue('(heart OR cardiac) AND (lung)');
+            await startEdit(page, target(page).locator('.term', {hasText: 'cardiac'}));
+            await queryBox(page).focus();
+            await page.keyboard.press('ArrowLeft');
+            await expect(dynamicInput(page)).toBeVisible();
         });
     });
 
