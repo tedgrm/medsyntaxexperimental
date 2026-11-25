@@ -1,5 +1,5 @@
 ---
-name: pw-codegen
+name: .pw-codegen
 description: Record a new Playwright test by clicking through the EDITOR or the WORKSPACE.
 argument-hint: "[path, e.g. index.html or workspace/]"
 disable-model-invocation: true

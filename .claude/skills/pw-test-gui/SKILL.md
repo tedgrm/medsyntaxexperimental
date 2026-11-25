@@ -1,5 +1,5 @@
 ---
-name: pw-test-gui
+name: .pw-test-gui
 description: Open Playwright UI mode to pick, run and inspect tests.
 argument-hint: "[spec file] [-g pattern]"
 disable-model-invocation: true

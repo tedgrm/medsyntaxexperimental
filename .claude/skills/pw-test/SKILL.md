@@ -1,5 +1,5 @@
 ---
-name: pw-test
+name: .pw-test
 description: Run the Playwright tests (all, or a file / -g pattern). Use after changing the EDITOR, the WORKSPACE, site/scripts/ or tests, or when asked to run the tests.
 argument-hint: "[spec file] [-g pattern] [other playwright options]"
 ---
@@ -10,7 +10,7 @@ Run from the repo root (the config starts `server.js` on its own):
 PLAYWRIGHT_HTML_OPEN=never npm run pw-test -- --reporter=list,html $ARGUMENTS
 ```
 
-`PLAYWRIGHT_HTML_OPEN=never` keeps a failed run from opening the report and waiting. The report is still written, for `/pw-report`.
+`PLAYWRIGHT_HTML_OPEN=never` keeps a failed run from opening the report and waiting. The report is still written, for `/.pw-report`.
 
 Which browsers (`CLAUDE.md`): add `--project=chromium`, unless this is the run before a commit, the user asked for all browsers, or the arguments already name a `--project`.
 
