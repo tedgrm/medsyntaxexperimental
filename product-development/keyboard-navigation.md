@@ -2,6 +2,8 @@
 
 Status: **draft** (2026-11-25), not built. All questions so far are answered, see [Decisions](#decisions).
 
+How this meets the new cards and actions (move, collapse, undo) is in [workspace-ux.md](workspace-ux.md#keyboard-navigation).
+
 ## Goal and users
 
 Use the WORKSPACE without a mouse: move between items, into the parts of a visualised query, and edit them.
@@ -117,7 +119,7 @@ To become Playwright tests (`playwright/workspace-keyboard.spec.ts`). Unless sta
 7. **Invalid edit:** on `(b AND c)`, Enter, change it to `(b AND c`, Enter. An alert appears, and the input stays open.
 8. **Query with an error:** item 1 holds `(a OR b`. Down does nothing; Alt+Down selects item 2.
 9. **Typing:** arrows, T and Enter in the query box of item 1 only affect the text. Escape selects item 1.
-10. **Remove:** item 2 of 3 is current and gets removed. A neighbouring item is current.
+10. **Remove:** item 2 of 3 is current and gets removed. The focus is on the Collapse button of the item now in that place, and Tab reaches its tree (KEY-5 in [workspace-ux.md](workspace-ux.md#keyboard-navigation)).
 
 ## Technical notes
 

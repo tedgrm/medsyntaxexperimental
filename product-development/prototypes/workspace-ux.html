@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Workspace UX prototype</title>
+<!-- THROWAWAY prototype for ../workspace-ux.md. Not part of the site: one page, no iframes.
+     The list is kept as JSON after the # in the link, only to show what a reload does; the site's link format is different.
+     The title, query and visualisation of each item stand in for the embedded EDITOR, in its new look.
+     Keys follow ../keyboard-navigation.md; the minimal parser comes from keyboard-navigation.html and is not the site's.
+     Visual style inspired by framework/ in mrgtverleg-lgtm/MedsyntaxQA (branch Medsyntax-Framework, GPL-3.0). -->
+<style>
+    :root {
+        --bg: #e6eaea; --card: #fff; --ink: #1c2525; --muted: #586867;
+        --line: #c6d0cf; --field-line: #748382;
+        --accent: #127c79; --accent-ink: #fff; --danger-bg: #fbe4e4; --danger-ink: #8b1d1d; --danger-line: #e3a5a5;
+        --link: #0e6663; --marker: #b00060;
+    }
+    @media (prefers-color-scheme: dark) {
+        :root {
+            color-scheme: dark;
+            --bg: #131919; --card: #222c2b; --ink: #e2eae9; --muted: #9bafad;
+            --line: #34413f; --field-line: #82928f;
+            --accent: #3db6b1; --accent-ink: #052120; --danger-bg: #3b1d1d; --danger-ink: #f4b4b4; --danger-line: #703636;
+            --link: #3db6b1; --marker: #ff7ab8;
+        }
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
+    .wrap { max-width: 1240px; margin: 0 auto; padding: 0 16px; }
+    :focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+    a { color: var(--link); }
+
+    .proto { background: #fff3d4; color: #694c00; font-size: .85rem; padding: 6px 0; }
+    .proto .btn { background: #fff; border-color: #c6d0cf; }
+    .proto :focus-visible { outline-color: #127c79; }
+    .proto .wrap { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+
+    header { padding: 18px 0 14px; border-bottom: 1px solid var(--line); }
+    .brand { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; }
+    .brand-mark { background: var(--accent); color: var(--accent-ink); font-weight: 700; padding: 6px 14px; border-radius: 6px; }
+    h1 { font-size: 1.25rem; margin: 0; line-height: 1.25; }
+    .brand p { margin: 0; color: var(--muted); font-size: .9rem; }
+    nav { display: flex; flex-wrap: wrap; gap: 4px 16px; margin-top: 10px; font-size: .9rem; }
+    nav [aria-current] { color: var(--ink); font-weight: 600; text-decoration: none; }
+
+    main.wrap { padding-top: 18px; padding-bottom: 90px; }
+    .btn { font: inherit; font-size: .9rem; font-weight: 500; color: inherit; background: var(--card); border: 1px solid var(--line); border-radius: 7px; padding: 5px 12px; min-height: 32px; cursor: pointer; }
+    .btn:hover:enabled { border-color: var(--accent); }
+    .btn:disabled { opacity: .45; cursor: default; }
+    .btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+    .btn.danger { background: var(--danger-bg); border-color: var(--danger-line); color: var(--danger-ink); }
+
+    #list { list-style: none; margin: 14px 0 0; padding: 0; display: grid; gap: 14px; }
+    .item { --item-line: var(--item-color); min-width: 0; background: var(--card); border: 1px solid var(--line); border-left: 3px solid var(--item-line); border-radius: 10px; padding: 10px 12px; }
+    @media (prefers-color-scheme: dark) {
+        /* As lines on a dark card, the darker colours must be lighter. */
+        .item { --item-line: color-mix(in srgb, var(--item-color) 55%, white); }
+    }
+    .item-head { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+    .badge { display: inline-grid; place-items: center; min-width: 26px; height: 26px; padding: 0 6px; border-radius: 5px; background: var(--item-color); color: var(--item-ink); font-weight: 700; font-size: .85rem; }
+    .summary { flex: 1 1 140px; min-width: 0; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .actions { display: flex; flex-wrap: wrap; gap: 6px; }
+    .editor { margin-top: 10px; padding: 4px; }
+    .editor input, .editor textarea { display: block; width: 100%; max-width: 760px; padding: 7px 10px; font: inherit; color: inherit; background: var(--card); border: 1px solid var(--field-line); border-radius: 7px; }
+    .editor ::placeholder { color: var(--muted); opacity: 1; font-weight: 400; }
+    .editor input[data-part=title] { font-weight: 600; }
+    /* The thin outer line has 3:1 contrast, also around the bright colours. */
+    .editor textarea { margin-top: 8px; border: 3px solid var(--item-line); box-shadow: 0 0 0 1px var(--field-line); font: .9rem/1.5 ui-monospace, Menlo, Consolas, monospace; resize: vertical; }
+    .editor { border-radius: 4px; }
+    /* Always white paper, as in the fork: its colours carry meaning. */
+    .visual { --marker: #b00060; --accent: #127c79; color-scheme: light; color: #1c2525; background: #fff; margin: 8px 0; padding: 6px 10px; border: 3px solid var(--item-line); border-radius: 8px; font: 1rem/2.3 Tahoma, Verdana, sans-serif; white-space: pre-wrap; overflow-wrap: anywhere; }
+    .visual.error { color-scheme: inherit; padding: 4px 10px; border: 0; border-left: 4px solid var(--danger-ink); border-radius: 4px; background: var(--danger-bg); color: var(--danger-ink); font: .9rem/1.5 system-ui, sans-serif; }
+    .boolean { color: rgb(11, 11, 107); font: bold 1rem "Courier New", Courier, monospace; }
+    /* darkorange + hue-rotate(110deg), as the EDITOR draws its brackets */
+    .group { border: 3px solid #00d471; border-radius: 5px; padding: 3px 4px; margin: 0 2px; }
+    .run { padding: 2px 1px; }
+    [role=treeitem]:focus { outline: 3px solid var(--marker); outline-offset: 2px; }
+    .editor .visual input.edit { color: #1c2525; display: inline-block; width: auto; max-width: 100%; background: rgb(255, 231, 183); }
+    .keys { margin-top: 10px; font-size: .9rem; }
+    .keys summary { cursor: pointer; width: fit-content; }
+    .keys ul { margin: 6px 0 0; padding-left: 20px; }
+    .after { margin-top: 10px; }
+    .is-collapsed .editor, .is-collapsed .after { display: none; }
+
+    [hidden] { display: none !important; }
+    #toast { position: fixed; left: 50%; bottom: 18px; transform: translateX(-50%); display: flex; align-items: center; gap: 14px; width: max-content; max-width: calc(100% - 32px); background: var(--ink); color: var(--bg); padding: 8px 14px; border-radius: 8px; }
+    #toast .btn { flex: none; }
+    #toast .btn { color: var(--ink); }
+    #toast :focus-visible { outline-color: var(--bg); }
+    .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+</style>
+</head>
+<body>
+<div class="proto" role="group" aria-label="Prototype controls">
+    <div class="wrap">
+        <b>Prototype:</b>
+        <button class="btn" id="proto-examples">Load examples</button>
+        <button class="btn" id="proto-fresh">New workspace</button>
+        <button class="btn" id="proto-reload">Reload page</button>
+    </div>
+</div>
+<header>
+    <div class="wrap">
+        <div class="brand">
+            <span class="brand-mark">medsyntax</span>
+            <div><h1>MedsyntaxQA</h1><p>Workspace for multiline searches</p></div>
+        </div>
+        <nav aria-label="Medsyntax tools">
+            <a href="../../site/index.html">Medsyntax Editor</a>
+            <a aria-current="page">Workspace</a>
+            <a href="https://github.com/tedgrm/medsyntaxexperimental/issues" target="_blank" rel="noopener">Report an issue</a>
+        </nav>
+        <details class="keys">
+            <summary>Keyboard keys</summary>
+            <p>Press Tab until an item has a pink outline. Then:</p>
+            <ul>
+                <li><b>Alt+Up / Alt+Down</b>: previous / next item, from an item or a scope. A collapsed item expands.</li>
+                <li><b>Down / Up</b>: into the query or scope / out of it. <b>Left / Right</b>: previous / next scope.</li>
+                <li><b>Enter</b>: on an item, go to the query; on a scope, edit it. Enter then confirms, Escape cancels.</li>
+                <li><b>T</b>: on an item, go to the title. <b>Escape</b> in the title or query: back to the item.</li>
+            </ul>
+        </details>
+    </div>
+</header>
+<main class="wrap">
+    <button class="btn primary" id="add-first">+ Add query at the top</button>
+    <ul id="list" aria-label="Queries"></ul>
+</main>
+<div id="toast" hidden><span id="toast-text"></span><button class="btn" id="undo">Undo</button></div>
+<div class="sr-only" id="status" role="status"></div>
+
+<script>
+    // 1-4: the textarea borders of https://tedgrm.github.io/picomedsyntax/; then blue, cyan, orange, brown, slate, dark green.
+    const PALETTE = ['#E12A39', '#FFB407', '#89CA26', '#7527A1', '#1F6FD1', '#17B8C9', '#F2760C', '#7A4A2B', '#5B6B7B', '#14613B'];
+
+    function luminance(hex) {
+        const [red, green, blue] = [1, 3, 5].map((i) => {
+            const c = parseInt(hex.slice(i, i + 2), 16) / 255;
+            return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+        });
+        return 0.2126 * red + 0.7152 * green + 0.0722 * blue;
+    }
+
+    // White if it has at least 4.5:1 contrast on the colour, otherwise dark.
+    const inkOn = (hex) => 1.05 / (luminance(hex) + 0.05) >= 4.5 ? '#ffffff' : '#1c2525';
+
+    const list = document.getElementById('list');
+    const toast = document.getElementById('toast');
+    let nextId = 1;
+    let removed = null;
+
+    const items = () => [...list.children];
+    const part = (item, name) => item.querySelector('[data-part="' + name + '"]');
+    const say = (text) => { document.getElementById('status').textContent = text; };
+
+    function createItem(title, query) {
+        const id = nextId++;
+        const item = document.createElement('li');
+        item.className = 'item';
+        item.innerHTML = `
+            <div class="item-head">
+                <span class="badge" data-part="badge"></span>
+                <span class="summary" data-part="summary"></span>
+                <div class="actions">
+                    <button class="btn" data-part="collapse" data-label="Collapse" aria-controls="editor-${id}"></button>
+                    <button class="btn" data-part="up" data-label="Move up">↑</button>
+                    <button class="btn" data-part="down" data-label="Move down">↓</button>
+                    <button class="btn" data-part="duplicate" data-label="Duplicate">Duplicate</button>
+                    <button class="btn danger" data-part="remove" data-label="Remove">Remove</button>
+                </div>
+            </div>
+            <div role="tree" data-part="tree" id="editor-${id}"><div class="editor" data-part="editor" role="treeitem" aria-level="1" tabindex="0">
+                <input data-part="title" aria-label="Query title" placeholder="Please input a title for your query here...">
+                <textarea data-part="query" aria-label="Query" rows="3" placeholder="Please input search query here..."></textarea>
+                <div class="visual" data-part="visual"></div>
+                <button class="btn" data-part="edit" data-label="Edit">Edit query</button>
+            </div></div>
+            <div class="after"><button class="btn primary" data-part="add" data-label="Add query after">+ Add query</button></div>`;
+        part(item, 'title').value = title || '';
+        part(item, 'query').value = query || '';
+        item.path = [];
+        item.editingQuery = false;
+        renderVisual(item);
+        return item;
+    }
+
+    // Renumber in place. Existing items are never rebuilt, so their text and focus stay.
+    function refresh() {
+        items().forEach((item, index, all) => {
+            const n = index + 1;
+            const collapsed = item.classList.contains('is-collapsed');
+            const color = PALETTE[index % PALETTE.length];
+            item.style.setProperty('--item-color', color);
+            item.style.setProperty('--item-ink', inkOn(color));
+            part(item, 'badge').textContent = n;
+            const label = part(item, 'title').value.trim() || 'Query ' + n;
+            part(item, 'tree').setAttribute('aria-label', label);
+            part(item, 'editor').setAttribute('aria-label', label);
+            part(item, 'summary').textContent = part(item, 'title').value.trim() || part(item, 'query').value.trim() || 'Empty query';
+            item.querySelectorAll('[data-label]').forEach((button) => {
+                let label = button.dataset.label;
+                if (label === 'Collapse') {
+                    label = collapsed ? 'Expand' : 'Collapse';
+                    button.textContent = label;
+                    button.setAttribute('aria-expanded', String(!collapsed));
+                }
+                // The accessible name starts with the visible text (WCAG 2.5.3).
+                button.setAttribute('aria-label', label === 'Add query after' ? '+ Add query after ' + n : label + ' query ' + n);
+            });
+            part(item, 'remove').disabled = all.length === 1 && isClear(item);
+            part(item, 'up').disabled = index === 0;
+            part(item, 'down').disabled = index === all.length - 1;
+        });
+        save();
+    }
+
+    // Keep the list in the link, so a reload can restore it.
+    function save() {
+        const data = items().map((item) => [part(item, 'title').value, part(item, 'query').value]);
+        history.replaceState(null, '', '#' + encodeURIComponent(JSON.stringify(data)));
+    }
+
+    // Clear items are deleted, but one is left if all are. A new workspace also starts with one.
+    function restore() {
+        let data = null;
+        try { data = JSON.parse(decodeURIComponent(location.hash.slice(1))); } catch (error) { /* no or broken link */ }
+        if (!Array.isArray(data)) return [createItem()];
+        const kept = data.map(([title, query]) => createItem(title, query)).filter((item) => !isClear(item));
+        return kept.length ? kept : [createItem()];
+    }
+
+    const isClear = (item) => !part(item, 'title').value.trim() && !part(item, 'query').value.trim();
+
+    function clearUndo() { removed = null; toast.hidden = true; }
+
+    function insert(item, before, message) {
+        clearUndo();
+        list.insertBefore(item, before);
+        refresh();
+        part(item, 'title').focus({preventScroll: true});
+        item.scrollIntoView({block: 'nearest'});
+        say(message + ' ' + (items().indexOf(item) + 1));
+    }
+
+    function remove(item) {
+        const index = items().indexOf(item);
+        removed = {item, index, replacement: null};
+        item.remove();
+        // The list is never empty: one clear item takes the place of the only item.
+        if (!items().length) list.append(removed.replacement = createItem());
+        refresh();
+        document.getElementById('toast-text').textContent = 'Query ' + (index + 1) + ' removed';
+        toast.hidden = false;
+        say('Query ' + (index + 1) + ' removed. Undo is available.');
+        // Not the neighbour's Remove button: a second Enter would remove that item too.
+        const neighbour = items()[Math.min(index, items().length - 1)];
+        part(neighbour, removed.replacement ? 'title' : 'collapse').focus();
+    }
+
+    function move(item, direction) {
+        clearUndo();
+        const index = items().indexOf(item);
+        list.insertBefore(item, direction === 'up' ? items()[index - 1] : items()[index + 1].nextSibling);
+        refresh();
+        const button = part(item, direction);
+        (button.disabled ? part(item, direction === 'up' ? 'down' : 'up') : button).focus({preventScroll: true});
+        item.scrollIntoView({block: 'nearest'});
+        say('Moved to position ' + (items().indexOf(item) + 1));
+    }
+
+    list.addEventListener('click', (event) => {
+        const button = event.target.closest('button');
+        if (!button) return;
+        const item = button.closest('.item');
+        const action = button.dataset.part;
+        if (action === 'edit') editQuery(item);
+        if (action === 'add') insert(createItem(), item.nextSibling, 'Added query');
+        if (action === 'duplicate') insert(createItem(part(item, 'title').value, part(item, 'query').value), item.nextSibling, 'Duplicated as query');
+        if (action === 'remove') remove(item);
+        if (action === 'up' || action === 'down') move(item, action);
+        if (action === 'collapse') { item.classList.toggle('is-collapsed'); refresh(); }
+    });
+    list.addEventListener('input', (event) => {
+        if (event.target.dataset.part === 'query') {
+            const item = event.target.closest('.item');
+            item.path = [];
+            renderVisual(item);
+        }
+        refresh();
+    });
+    document.getElementById('add-first').onclick = () => insert(createItem(), list.firstChild, 'Added query');
+    document.getElementById('undo').onclick = () => {
+        const {item, index, replacement} = removed;
+        clearUndo();
+        list.insertBefore(item, items()[index] || null);
+        if (replacement && isClear(replacement)) replacement.remove();
+        refresh();
+        part(item, 'remove').focus();
+        item.scrollIntoView({block: 'nearest'});
+        say('Query ' + (index + 1) + ' restored');
+    };
+
+    // --- Keyboard navigation. Each item has its own tree; item.path is its current node ([] = the item itself).
+    function parseQuery(text) {
+        const pairs = {}, stack = [];
+        let quoted = false;
+        for (let i = 0; i < text.length; i++) {
+            if (text[i] === '"') quoted = !quoted;
+            if (quoted) continue;
+            if (text[i] === '(') stack.push(i);
+            if (text[i] === ')') {
+                if (!stack.length) return null;
+                pairs[stack.pop()] = i;
+            }
+        }
+        return quoted || stack.length ? null : parseLevel(text, pairs, 0, text.length);
+    }
+
+    function parseLevel(text, pairs, from, to) {
+        const scopes = [];
+        let runStart = from;
+        const endRun = (end) => {
+            const run = text.slice(runStart, end);
+            if (!run.trim()) return;
+            const start = runStart + run.length - run.trimStart().length;
+            scopes.push({type: 'run', start, end: start + run.trim().length, children: []});
+        };
+        for (let i = from; i < to; i++) {
+            if (pairs[i] === undefined) continue;
+            endRun(i);
+            scopes.push({type: 'group', start: i, end: pairs[i] + 1, children: parseLevel(text, pairs, i + 1, pairs[i])});
+            i = pairs[i];
+            runStart = i + 1;
+        }
+        endRun(to);
+        return scopes;
+    }
+
+    const queryOf = (item) => part(item, 'query').value;
+
+    function levelAt(item, path) {
+        let level = parseQuery(queryOf(item)) || [];
+        for (const index of path) level = level[index].children;
+        return level;
+    }
+
+    const scopeAt = (item, path) => levelAt(item, path.slice(0, -1))[path[path.length - 1]];
+
+    // Nearest remaining place: a neighbour, then the surrounding scope, then the item.
+    function validPath(item, path) {
+        const result = [];
+        for (const index of path) {
+            const level = levelAt(item, result);
+            if (!level.length) break;
+            result.push(Math.min(index, level.length - 1));
+            if (index >= level.length) break;
+        }
+        return result;
+    }
+
+    function renderLevel(parent, text, scopes, from, to, path) {
+        let at = from;
+        scopes.forEach((scope, index) => {
+            parent.append(text.slice(at, scope.start));
+            const el = document.createElement('span');
+            const elPath = [...path, index];
+            el.className = scope.type;
+            el.setAttribute('role', 'treeitem');
+            el.setAttribute('aria-level', elPath.length + 1);
+            el.setAttribute('aria-label', text.slice(scope.start, scope.end));
+            el.dataset.path = elPath.join('.');
+            if (scope.type === 'group') {
+                el.append('(');
+                renderLevel(el, text, scope.children, scope.start + 1, scope.end - 1, elPath);
+                el.append(')');
+            } else {
+                // AND, OR and NOT in capitals, outside quotes: shown as operators.
+                for (const bit of text.slice(scope.start, scope.end).split(/("[^"]*"|\b(?:AND|OR|NOT)\b)/)) {
+                    if (!/^(AND|OR|NOT)$/.test(bit)) { el.append(bit); continue; }
+                    const operator = document.createElement('span');
+                    operator.className = 'boolean';
+                    operator.textContent = bit;
+                    el.append(operator);
+                }
+            }
+            parent.append(el);
+            at = scope.end;
+        });
+        parent.append(text.slice(at, to));
+    }
+
+    function renderVisual(item) {
+        const visual = part(item, 'visual');
+        const text = queryOf(item);
+        const scopes = parseQuery(text);
+        visual.replaceChildren();
+        visual.classList.toggle('error', !scopes);
+        if (scopes) renderLevel(visual, text, scopes, 0, text.length, []);
+        else visual.append('Brackets or quotes do not match');
+        updateTabStop(item);
+        updateQueryView(item);
+    }
+
+    // The query box shows only while it is being edited (with the live visualisation below it), and when
+    // there is nothing to visualise: no query, or an error (the message then shows below the box).
+    function updateQueryView(item) {
+        const valid = Boolean(parseQuery(queryOf(item)));
+        const showBox = item.editingQuery || !queryOf(item).trim() || !valid;
+        part(item, 'query').hidden = !showBox;
+        part(item, 'edit').hidden = showBox;
+        part(item, 'visual').hidden = !queryOf(item).trim();
+    }
+
+    function editQuery(item) {
+        item.editingQuery = true;
+        updateQueryView(item);
+        part(item, 'query').focus();
+    }
+
+    let pointerDown = false;
+    let leftItem = null;
+    function leaveQuery(item) {
+        item.editingQuery = item.isConnected && document.activeElement === part(item, 'query');
+        updateQueryView(item);
+    }
+    list.addEventListener('focusin', (event) => {
+        if (event.target.dataset.part === 'query') event.target.closest('.item').editingQuery = true;
+    });
+    list.addEventListener('focusout', (event) => {
+        // Not when the whole window loses focus: the user comes back to the same box.
+        if (event.target.dataset.part !== 'query' || !document.hasFocus()) return;
+        const item = event.target.closest('.item');
+        // Swapping moves everything below, so wait until a click that caused this has landed.
+        if (pointerDown) leftItem = item;
+        else leaveQuery(item);
+    });
+    document.addEventListener('pointerdown', () => { pointerDown = true; }, true);
+    for (const type of ['pointerup', 'pointercancel']) {
+        document.addEventListener(type, () => {
+            pointerDown = false;
+            setTimeout(() => { if (leftItem) leaveQuery(leftItem); leftItem = null; });
+        }, true);
+    }
+
+    const nodeElement = (item) => item.path.length
+        ? item.querySelector('[data-path="' + item.path.join('.') + '"]') : part(item, 'editor');
+
+    function updateTabStop(item) {
+        item.querySelectorAll('[role=treeitem]').forEach((el) => { el.tabIndex = -1; });
+        nodeElement(item).tabIndex = 0;
+    }
+
+    function select(item, path) {
+        item.path = validPath(item, path);
+        updateTabStop(item);
+        nodeElement(item).focus({preventScroll: true});
+        nodeElement(item).scrollIntoView({block: 'nearest'});
+    }
+
+    function selectItem(item) {
+        if (!item) return;
+        if (item.classList.contains('is-collapsed')) {
+            item.classList.remove('is-collapsed');
+            refresh();
+        }
+        select(item, []);
+    }
+
+    function startEdit(item) {
+        const path = [...item.path];
+        const scope = scopeAt(item, path);
+        const text = queryOf(item);
+        const input = document.createElement('input');
+        let done = false;
+        let alerting = false;
+        input.className = 'edit';
+        input.setAttribute('aria-label', 'Edit scope');
+        input.value = text.slice(scope.start, scope.end);
+        input.size = input.value.length + 10;
+
+        function finish(refocus) {
+            if (done) return;
+            done = true;
+            item.path = validPath(item, path);
+            renderVisual(item);
+            refresh();
+            if (refocus) select(item, path);
+        }
+
+        input.addEventListener('keydown', (event) => {
+            event.stopPropagation();
+            if (event.isComposing) return;
+            if (event.key === 'Escape') { event.preventDefault(); finish(true); }
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                const changed = text.slice(0, scope.start) + input.value + text.slice(scope.end);
+                if (!parseQuery(changed)) {
+                    alerting = true;
+                    alert('Brackets or quotes do not match. Please correct your edit.');
+                    alerting = false;
+                    input.focus();
+                    return;
+                }
+                part(item, 'query').value = changed;
+                finish(true);
+            }
+        });
+        input.addEventListener('blur', () => { if (!alerting) finish(false); });
+        nodeElement(item).replaceWith(input);
+        // The scope is gone until the edit ends, so the item is the Tab stop meanwhile.
+        item.path = [];
+        updateTabStop(item);
+        input.focus();
+        input.select();
+    }
+
+    function onItem(item, key) {
+        if (key === 'Enter') editQuery(item);
+        if (key.toLowerCase() === 't') part(item, 'title').focus();
+        if (key === 'ArrowDown' && levelAt(item, []).length) select(item, [0]);
+    }
+
+    function onScope(item, key) {
+        const path = item.path;
+        const parent = path.slice(0, -1), index = path[path.length - 1];
+        if (key === 'Enter') startEdit(item);
+        if (key === 'ArrowUp') select(item, parent);
+        if (key === 'ArrowDown' && levelAt(item, path).length) select(item, [...path, 0]);
+        if (key === 'ArrowLeft' && index > 0) select(item, [...parent, index - 1]);
+        if (key === 'ArrowRight' && index < levelAt(item, parent).length - 1) select(item, [...parent, index + 1]);
+    }
+
+    list.addEventListener('keydown', (event) => {
+        const item = event.target.closest('.item');
+        if (event.target.matches('input, textarea')) {
+            if (event.key === 'Escape' && !event.isComposing) select(item, []);
+            return;
+        }
+        // The card's buttons are outside the trees.
+        if (!event.target.matches('[role=treeitem]') || event.ctrlKey || event.metaKey) return;
+        if (event.altKey) {
+            if (event.key !== 'ArrowUp' && event.key !== 'ArrowDown') return;
+            event.preventDefault();
+            selectItem(event.key === 'ArrowUp' ? item.previousElementSibling : item.nextElementSibling);
+            return;
+        }
+        if (!/^(Arrow(Up|Down|Left|Right)|Enter|t)$/i.test(event.key)) return;
+        event.preventDefault();
+        if (item.path.length) onScope(item, event.key);
+        else onItem(item, event.key);
+    });
+
+    list.addEventListener('click', (event) => {
+        const el = event.target.closest('input, textarea, button, [role=treeitem]');
+        if (!el || !el.matches('[role=treeitem]')) return;
+        select(el.closest('.item'), el.dataset.path ? el.dataset.path.split('.').map(Number) : []);
+    });
+
+    function show(newItems) {
+        clearUndo();
+        list.replaceChildren(...newItems);
+        refresh();
+    }
+
+    document.getElementById('proto-examples').onclick = () => show([
+        createItem('Heart', '(heart OR (cardiac AND lung)) AND child*'),
+        createItem('', 'stroke NOT (child* OR infant*)'),
+        createItem('Mesh', '"myocardial infarction"[Mesh]')]);
+    document.getElementById('proto-fresh').onclick = () => show([createItem()]);
+    document.getElementById('proto-reload').onclick = () => location.reload();
+    window.addEventListener('hashchange', () => show(restore()));
+    show(restore());
+</script>
+</body>
+</html>

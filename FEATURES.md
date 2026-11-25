@@ -101,4 +101,5 @@ Medsyntax is a syntax assistant for (medical) search engine queries with a scope
 ### Ideas
 - [ ] Support more search engine syntaxes (PubMed, Ovid, etc.)
 - [ ] Undo/redo for scope edits
+- [ ] New look and better item management in the WORKSPACE: undo for Remove, move, duplicate, collapse (requirements: `product-development/workspace-ux.md`)
 - [ ] Accessibility: keyboard navigation for the WORKSPACE and the scope editor (requirements: `product-development/keyboard-navigation.md`)

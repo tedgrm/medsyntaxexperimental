@@ -28,6 +28,7 @@ See `FEATURES.md` for the feature list and the TODO list. Keep it up to date whe
 - `.claude/skills/`: skills (slash commands) that run the Playwright commands below. Only `/.pw-test` can be started by Claude itself; the others open windows, so only the user starts them.
 - `product-development/`: product development resources (research, roadmap, designs, feedback). Not part of the site's code. See its `README.md`.
   - `keyboard-navigation.md`: draft requirements for keyboard navigation in the WORKSPACE. Not built yet.
+  - `workspace-ux.md`: draft UX requirements for the WORKSPACE (visual style with dark mode, managing items, how they meet keyboard navigation). Not built yet.
   - `prototypes/`: throwaway prototypes, opened straight from disk. Not part of the site and not tested.
   - `external documents/`: source documents from outside the project. **Read-only.** See Conventions.
     - `Zoekstrategie Medsyntax Ted.docx`: a PubMed search strategy, the query used in `playwright/editor.spec.ts`.
