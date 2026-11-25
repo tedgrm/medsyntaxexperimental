@@ -24,6 +24,6 @@ for (const colorScheme of ['light', 'dark', 'greyscale'] as const) {
             Math.abs((frame as HTMLIFrameElement).offsetHeight
                 - (frame as HTMLIFrameElement).contentDocument!.body.offsetHeight) < 3))).toBe(true);
         await page.evaluate(() => window.scrollTo(0, 0));
-        await expect(page).toHaveScreenshot(`workspace-${colorScheme}.png`, {fullPage: true, maxDiffPixelRatio: 0.01});
+        await expect(page).toHaveScreenshot(`workspace-${colorScheme}.png`, {fullPage: true, maxDiffPixelRatio: 0});
     });
 }
