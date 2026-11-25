@@ -39,6 +39,7 @@ Medsyntax is a syntax assistant for (medical) search engine queries with a scope
 - iframe-resizer support for embedding in other pages
 
 ## Tooling
+- jQuery fallbacks in the EDITOR and WORKSPACE: code.jquery.com, then jsDelivr, then cdnjs, then a local copy
 - Playwright end-to-end tests (`npm run pw-test`, `npm run pw-test-ui`), also as Claude Code skills (`/pw-test`, `/pw-test-gui`, `/pw-codegen`, `/pw-report`)
 - GitHub Pages deployment via `.github/workflows/static.yml` (publishes only `site/`)
 - Qodana code analysis config
@@ -89,7 +90,7 @@ Medsyntax is a syntax assistant for (medical) search engine queries with a scope
 ### Code quality
 - [x] Move inline `<script>` blocks from `site/index.html` into separate JS files
 - [ ] Give generic functions clearer names (e.g. `myFunction`, `myForm`, `myRadios`)
-- [ ] Host jQuery locally or add an SRI hash to the CDN `<script>`
+- [ ] Add an SRI hash to the CDN `<script>`s
 - [ ] Remove or reduce commented-out `console.log` calls
 
 ### Docs / housekeeping
