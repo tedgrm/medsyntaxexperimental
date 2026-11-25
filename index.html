@@ -2,13 +2,14 @@
 
 <head>
     <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description"
           content="Syntax assistant for Pubmed, Embase, Scopus and other (medical) database search engines">
     <title>Medsyntax</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://code.jquery.com/jquery-3.6.0.js"></script>
-    <script src="scripts/iframe-resizer/js/iframeResizer.contentWindow.js"></script>
-    <script src="scripts/lzstring.js"></script>
+    <script src="scripts/third-party/iframe-resizer/js/iframeResizer.contentWindow.js"></script>
+    <script src="scripts/third-party/lzstring.js"></script>
 </head>
 
 <body>
@@ -336,6 +337,11 @@
         updateUrl('query', '');
         document.getElementById("demo-button").hidden = false;
         $('#medsyntax-target1').text('');
+        // No warnings for an empty query.
+        hideWarnings();
+        // Forget the cleared text, so re-entering the same query renders it again
+        // (syntaxCheck skips input equal to stringLatestString).
+        stringLatestString = "";
     }
 
 
@@ -765,7 +771,11 @@
             document.getElementById(warningBracketCloseElementId).hidden = false;
             hasError = true;
         }
-        if (str.indexOf("(") > str.indexOf(")")) {
+        // wrong order: a ) before the first (. Only compare when there is a ),
+        // because indexOf returns -1 when it is missing.
+        const firstBracketOpen = str.indexOf("(");
+        const firstBracketClose = str.indexOf(")");
+        if (firstBracketClose !== -1 && firstBracketOpen > firstBracketClose) {
             document.getElementById(warningBracketCloseElementId).hidden = false;
             document.getElementById(warningBracketOpenElementId).hidden = false;
         }
@@ -781,7 +791,10 @@
             document.getElementById(warningSquareBracketCloseElementId).hidden = false;
             hasError = true;
         }
-        if (str.indexOf("[") > str.indexOf("]")) {
+        // wrong order: a ] before the first [. Only compare when there is a ].
+        const firstSquareBracketOpen = str.indexOf("[");
+        const firstSquareBracketClose = str.indexOf("]");
+        if (firstSquareBracketClose !== -1 && firstSquareBracketOpen > firstSquareBracketClose) {
             document.getElementById(warningSquareBracketCloseElementId).hidden = false;
             document.getElementById(warningSquareBracketOpenElementId).hidden = false;
         }

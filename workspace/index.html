@@ -6,8 +6,8 @@
     <title>MedsyntaxQA</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://code.jquery.com/jquery-3.6.0.js"></script>
-    <script src="../scripts/iframe-resizer/js/iframeResizer.js"></script>
-    <script src="../scripts/lzstring.js"></script>
+    <script src="../scripts/third-party/iframe-resizer/js/iframeResizer.js"></script>
+    <script src="../scripts/third-party/lzstring.js"></script>
     <script src="../scripts/key-commands.js"></script>
 </head>
 
@@ -180,7 +180,7 @@
         const params = new URLSearchParams(queryString);
 
         // console.log("--- Iterating Through Parameters ---");
-        let hasQuery = false;
+        let hasItems = false;
         // Iterate and run a function on each parameter
         params.forEach((value, key) => {
             // console.log('Key:', key);
@@ -201,20 +201,24 @@
                 const qsCheck = new RegExp('^[0-9]{' + padLength + '}iframequery');
                 // console.log('qsCheck: ' + qsCheck.test(key));
 
-                if (value !== 'Q' && qsCheck.test(key)) {
+                // Restore every item, empty ones too. An item that never loaded is
+                // stored as "Q" (the compressed empty string); skipping those used
+                // to drop empty items on reload.
+                if (qsCheck.test(key)) {
                     list.push(QueryObject(
                         null,
                         LZString.decompressFromEncodedURIComponent(value),
                         getRandomColor()
                     ))
 
-                    hasQuery = true;
+                    hasItems = true;
                 }
                 // console.log(list);
             }
         });
 
-        if (hasQuery === false) {
+        // A link without items (a fresh WORKSPACE) starts with three empty ones.
+        if (hasItems === false) {
             list[0] = QueryObject();
             list[1] = QueryObject();
             list[2] = QueryObject();

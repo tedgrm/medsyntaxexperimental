@@ -7,8 +7,10 @@
     "@types/node": "^25.9.1"
   },
   "scripts": {
+    "start": "node server.js",
     "pw-test": "playwright test",
     "pw-test-ui": "playwright test --headed",
+    "pw-test-gui": "playwright test --ui",
     "pw-codegen": "playwright codegen"
   }
 }
