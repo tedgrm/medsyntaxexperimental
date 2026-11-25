@@ -87,7 +87,7 @@ Medsyntax is a syntax assistant for (medical) search engine queries with a scope
 - [x] Refresh `editor-with-warning-chromium-darwin.png` and `editor-with-warning-firefox-darwin.png` (they showed the old double bracket warning)
 
 ### Code quality
-- [ ] Move inline `<script>` blocks from `site/index.html` into separate JS files
+- [x] Move inline `<script>` blocks from `site/index.html` into separate JS files
 - [ ] Give generic functions clearer names (e.g. `myFunction`, `myForm`, `myRadios`)
 - [ ] Host jQuery locally or add an SRI hash to the CDN `<script>`
 - [ ] Remove or reduce commented-out `console.log` calls
