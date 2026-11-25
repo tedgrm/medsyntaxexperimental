@@ -35,6 +35,15 @@ Medsyntax is a syntax assistant for (medical) search engine queries with a scope
 - Loading a URL restores the query and title
 - Copy-query and copy-link buttons (clipboard)
 
+## WORKSPACE (MedsyntaxQA)
+- A list of queries (items), each an embedded EDITOR, kept in one shareable link
+- Add, duplicate, move, collapse, clear the query, and remove with Undo, without disturbing other items
+- Title per item in its card header, and a Show example button with four PICO queries while every item is clear
+- Number and colour per item; a light and a dark mode that follow the system setting
+- The query box shows while editing; otherwise only the visualisation
+- Keyboard navigation through items and scopes, and scope editing without a mouse
+- Items without a title and query are dropped on reload
+
 ## Embedding
 - iframe-resizer support for embedding in other pages
 
@@ -44,7 +53,7 @@ Medsyntax is a syntax assistant for (medical) search engine queries with a scope
 - Claude Code hooks that report how long each shell command took (`.claude/settings.json`, needs `jq`)
 - GitHub Pages deployment via `.github/workflows/static.yml` (publishes only `site/`)
 - Qodana code analysis config
-- `site/workspace/`: MedsyntaxQA (Query Augmentation) experimental version (v0.1)
+- `site/workspace/`: MedsyntaxQA (Query Augmentation) experimental version (v0.1), see WORKSPACE above
 
 ---
 
@@ -52,10 +61,11 @@ Medsyntax is a syntax assistant for (medical) search engine queries with a scope
 
 ### Bugs / code questions
 - [x] EDITOR scrolled sideways on narrow screens (375px): the title box (`size="100"`) and the hidden 400px copy tooltips were wider than the screen, and without a viewport tag phones zoomed out a 980px layout. Fixed with `max-width` on `.query-title` and `.tooltiptext` and a viewport meta tag (tests: `editor-layout.spec.ts` "no horizontal page scroll at 375px wide")
-- [x] WORKSPACE dropped new empty items on reload (stored as `Q`, skipped by the ready handler); every item is now restored (`site/workspace/index.html`; test: `workspace.spec.ts` "reloading the link keeps empty items too")
+- [x] WORKSPACE dropped new empty items on reload. First fixed by restoring every item; since the new WORKSPACE UX, clear items are dropped on purpose (ITEM-10 in `product-development/workspace-ux.md`)
+- [x] Alerts were blocked in WORKSPACE items (the iframes' `sandbox` lacked `allow-modals`), so an invalid scope edit gave no message
 - [x] Clear button: hide syntax warnings, and reset `stringLatestString` so re-entering the same query renders it again (`clearButtonFunc` in `site/index.html`; tests in `editor-controls.spec.ts`)
 - [ ] Verify the `savedLatestInputTime !== latestInputTime` check in `afterParseFunction` actually works (`site/index.html` TODO)
-- [ ] `site/scripts/key-commands.js` is a stub (only `console.log`s); implement keyboard commands (requirements: `product-development/keyboard-navigation.md`) or remove it
+- [x] `site/scripts/key-commands.js` was a stub (only `console.log`s): removed; the keys are in `site/scripts/editor/item-keyboard.js`
 - [x] Typing in the query box during a scope edit did not update the visualisation; it now renders the query and cancels the edit (`syntaxCheck` in `site/index.html`; tests: `editor-edge-cases.spec.ts` "during a scope edit")
 - [ ] EDITOR bugs with a `test.fail` test in `playwright/editor-edge-cases.spec.ts` (remove that line when fixed):
   - [ ] **Security (XSS):** HTML in a query, also from a shared link, runs as code (`innerHTML`, unescaped)
@@ -101,5 +111,6 @@ Medsyntax is a syntax assistant for (medical) search engine queries with a scope
 ### Ideas
 - [ ] Support more search engine syntaxes (PubMed, Ovid, etc.)
 - [ ] Undo/redo for scope edits
-- [ ] New look and better item management in the WORKSPACE: undo for Remove, move, duplicate, collapse (requirements: `product-development/workspace-ux.md`)
-- [ ] Accessibility: keyboard navigation for the WORKSPACE and the scope editor (requirements: `product-development/keyboard-navigation.md`)
+- [x] New look and better item management in the WORKSPACE: undo for Remove, move, duplicate, collapse (requirements: `product-development/workspace-ux.md`)
+- [x] Accessibility: keyboard navigation for the WORKSPACE and its scope editor (requirements: `product-development/keyboard-navigation.md`)
+- [ ] Test the WORKSPACE with a real screen reader (VoiceOver, NVDA)

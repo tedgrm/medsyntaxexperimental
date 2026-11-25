@@ -1,6 +1,6 @@
 # Keyboard navigation: requirements
 
-Status: **draft** (2026-11-25), not built. All questions so far are answered, see [Decisions](#decisions).
+Status: **built** (2026-11-25), see [Decisions](#decisions) and [As built](workspace-ux.md#as-built). Not tested with a real screen reader.
 
 How this meets the new cards and actions (move, collapse, undo) is in [workspace-ux.md](workspace-ux.md#keyboard-navigation).
 
@@ -11,7 +11,7 @@ Use the WORKSPACE without a mouse: move between items, into the parts of a visua
 - **Expert searchers** who want to work fast.
 - **People who don't use a mouse**, including screen-reader users. Target: WCAG 2.2 AA.
 
-Today, picking a scope works only with the mouse, and `site/scripts/key-commands.js` only logs key presses.
+Before, picking a scope worked only with the mouse, and `site/scripts/key-commands.js` only logged key presses.
 
 ## Decisions
 

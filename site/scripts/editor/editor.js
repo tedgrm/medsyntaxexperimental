@@ -3,7 +3,8 @@ let stringLatestString = "";
 let queryParamsLatestParams;
 let time = Date.now();
 let latestInputTime = Date.now();
-let ws = null;
+// the item's id when embedded in the WORKSPACE, otherwise null
+const ws = new URLSearchParams(window.location.search).get('ws');
 
 $(document).ready(function () {
     $(document).click(function (event) {
@@ -45,8 +46,6 @@ $(document).ready(function () {
     const input = document.getElementById("query-input1");
     textAreaAdjust(input);
 
-    const urlParams = new URLSearchParams(window.location.search);
-    ws = urlParams.get('ws');
     // indien workspace (iframe)
     if (ws) {
         // console.log('ws: ' + ws);
@@ -131,6 +130,7 @@ function clearButtonFunc() {
     // Forget the cleared text, so re-entering the same query renders it again
     // (syntaxCheck skips input equal to stringLatestString).
     stringLatestString = "";
+    announceRendered();
 }
 
 
@@ -161,6 +161,9 @@ function updateTitle(titleId) {
 function updateUrl(name, value) {
     // Construct URLSearchParams object instance from current URL querystring
     let queryParams = new URLSearchParams(window.location.search);
+    if (ws && typeof window.itemQueryString === 'string') {
+        queryParams = new URLSearchParams(window.itemQueryString);
+    }
     // console.log('queryParams:', queryParams.toString());
 
     // Set new or modify existing page value
@@ -174,15 +177,19 @@ function updateUrl(name, value) {
     }
 
 
-    // Replace current querystring with the new one
-    history.replaceState(null, null, "?" + queryParams.toString());
-    history.pushState(null, null, "?" + queryParams.toString());
-
     // send to parent window if iframe
     if (ws) {
         // remove ws parameters from querystring
         while (queryParams.get('ws') != null) {
             queryParams.delete('ws');
+        }
+
+        // Only replace: an item must not add to the browser history of the WORKSPACE.
+        window.itemQueryString = queryParams.toString();
+        try {
+            history.replaceState(null, null, "?ws=" + encodeURIComponent(ws) + "&" + window.itemQueryString);
+        } catch (error) {
+            // Safari allows 100 changes in 10 seconds; the WORKSPACE keeps the state.
         }
 
         // console.log('queryParams without ws:', queryParams.toString());
@@ -196,7 +203,16 @@ function updateUrl(name, value) {
         // console.log('Sending updateUrl message:', messageData);
         // Use postMessage to send data to the parent window
         window.parent.postMessage(messageData);
+    } else {
+        // Replace current querystring with the new one
+        history.replaceState(null, null, "?" + queryParams.toString());
+        history.pushState(null, null, "?" + queryParams.toString());
     }
+}
+
+// Tells item.js and item-keyboard.js that the visualisation or the query changed.
+function announceRendered() {
+    document.dispatchEvent(new CustomEvent('medsyntax:rendered'));
 }
 
 function setEditMode(trueFalse) {
@@ -321,6 +337,7 @@ function syntaxCheck(sourceElementId, targetElementId, force) {
     }
     $("#query-input1").val(str);
     stringLatestString = str; // after clean-up, as it is now in the query box
+    announceRendered();
 }
 
 //*** Syntax 'parser' code ***//
@@ -755,11 +772,16 @@ function addHoverThisAndPrevElement(element) {
 // Start edit on mouse down method
 function hoverMouseDown(event) {
     event.preventDefault();
+    startScopeEdit($(".hover"));
+}
+
+// Replace these neighbouring parts of the visualisation with the dynamic input
+function startScopeEdit(scope) {
     medsyntaxTargetWidth = $("#medsyntax-target1").width();
     $('.medsyntax-target div').off('mousemove');
 
-    const text = $(".hover").text();
-    $(".hover").wrapAll("<div class='newInputTarget' />");
+    const text = scope.text();
+    scope.wrapAll("<div class='newInputTarget' />");
     $(".medsyntax-target .newInputTarget")
         .replaceWith('<textarea id="dynamic-input" class="dynamic-input"' +
             ' onfocusin="setEditMode(true)" onfocusout="setEditMode(false)"/>');

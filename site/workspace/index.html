@@ -1,7 +1,9 @@
 <!DOCTYPE html>
+<html lang="en">
 
 <head>
     <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="Query workspace using Medsyntax">
     <title>MedsyntaxQA</title>
     <link rel="stylesheet" href="style.css">
@@ -13,223 +15,51 @@
     <script>window.jQuery || document.write('<script src="../scripts/third-party/jquery/jquery-3.6.0.js"><\/script>')</script>
     <script src="../scripts/third-party/iframe-resizer/js/iframeResizer.js"></script>
     <script src="../scripts/third-party/lzstring.js"></script>
-    <script src="../scripts/key-commands.js"></script>
 </head>
 
 <body>
-<button class="first-button" onclick="addItemAfter(-1)">Add</button>
-<ul id="myList" style="padding: 0"></ul>
+<header>
+    <div class="wrap">
+        <div class="brand">
+            <span class="brand-mark">medsyntax</span>
+            <div>
+                <h1>MedsyntaxQA</h1>
+                <p>Workspace for multiline searches</p>
+            </div>
+        </div>
+        <nav aria-label="Medsyntax tools">
+            <a href="../index.html">Medsyntax Editor</a>
+            <a aria-current="page">Workspace</a>
+            <a href="https://github.com/tedgrm/medsyntaxexperimental/issues" target="_blank" rel="noopener">Report an issue</a>
+        </nav>
+        <details class="keys">
+            <summary>Keyboard keys</summary>
+            <p>Press Tab until an item has a pink outline. Then:</p>
+            <ul>
+                <li><b>Alt+Up / Alt+Down</b>: previous / next item, from an item or a scope. A collapsed item expands.</li>
+                <li><b>Down / Up</b>: into the query or scope / out of it. <b>Left / Right</b>: previous / next scope.</li>
+                <li><b>Enter</b>: on an item, go to the query; on a scope, edit it. Enter then confirms, Escape cancels.</li>
+                <li><b>T</b>: on an item, go to the title. <b>Escape</b> in the title or query: back to the item.</li>
+            </ul>
+        </details>
+    </div>
+</header>
 
-<script>
-    const padLength = 9;
-    let editMode = false;
+<main class="wrap">
+    <div class="list-actions">
+        <button class="btn primary" id="add-first-item">+ Add query at the top</button>
+        <button class="btn" id="show-example" hidden>Show example</button>
+    </div>
+    <ul id="myList" aria-label="Queries"></ul>
+</main>
 
-    function pad(num, size) {
-        num = num.toString();
-        while (num.length < size) num = "0" + num;
-        return num;
-    }
+<div id="undo-toast" hidden>
+    <span id="undo-toast-text"></span>
+    <button class="btn" id="undo-button">Undo</button>
+</div>
+<div id="workspace-status" class="visually-hidden" role="status"></div>
 
-    // Parent communication script will go here
-    window.addEventListener('message', function (event) {
-        // Security check: Always check the origin of the sender to prevent cross-site attacks!
-        if (event.origin !== window.location.origin) {
-            console.error("Message received from unauthorized origin!");
-            return;
-        }
-
-        if (event.data.type === "setEditMode") {
-            console.log('setEditMode', event.data.payload);
-            editMode = event.data.payload;
-            return;
-        }
-
-        if (event.data.type === "updateUrl") {
-            const data = event.data;
-            // console.log("Message received from iframe:", data);
-            const queryString = event.data.payload;
-            // console.log('queryString: ' + queryString);
-            const indexPadded = pad(queryString.split('%index%')[0], padLength);
-            // console.log('indexPadded: ' + indexPadded);
-            const qsValue = queryString.split('%index%')[1];
-            // console.log('qsValue: ' + qsValue);
-            updateUrl(indexPadded + 'iframequery', qsValue);
-        }
-    });
-
-    function getRandomColor() {
-        const letters = '0123456789ABCDEF';
-        let color = '#';
-        for (let i = 0; i < 6; i++) {
-            color += letters[Math.floor(Math.random() * 16)];
-        }
-        return color;
-    }
-
-    function updateUrl(name, value) {
-        // Construct URLSearchParams object instance from current URL querystring
-        let queryParams = new URLSearchParams(window.location.search);
-
-        // Set new or modify existing page value
-        queryParams.set(name, LZString.compressToEncodedURIComponent(value));
-        queryParams.sort();
-
-        // Replace current querystring with the new one
-        history.replaceState(null, null, "?" + queryParams.toString());
-        history.pushState(null, null, "?" + queryParams.toString());
-    }
-
-    function QueryObject(src, iframeQueryString, color) {
-        let qObject = Object.create(constructorObject);
-        qObject.type = "query";
-        qObject.iframeQueryString = iframeQueryString;
-        qObject.src = src;
-        qObject.color = color;
-        return qObject;
-    }
-
-    let constructorObject = {}
-
-    let list = [];
-
-    function addItemAfter(index) {
-        list.forEach(getQuery);
-        list.splice(index + 1, 0, QueryObject());
-        $("#myList").html("");
-        list.forEach(queryFunction);
-    }
-
-    function removeThisItem(index) {
-        list.forEach(getQuery);
-        $("#myList").html("");
-
-        // Construct URLSearchParams object instance from current URL querystring
-        let queryParams = new URLSearchParams(window.location.search);
-
-        // Set new or modify existing page value
-        for (let i = 0; i < list.length; i++) {
-            // console.log('index:', i);
-            let deletableString = pad(i, padLength) + 'iframequery';
-            // console.log('deletableString:', deletableString);
-            queryParams.delete(deletableString);
-        }
-
-        // console.log('workspace queryParams:', queryParams.toString());
-
-        // Replace current querystring with the new one
-        history.replaceState(null, null, "?" + queryParams.toString());
-        history.pushState(null, null, "?" + queryParams.toString());
-
-        delete list[index];
-        list = $.grep(list, n => n === 0 || n);
-        console.log('list after delete', list);
-        list.forEach(queryFunction);
-    }
-
-    function getQuery(item, index) {
-        const src = document.getElementById("page_is_fresh_" + index).contentWindow.location.href;
-        item.src = src;
-        // console.log(item.src);
-        item.iframeQueryString = src.split("?ws=" + index)[1];
-        // console.log('iframeQueryString: ' + item.iframeQueryString);
-        return item;
-    }
-
-    function queryFunction(item, index) {
-        let iframeQueryString = '';
-        if (item.iframeQueryString) {
-            if (item.iframeQueryString !== 'Q') {
-                iframeQueryString = item.iframeQueryString;
-            }
-            if (item.iframeQueryString.substring(0, 1) === '&') {
-                iframeQueryString = item.iframeQueryString.substring(1);
-            }
-        }
-
-        // console.log(item);
-
-        const $li = $("<li>", {id: "li_item_" + index, "class": "item",});
-        $li.append("<iframe" +
-            " id=\"page_is_fresh_" + index + "\"" +
-            " name=\"iframe" + index + "\"" +
-            " src=\"../index.html?ws=" + index + '&' + iframeQueryString + "\"" +
-            " sandbox=\"allow-same-origin allow-scripts allow-top-navigation\"" +
-            "></iframe>");
-        $li.append("<button onclick=\"removeThisItem(" + index + ")\">Remove</button>")
-        $li.append("<button onclick=\"addItemAfter(" + index + ")\">Add</button>")
-        $("#myList").append($li);
-
-        updateUrl(pad(index, padLength) + 'iframequery', iframeQueryString);
-
-        if (item.color === undefined) {
-            item.color = getRandomColor();
-        }
-        $('#li_item_' + index).css({
-            'border': item.color,
-            'border-style': 'solid',
-            'border-width': '10px',
-            'border-radius': '20px',
-            'padding': '10px 0px 10px 10px'
-        });
-
-        iframeResize({license: 'GPLv3', log: false}, '#page_is_fresh_' + index);
-        var iframe = document.getElementById('page_is_fresh_' + index);
-        iframe.contentWindow.addEventListener('keydown', handleKeyDownFromIframe);
-    }
-
-    $(document).ready(function () {
-        // 1. Get the query string from the current URL
-        const queryString = window.location.search;
-
-        // 2. Create a URLSearchParams object
-        const params = new URLSearchParams(queryString);
-
-        // console.log("--- Iterating Through Parameters ---");
-        let hasItems = false;
-        // Iterate and run a function on each parameter
-        params.forEach((value, key) => {
-            // console.log('Key:', key);
-            if (key.includes('iframequery')) {
-                // console.log("Found key:", key);
-                // console.log("Value", value)
-
-                // Construct URLSearchParams object instance from current URL querystring
-                let queryParams = new URLSearchParams(window.location.search);
-
-                // Set new or modify existing page value
-                queryParams.delete(key);
-
-                // Replace current querystring with the new one
-                history.replaceState(null, null, "?" + queryParams.toString());
-                history.pushState(null, null, "?" + queryParams.toString());
-
-                const qsCheck = new RegExp('^[0-9]{' + padLength + '}iframequery');
-                // console.log('qsCheck: ' + qsCheck.test(key));
-
-                // Restore every item, empty ones too. An item that never loaded is
-                // stored as "Q" (the compressed empty string); skipping those used
-                // to drop empty items on reload.
-                if (qsCheck.test(key)) {
-                    list.push(QueryObject(
-                        null,
-                        LZString.decompressFromEncodedURIComponent(value),
-                        getRandomColor()
-                    ))
-
-                    hasItems = true;
-                }
-                // console.log(list);
-            }
-        });
-
-        // A link without items (a fresh WORKSPACE) starts with three empty ones.
-        if (hasItems === false) {
-            list[0] = QueryObject();
-            list[1] = QueryObject();
-            list[2] = QueryObject();
-        }
-
-        list.forEach(queryFunction);
-    });
-</script>
+<script src="../scripts/workspace/workspace.js"></script>
 </body>
+
+</html>

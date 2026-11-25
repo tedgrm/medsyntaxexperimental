@@ -9,26 +9,27 @@ See `FEATURES.md` for the feature list and the TODO list. Keep it up to date whe
 - `site/`: the published site. Everything the pages load is in here; nothing outside it is served or published. Paths in URLs are relative to it (`site/workspace/` is `/workspace/`).
 - `site/index.html`: the main Medsyntax app (markup only; its logic is in `site/scripts/editor/`).
 - `site/style.css`, `site/iframe.css`: styles for the main app.
-- `site/workspace/`: MedsyntaxQA (Query Augmentation), an experimental v0.1. It embeds several copies of `../index.html?ws=<n>&...` in iframes and loads `../scripts/...`, so it must be served from **`site/`**, not from `site/workspace/` on its own.
+- `site/workspace/`: MedsyntaxQA (Query Augmentation), an experimental v0.1. It embeds several copies of `../index.html?ws=<id>&...` in iframes and loads `../scripts/...`, so it must be served from **`site/`**, not from `site/workspace/` on its own.
 - `site/scripts/`: client-side scripts loaded by the pages.
   - `third-party/`: vendored libraries, currently `lzstring.js` (MIT), `iframe-resizer/` (GPLv3) and `jquery/` (MIT). Anything added here later is third-party too. **Read-only**, and not to be tested. See Conventions.
   - `editor/`: the EDITOR's own scripts, loaded by `site/index.html` in this order. They are plain scripts (not modules) that share globals and are called from inline `on…` handlers, and they need the elements above their `<script>` tags, so keep the tags where they are.
     - `menu.js` (dropdown menu), `color-mode.js` (colour/greyscale), `help-image.js` (help image modal).
     - `editor.js`: most of the logic: parsing and rendering (`syntaxCheck`), warnings, the scope editor (`setEditMode`, dynamic input), URL sharing (`updateUrl`, `getParameterByName`) and copy buttons.
-  - `key-commands.js` is our own (a keyboard-handling stub that uses the global `editMode`).
+    - `item.js`, `item-keyboard.js`: only for an EDITOR embedded in the WORKSPACE (`ws`): hiding the query box, and keyboard navigation. Without `ws` they must do nothing.
+  - `workspace/workspace.js`: the WORKSPACE's list: items, their buttons, Undo, the link, messages.
 - `server.js`: a static dev server with no dependencies. It serves `site/` on `PORT` (default 8080).
 - `playwright/`: end-to-end tests. `playwright.config.js` starts `server.js`, sets `baseURL` to `http://127.0.0.1:8080`, and starts every browser at a **1920x1080** viewport (set after each device preset, which has its own size). Keep that default. Only resize inside a test when the test is about another screen size.
   - `editor.spec.ts`: EDITOR behaviour with a PubMed query and an Embase query. `editor-layout.spec.ts`: EDITOR layout (structure checks plus screenshot comparisons). `editor-warnings.spec.ts`: syntax warnings (bracket warnings so far). `editor-scope.spec.ts`: the scope-driven editor (hover to pick a scope, click to edit, Enter to confirm, click outside to cancel, alerts on invalid edits).
   - `editor-parser.spec.ts`: how queries are rendered and cleaned up. `editor-quotes.spec.ts`: conversion of curly and look-alike quotes. `editor-controls.spec.ts`: title, demo/clear/copy buttons, menu, colour mode, help image. `editor-sharing.spec.ts`: restoring query and title from a link. `editor-edge-cases.spec.ts`: unusual input, including the known bugs listed in `FEATURES.md` (as `test.fail`). `editor-embedded.spec.ts`: the EDITOR inside the WORKSPACE (`?ws=<n>`, messages to the parent).
-  - `workspace.spec.ts`: the WORKSPACE (items, Add/Remove, query sync to its link, edit mode, reload, item sizing).
+  - `workspace.spec.ts`: the WORKSPACE (items, Add/Remove, query sync to its link, edit mode, reload, item sizing). `workspace-ux.spec.ts`: the scenarios of `workspace-ux.md`. `workspace-keyboard.spec.ts`: keyboard navigation. `workspace-layout.spec.ts`: screenshots, light and dark (baselines in its `-snapshots` folder, refreshed like the EDITOR's).
   - `jquery-fallback.spec.ts`: the order of jQuery sources in the EDITOR and the WORKSPACE, with stubbed CDNs that are unreachable or serve a changed file (SRI).
-  - `helpers.ts`: shared test helpers. EDITOR: `enterQuery`, `queryBox`, `target`, `captureAlerts`, `expectWarnings`. WORKSPACE: `waitForItems`, `itemFrame`, `enterItemQuery`, `itemQuery`, `linkQueries`. Use them in new tests. Tests that document a known bug use `test.fail(true, 'Known bug: …')`; remove that line when the bug is fixed.
+  - `helpers.ts`: shared test helpers. EDITOR: `enterQuery`, `queryBox`, `target`, `captureAlerts`, `expectWarnings`. WORKSPACE: `openWorkspace`, `waitForItems`, `workspaceItem`, `itemFrame`, `titleField`, `itemBox`, `openItemBox`, `enterItemQuery`, `enterItemTitle`, `itemQuery`, `linkQueries`, `linkTitles` (items by position, from 0). Use them in new tests. Tests that document a known bug use `test.fail(true, 'Known bug: …')`; remove that line when the bug is fixed.
   - `fixtures/`: test inputs copied from `product-development/external documents/` (tests never read the originals). See its `README.md` for each file's source.
   - `editor-layout.spec.ts-snapshots/`: screenshot baselines, one per browser and OS (`-darwin`). After an intended layout change, refresh them with `npx playwright test editor-layout --update-snapshots`, look at the new images, and commit them.
 - `.claude/skills/`: skills (slash commands) that run the Playwright commands below. Only `/.pw-test` can be started by Claude itself; the others open windows, so only the user starts them.
 - `product-development/`: product development resources (research, roadmap, designs, feedback). Not part of the site's code. See its `README.md`.
-  - `keyboard-navigation.md`: draft requirements for keyboard navigation in the WORKSPACE. Not built yet.
-  - `workspace-ux.md`: draft UX requirements for the WORKSPACE (visual style with dark mode, managing items, how they meet keyboard navigation). Not built yet.
+  - `keyboard-navigation.md`: requirements for keyboard navigation in the WORKSPACE. Built.
+  - `workspace-ux.md`: UX requirements for the WORKSPACE (visual style with dark mode, managing items, how they meet keyboard navigation). Built.
   - `prototypes/`: throwaway prototypes, opened straight from disk. Not part of the site and not tested.
   - `external documents/`: source documents from outside the project. **Read-only.** See Conventions.
     - `Zoekstrategie Medsyntax Ted.docx`: a PubMed search strategy, the query used in `playwright/editor.spec.ts`.
@@ -39,7 +40,7 @@ See `FEATURES.md` for the feature list and the TODO list. Keep it up to date whe
 There are two pages, both called `index.html`. Each has a short identifier. Use it in chat, plans, commit messages and docs instead of a bare "index.html":
 
 - **EDITOR**: the Medsyntax query editor, `site/index.html`
-- **WORKSPACE**: the MedsyntaxQA workspace, `site/workspace/index.html`. It holds a list of EDITORs. A single EDITOR embedded in the WORKSPACE is an **item** (as in the code: `addItemAfter`, `removeThisItem`, `li_item_<n>`).
+- **WORKSPACE**: the MedsyntaxQA workspace, `site/workspace/index.html`. It holds a list of EDITORs. A single EDITOR embedded in the WORKSPACE is an **item** (as in the code: `addItem`, `removeItem`, `li_item_<id>`).
 
 If the user just says "index.html", ask which one they mean, unless the context makes it clear.
 
@@ -48,19 +49,23 @@ If the user just says "index.html", ask which one they mean, unless the context 
 | File | `site/index.html` | `site/workspace/index.html` |
 | `<title>` | `Medsyntax` | `MedsyntaxQA` |
 | URL (dev) | http://127.0.0.1:8080/index.html | http://127.0.0.1:8080/workspace/ |
-| Styles | `site/style.css`, plus `site/iframe.css` when embedded | `site/workspace/style.css` |
+| Styles | `site/style.css`, plus `site/iframe.css` when embedded (the look of items, with dark mode) | `site/workspace/style.css` |
 | Version | 1.0 (`README.md`) | 0.1, experimental (`site/workspace/README.md`) |
 | Role | Edits **one** query: input, syntax visualisation, warnings, scope editor, copy and share | Holds a **list** of Medsyntax apps, each in its own iframe, with Add/Remove buttons |
 
 **How they work together:**
-- The workspace builds each list item as `<iframe id="page_is_fresh_<n>" src="../index.html?ws=<n>&...">` (`queryFunction`). Each item gets a random coloured border and is sized with iframe-resizer.
-- The app detects workspace mode from the `ws` URL parameter. In that mode it adds the `ws-iframe-body` class and sends messages to the parent with `window.parent.postMessage`:
-  - `updateUrl`: payload `"<n>%index%<app query string without ws>"`. The workspace stores it in its own URL as `<n padded to 9 digits>iframequery`, compressed with LZString.
-  - `setEditMode`: payload `true`/`false`. The workspace stores it in its global `editMode`, which `site/scripts/key-commands.js` reads.
+- The workspace builds each list item as `<iframe id="page_is_fresh_<id>" src="../index.html?ws=<id>&...">` (`createItem`), sized with iframe-resizer. An item's id stays the same while the page is open; its position in the list gives its number, its colour and its place in the link. Actions must not reload the iframes of other items.
+- The app detects workspace mode from the `ws` URL parameter. In that mode it adds the `ws-embedded` class to `<html>` (in the head, before anything shows) and `ws-iframe-body` to `<body>`, and sends messages to the parent with `window.parent.postMessage`:
+  - `updateUrl`: payload `"<id>%index%<app query string without ws>"`. The workspace stores it in its own URL as `<position padded to 9 digits>iframequery`, compressed with LZString.
+  - `setEditMode`: payload `true`/`false`. The workspace stores it in its global `editMode`.
+  - `moveFocus` (-1/1): Alt+Up/Alt+Down. `focusTitle`: T on an item. The title field is in the WORKSPACE's card header, which decides about the title in an item's query string; the EDITOR's own field is hidden in items. `queryBoxLeft` and `pointerState` (true/false): the workspace answers with `hideQueryBox` once the pointer is up, so a click never misses its target.
+  - `itemResized`: the workspace fits the iframe to the item, in case iframe-resizer missed a change.
+  - The workspace sends items `itemState` (`{color, number}`), `setTitle`, `focusItem`, `hideQueryBox` and `clearQuery` (the Clear query button in the card header; the EDITOR's own clear button is hidden in items).
 - The workspace only accepts messages from its own origin, so both pages must be served from the same server.
-- When the workspace loads, it rebuilds the list from its `…iframequery` parameters. If there are none, it starts with three empty apps.
+- When the workspace loads, it rebuilds the list from its `…iframequery` parameters. If there are none, it starts with one clear item. Items without a title and query are dropped on load, but one always remains.
 
 **When editing:**
+- An EDITOR opened directly must not change in look or behaviour because of the WORKSPACE: keep item styles under `.ws-embedded` in `site/iframe.css`, and item code in `item.js`/`item-keyboard.js`.
 - A change to `site/index.html` or `site/scripts/editor/` affects both the stand-alone app and every workspace item. Test both.
 - If you change the message types or payload formats, update both files together.
 - When opened without `ws`, the app must keep working on its own.

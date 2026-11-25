@@ -1,3 +1,4 @@
+/* An EDITOR embedded in the WORKSPACE (an item). Only loaded with ?ws=<id>. */
 body.ws-iframe-body {
     /*.tooltip,*/
     #copy-link-button,
@@ -7,5 +8,200 @@ body.ws-iframe-body {
     .medsyntax-title,
     .manual {
         display: none !important;
+    }
+}
+
+/* The colours are those of workspace/style.css. */
+:root.ws-embedded {
+    --card: #fff; --ink: #1c2525; --muted: #586867;
+    --line: #c6d0cf; --field-line: #748382;
+    --accent: #127c79; --danger-bg: #fbe4e4; --danger-ink: #8b1d1d;
+    --marker: #b00060;
+    --item-color: #748382; /* until the WORKSPACE sends the item's colour */
+    --item-line: var(--item-color);
+    background: var(--card);
+}
+
+@media (prefers-color-scheme: dark) {
+    :root.ws-embedded {
+        color-scheme: dark;
+        --card: #222c2b; --ink: #e2eae9; --muted: #9bafad;
+        --line: #34413f; --field-line: #82928f;
+        --accent: #3db6b1; --danger-bg: #3b1d1d; --danger-ink: #f4b4b4;
+        --marker: #ff7ab8;
+        /* As lines on a dark card, the darker colours must be lighter. */
+        --item-line: color-mix(in srgb, var(--item-color) 55%, white);
+    }
+}
+
+.ws-embedded body {
+    margin: 0;
+    padding: 8px;
+    background: var(--card);
+    color: var(--ink);
+    font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+/* the elements the direct page hides in the item, before body.ws-iframe-body is set */
+.ws-embedded .dropdown-menu,
+.ws-embedded .manual,
+.ws-embedded .medsyntax-title,
+.ws-embedded .iframe-hide,
+.ws-embedded #copy-link-button,
+.ws-embedded #demo-button,
+/* the WORKSPACE has these in the card header */
+.ws-embedded #query-title1,
+.ws-embedded #clear-button,
+.ws-embedded body > br {
+    display: none !important;
+}
+
+/* Until the scripts are ready every warning shows, which would make the item very tall for a moment. */
+.ws-embedded body:not(.ws-iframe-body) .warning-medsyntax {
+    display: none;
+}
+
+/* Until then the query box has the height of its 10 rows; a clear one gets its minimum height. */
+.ws-embedded body:not(.ws-iframe-body) .query-input {
+    height: 84px;
+}
+
+.ws-embedded :focus-visible {
+    outline: 3px solid var(--accent);
+    outline-offset: 2px;
+}
+
+.ws-embedded button {
+    font: inherit;
+    font-size: .9rem;
+    font-weight: 500;
+    color: inherit;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 7px;
+    padding: 5px 12px;
+    min-height: 32px;
+    margin: 0 4px 0 0;
+    cursor: pointer;
+}
+
+.ws-embedded button:hover:enabled {
+    border-color: var(--accent);
+}
+
+.ws-embedded .query-input {
+    display: block;
+    box-sizing: border-box;
+    width: 100% !important; /* textAreaAdjust sets a width */
+    max-width: 760px;
+    margin: 0 0 8px;
+    padding: 7px 10px;
+    color: inherit;
+    background: var(--card);
+    border: 1px solid var(--field-line);
+    border-radius: 7px;
+    font: inherit;
+}
+
+.ws-embedded .query-input {
+    min-height: 84px;
+    margin-top: 8px;
+    border: 3px solid var(--item-line);
+    /* at least 3:1 contrast, also around the bright colours */
+    box-shadow: 0 0 0 1px var(--field-line);
+    font: .9rem/1.5 ui-monospace, Menlo, Consolas, monospace;
+    resize: vertical;
+}
+
+.ws-embedded ::placeholder {
+    color: var(--muted);
+    opacity: 1;
+    font-weight: 400;
+}
+
+.ws-embedded p.warning-medsyntax {
+    margin: 0 0 6px;
+    padding: 4px 10px;
+    color: var(--danger-ink);
+    background: var(--danger-bg);
+    border-left: 4px solid var(--danger-ink);
+    border-radius: 4px;
+    font-size: .9rem;
+}
+
+.ws-embedded #medsyntax {
+    margin: 8px 0;
+}
+
+/* Always white paper, also in dark mode: its colours carry meaning. */
+.ws-embedded #medsyntax-target1 {
+    display: block;
+    box-sizing: border-box;
+    margin: 0;
+    padding: 6px 10px;
+    color-scheme: light;
+    color: #1c2525;
+    background: #fff;
+    border: 3px solid var(--item-line);
+    border-radius: 8px;
+    overflow-wrap: anywhere;
+}
+
+.ws-embedded #medsyntax-target1:empty {
+    display: none;
+}
+
+.ws-embedded .medsyntax div.search-string {
+    padding: 0;
+    background: #fff;
+    font-family: var(--font-sans);
+}
+
+.ws-embedded .dynamic-input {
+    max-width: 100%;
+    box-sizing: border-box;
+    color: #1c2525;
+}
+
+/* ends at its button, so it stays inside a narrow item */
+.ws-embedded .tooltip .tooltiptext {
+    left: auto;
+    right: 0;
+}
+
+.ws-embedded #demo2 {
+    display: none;
+}
+
+/* --- Keyboard navigation (scripts/editor/item-keyboard.js) --- */
+
+/* The tree has the focus; the marker shows where it is. */
+#item-tree,
+#item-tree div {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    outline: none;
+}
+
+.item-is-current body {
+    outline: 3px solid var(--marker);
+    outline-offset: -3px;
+    border-radius: 8px;
+}
+
+#item-marker .current-scope {
+    position: absolute;
+    box-sizing: border-box;
+    pointer-events: none;
+    border: 3px solid #b00060;
+    border-radius: 6px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .ws-embedded .medsyntax div {
+        transition: none;
     }
 }
