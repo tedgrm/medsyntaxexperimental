@@ -12,6 +12,8 @@ PLAYWRIGHT_HTML_OPEN=never npm run pw-test -- --reporter=list,html $ARGUMENTS
 
 `PLAYWRIGHT_HTML_OPEN=never` keeps a failed run from opening the report and waiting. The report is still written, for `/pw-report`.
 
+Which browsers (`CLAUDE.md`): add `--project=chromium`, unless this is the run before a commit, the user asked for all browsers, or the arguments already name a `--project`.
+
 Then report:
 
 - The counts: passed, failed, skipped.

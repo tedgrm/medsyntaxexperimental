@@ -69,7 +69,7 @@ If the user just says "index.html", ask which one they mean, unless the context 
 - `npm run pw-codegen` (skill `/pw-codegen`): record a new test
 - `npx playwright show-report` (skill `/pw-report`): open the last HTML report
 
-Run `npm run pw-test` after changing anything in `site/` or `server.js`, and make sure everything passes.
+After changing anything in `site/`, `playwright/`, `playwright.config.js` or `server.js`, run the tests **in Chromium only**: `npm run pw-test -- --project=chromium`. Run **all browsers** (`npm run pw-test`) only before committing such changes, or when the user asks. Make sure everything passes. Commits that touch none of these (docs only, for example) need no test run.
 
 ## Conventions
 
