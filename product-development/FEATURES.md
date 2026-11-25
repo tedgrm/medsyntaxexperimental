@@ -100,7 +100,7 @@ Not covered by the WORKSPACE's references between items (REF in `product-develop
 - [ ] A chip's tooltip can't be reached with the keyboard, and only its number and colour link it to its card. Not tested with a real screen reader
 - [ ] The EDITOR's known bugs count here too: brackets in quotes and apostrophes (`"smile :)"`, `Crohn's`) make a referenced query "unbalanced", and text between two apostrophes is seen as quoted, so a `#1` in it is no reference
 - [ ] After over 100 changes in 10 seconds in Safari the link lags behind; a reload in that time gives an older, but consistent, list
-- [ ] WebKit can stop loading an item's scripts during quick changes (already so before references). The item then loads again, at most three times; what was typed in it in that time can be lost
+- [ ] WebKit can stop loading an item's scripts during quick changes (already so before references). The item then loads again after about 1.5 seconds, at most three times; what was typed in it in that time can be lost
 
 ### Testing
 - [x] Add EDITOR edge-case tests: `playwright/editor-edge-cases.spec.ts`
