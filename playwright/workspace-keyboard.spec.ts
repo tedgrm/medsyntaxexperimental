@@ -121,7 +121,7 @@ test.describe('WORKSPACE keyboard navigation', () => {
                 // Safari's Tab skips buttons.
                 await expect(titleField(page, 1)).toBeFocused();
             } else {
-                await expect(itemFrame(page, 0).getByRole('button', {name: 'Edit query'})).toBeFocused();
+                await expect(button(page, '+ Add query after 1')).toBeFocused();
             }
             expect(await itemQuery(page, 0)).toBe(query);
         });
@@ -227,11 +227,13 @@ test.describe('WORKSPACE keyboard navigation', () => {
         await expect(button(page, 'Remove query 1')).toBeFocused();
     });
 
-    test('Clear query is between Duplicate and Remove, and works with Enter', async ({page, browserName}) => {
+    test('Tab goes through the card buttons, and Clear query works with Enter', async ({page, browserName}) => {
         const tab = browserName === 'webkit' ? 'Alt+Tab' : 'Tab';
         await button(page, 'Duplicate query 1').focus();
-        await page.keyboard.press(tab);
-        await expect(button(page, 'Clear query A')).toBeFocused();
+        for (const name of ['Edit query A', 'Copy query A', 'Clear query A']) {
+            await page.keyboard.press(tab);
+            await expect(button(page, name)).toBeFocused();
+        }
         await page.keyboard.press('Enter');
         await expect(itemFrame(page, 0).locator('[role=treeitem]')).toHaveCount(1);
         await expect(button(page, 'Clear query A')).toBeFocused();
@@ -307,6 +309,32 @@ test.describe('WORKSPACE keyboard navigation', () => {
         await press(page, 'Escape', 1, 'Query 2');
         await press(page, 'ArrowDown', 1, 'Query 2');
         await press(page, 'Alt+ArrowDown', 2, 'B');
+    });
+
+    test('the keys do nothing in the More menu, and Tab goes through it and closes it', async ({page, browserName}) => {
+        await page.setViewportSize({width: 800, height: 800});
+        const tab = browserName === 'webkit' ? 'Alt+Tab' : 'Tab';
+        const more = button(page, 'More actions for query 1');
+        await more.focus();
+        await page.keyboard.press('Enter');
+        await expect(more).toHaveAttribute('aria-expanded', 'true');
+        for (const name of ['Duplicate query 1', 'Edit query A', 'Copy query A', 'Clear query A']) {
+            await page.keyboard.press(tab);
+            await expect(button(page, name)).toBeFocused();
+            for (const key of ['ArrowDown', 'Alt+ArrowDown', 't']) {
+                await page.keyboard.press(key);
+                await expect(button(page, name)).toBeFocused();
+            }
+        }
+        await page.keyboard.press(tab);
+        await expect(button(page, 'Remove query 1')).toBeFocused();
+        await expect(more).toHaveAttribute('aria-expanded', 'false');
+        await more.focus();
+        await page.keyboard.press('Space');
+        await page.keyboard.press(tab);
+        await page.keyboard.press('Escape');
+        await expect(more).toBeFocused();
+        await expect(more).toHaveAttribute('aria-expanded', 'false');
     });
 
     test('17. The keys do nothing on a card button', async ({page}) => {

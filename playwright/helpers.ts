@@ -79,11 +79,14 @@ export async function waitForItems(page: Page, count: number) {
 
 /** Show item n's query box and focus it. */
 export async function openItemBox(page: Page, n: number) {
-    const editButton = itemFrame(page, n).getByRole('button', {name: 'Edit query'});
-    if (await editButton.isVisible()) {
-        await editButton.click();
-    } else {
+    if (await itemBox(page, n).isVisible()) {
         await itemBox(page, n).focus();
+    } else {
+        const more = workspaceItem(page, n).locator('[data-part=more]');
+        if (await more.isVisible()) {
+            await more.click();
+        }
+        await workspaceItem(page, n).locator('[data-part=edit]').click();
     }
     await expect(itemBox(page, n)).toBeFocused();
 }

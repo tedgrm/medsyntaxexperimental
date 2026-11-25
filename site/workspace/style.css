@@ -47,7 +47,21 @@ main.wrap { padding-top: 18px; padding-bottom: 90px; }
 .item-title { flex: 1 1 200px; min-width: 0; font: inherit; font-weight: 600; color: inherit; background: var(--card); border: 1px solid var(--field-line); border-radius: 7px; padding: 4px 10px; min-height: 32px; text-overflow: ellipsis; }
 .item-title::placeholder { color: var(--muted); opacity: 1; font-weight: 400; }
 .list-actions { display: flex; flex-wrap: wrap; gap: 8px; }
-.actions { display: flex; flex-wrap: wrap; gap: 6px; }
+.actions, .more-menu { display: flex; flex-wrap: wrap; gap: 6px; }
+/* Enough room for all buttons next to the title: the menu is part of the row. */
+@media (min-width: 1000px) {
+    .more, .more-menu { display: contents; }
+    [data-part="more"] { display: none; }
+}
+@media (max-width: 999.98px) {
+    .more { position: relative; }
+    .more-menu { position: absolute; z-index: 1; top: calc(100% + 4px); right: 0; width: max-content; flex-direction: column; padding: 8px; background: var(--card); border: 1px solid var(--field-line); border-radius: 10px; box-shadow: 0 6px 18px rgb(0 0 0 / .25); }
+    .item:not(.menu-open) .more-menu { display: none; }
+    .more-menu .btn { text-align: left; }
+}
+@media (max-width: 420px) {
+    .actions > .btn, .more > .btn { padding-inline: 8px; }
+}
 .keys { margin-top: 10px; font-size: .9rem; }
 .keys summary { cursor: pointer; width: fit-content; }
 .keys ul { margin: 6px 0 0; padding-left: 20px; }
@@ -64,4 +78,4 @@ main.wrap { padding-top: 18px; padding-bottom: 90px; }
 .item-editor { margin-top: 6px; }
 /* iframe-resizer sets the height, and needs width and min-width like this to fit the content. Until it
    has, the height of a clear item, so that what is below a new item doesn't move while it loads. */
-.item-editor iframe { display: block; width: 1px; min-width: 100%; height: 150px; border: 0; }
+.item-editor iframe { display: block; width: 1px; min-width: 100%; height: 116px; border: 0; }
