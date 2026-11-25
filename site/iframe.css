@@ -13,6 +13,7 @@ body.ws-iframe-body {
 
 /* The colours are those of workspace/style.css. */
 :root.ws-embedded {
+    color-scheme: light;
     --card: #fff; --ink: #1c2525; --muted: #586867;
     --line: #c6d0cf; --field-line: #748382;
     --accent: #127c79; --danger-bg: #fbe4e4; --danger-ink: #8b1d1d;
@@ -22,16 +23,15 @@ body.ws-iframe-body {
     background: var(--card);
 }
 
-@media (prefers-color-scheme: dark) {
-    :root.ws-embedded {
-        color-scheme: dark;
-        --card: #222c2b; --ink: #e2eae9; --muted: #9bafad;
-        --line: #34413f; --field-line: #82928f;
-        --accent: #3db6b1; --danger-bg: #3b1d1d; --danger-ink: #f4b4b4;
-        --marker: #ff7ab8;
-        /* As lines on a dark card, the darker colours must be lighter. */
-        --item-line: color-mix(in srgb, var(--item-color) 55%, white);
-    }
+/* data-theme comes from the WORKSPACE. Page and item need the same color-scheme. */
+:root.ws-embedded[data-theme="dark"] {
+    color-scheme: dark;
+    --card: #222c2b; --ink: #e2eae9; --muted: #9bafad;
+    --line: #34413f; --field-line: #82928f;
+    --accent: #3db6b1; --danger-bg: #3b1d1d; --danger-ink: #f4b4b4;
+    --marker: #ff7ab8;
+    /* As lines on a dark card, the darker colours must be lighter. */
+    --item-line: color-mix(in srgb, var(--item-color) 55%, white);
 }
 
 .ws-embedded body {

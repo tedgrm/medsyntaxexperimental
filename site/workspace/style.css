@@ -1,18 +1,25 @@
 /* WORKSPACE (index.html). The look of the items themselves is in ../iframe.css. */
 :root {
+    color-scheme: light;
     --bg: #e6eaea; --card: #fff; --ink: #1c2525; --muted: #586867;
     --line: #c6d0cf; --field-line: #748382;
     --accent: #127c79; --accent-ink: #fff; --danger-bg: #fbe4e4; --danger-ink: #8b1d1d; --danger-line: #e3a5a5;
-    --link: #0e6663;
+    --link: #0e6663; --badge-dark-ink: #1c2525;
 }
-@media (prefers-color-scheme: dark) {
-    :root {
-        color-scheme: dark;
-        --bg: #131919; --card: #222c2b; --ink: #e2eae9; --muted: #9bafad;
-        --line: #34413f; --field-line: #82928f;
-        --accent: #3db6b1; --accent-ink: #052120; --danger-bg: #3b1d1d; --danger-ink: #f4b4b4; --danger-line: #703636;
-        --link: #3db6b1;
-    }
+/* data-theme is set by scripts/workspace/color-mode.js. */
+:root[data-theme="dark"] {
+    color-scheme: dark;
+    --bg: #131919; --card: #222c2b; --ink: #e2eae9; --muted: #9bafad;
+    --line: #34413f; --field-line: #82928f;
+    --accent: #3db6b1; --accent-ink: #052120; --danger-bg: #3b1d1d; --danger-ink: #f4b4b4; --danger-line: #703636;
+    --link: #3db6b1;
+}
+/* The light colours, in grey. The filter covers the items' iframes too. Not on :root: Firefox then leaves out
+   what is below the first screen in full-page screenshots. */
+:root[data-theme="greyscale"] :is(header, main, #undo-toast) { filter: grayscale(1); }
+:root[data-theme="greyscale"] {
+    --bg: #e9e9e9;
+    --badge-dark-ink: #000; /* in grey, #1c2525 has only 4.47:1 on item colour 7 */
 }
 * { box-sizing: border-box; }
 body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
@@ -39,10 +46,8 @@ main.wrap { padding-top: 18px; padding-bottom: 90px; }
 #myList { list-style: none; margin: 14px 0 0; padding: 0; display: grid; gap: 14px; }
 .item { --item-line: var(--item-color); min-width: 0; }
 .card { background: var(--card); border: 1px solid var(--line); border-left: 3px solid var(--item-line); border-radius: 10px; padding: 10px 12px; }
-@media (prefers-color-scheme: dark) {
-    /* As lines on a dark card, the darker colours must be lighter. */
-    .item { --item-line: color-mix(in srgb, var(--item-color) 55%, white); }
-}
+/* As lines on a dark card, the darker colours must be lighter. */
+:root[data-theme="dark"] .item { --item-line: color-mix(in srgb, var(--item-color) 55%, white); }
 .item-head { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
 .badge { display: inline-grid; place-items: center; min-width: 26px; height: 26px; padding: 0 6px; border-radius: 5px; background: var(--item-color); color: var(--item-ink); font-weight: 700; font-size: .85rem; }
 .item-title { flex: 1 1 200px; min-width: 0; font: inherit; font-weight: 600; color: inherit; background: var(--card); border: 1px solid var(--field-line); border-radius: 7px; padding: 4px 10px; min-height: 32px; text-overflow: ellipsis; }
@@ -65,6 +70,14 @@ main.wrap { padding-top: 18px; padding-bottom: 90px; }
     .brand-mark { font-size: 1.15rem; padding-right: 10px; }
     .actions > .btn, .more > .btn { padding-inline: 8px; }
 }
+.color-modes { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; margin-top: 10px; font-size: .9rem; }
+#color-modes-label { margin-right: 6px; }
+.color-modes label { position: relative; cursor: pointer; }
+.color-modes input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
+.color-modes label span { display: block; padding: 2px 10px; background: var(--card); border: 1px solid var(--field-line); border-radius: 7px; }
+.color-modes label:hover span { border-color: var(--accent); }
+.color-modes input:checked + span { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.color-modes input:focus-visible + span { outline: 3px solid var(--accent); outline-offset: 2px; }
 .keys { margin-top: 10px; font-size: .9rem; }
 .keys summary { cursor: pointer; width: fit-content; }
 .keys ul { margin: 6px 0 0; padding-left: 20px; }

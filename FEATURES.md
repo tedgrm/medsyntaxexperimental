@@ -40,7 +40,7 @@ Medsyntax is a syntax assistant for (medical) search engine queries with a scope
 - Add, duplicate, move, collapse, clear the query, and remove with Undo, without disturbing other items
 - Edit, copy and clear query in the card header, with a More menu on narrow screens
 - Title per item in its card header, and a Show example button with four PICO queries while every item is clear
-- Number and colour per item; a light and a dark mode that follow the system setting
+- Number and colour per item; a switch for system, light, dark or greyscale colours, remembered in the browser
 - The query box shows while editing; otherwise only the visualisation
 - Keyboard navigation through items and scopes, and scope editing without a mouse
 - Items without a title and query are dropped on reload
