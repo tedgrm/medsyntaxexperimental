@@ -29,7 +29,7 @@ See `product-development/FEATURES.md` for the feature list and the TODO list. Ke
   - `helpers.ts`: shared test helpers. EDITOR: `enterQuery`, `queryBox`, `target`, `captureAlerts`, `expectWarnings`. WORKSPACE: `openWorkspace`, `waitForItems`, `workspaceItem`, `itemFrame`, `titleField`, `itemBox`, `openItemBox`, `enterItemQuery`, `enterItemTitle`, `itemQuery`, `linkQueries`, `linkTitles` (items by position, from 0). Use them in new tests. Tests that document a known bug use `test.fail(true, 'Known bug: …')`; remove that line when the bug is fixed.
   - `fixtures/`: test inputs copied from `product-development/external documents/` (tests never read the originals). See its `README.md` for each file's source.
   - `editor-layout.spec.ts-snapshots/`: screenshot baselines, one per browser and OS (`-darwin`). After an intended layout change, refresh them with `npx playwright test editor-layout --update-snapshots`, look at the new images, and commit them.
-- `.claude/skills/`: skills (slash commands) that run the Playwright commands below. Only `/.pw-test` can be started by Claude itself; the others open windows, so only the user starts them.
+- `.claude/skills/`: skills (slash commands) that run the Playwright commands below. Only `/.pw-test` can be started by Claude itself; the others open windows or (`/.pw-test-all`) take long, so only the user starts them.
 - `product-development/`: product development resources (research, roadmap, designs, feedback). Not part of the site's code. See its `README.md`.
   - `FEATURES.md`: the feature list, the TODO list and known risks.
   - `keyboard-navigation.md`: requirements for keyboard navigation in the WORKSPACE. Built.
@@ -64,7 +64,7 @@ If the user just says "index.html", ask which one they mean, unless the context 
   - `setEditMode`: payload `true`/`false`. The workspace stores it in its global `editMode`.
   - `moveFocus` (-1/1): Alt+Up/Alt+Down. `centerItem`: the keyboard selected the item's top node. `selectNumber` (`{digit, inTree}`): a digit outside a text field; the workspace handles digits on its own page itself. `focusTitle`: T on an item. The title field is in the WORKSPACE's card header, which decides about the title in an item's query string; the EDITOR's own field is hidden in items. `queryBoxLeft` and `pointerState` (true/false): the workspace answers with `hideQueryBox` once the pointer is up, so a click never misses its target.
   - `itemResized`: the workspace fits the iframe to the item, in case iframe-resizer missed a change.
-  - The workspace sends items `itemState` (`{color, number, theme}`), `references` (`{references: {key: {color, ink, title, problem}}, warning}`), `setTitle`, `focusItem`, `hideQueryBox`, `editQuery` and `clearQuery` (buttons in the card header; the EDITOR's own title field and clear, demo and copy buttons are hidden in items).
+  - The workspace sends items `focusItem` (`{keepScroll: true}` when the page opens), `itemState` (`{color, number, theme}`), `references` (`{references: {key: {color, ink, title, problem}}, warning}`), `setTitle`, `hideQueryBox`, `editQuery` and `clearQuery` (buttons in the card header; the EDITOR's own title field and clear, demo and copy buttons are hidden in items).
 - The workspace only accepts messages from its own origin, so both pages must be served from the same server.
 - When the workspace loads, it rebuilds the list from its `…iframequery` parameters. If there are none, it starts with one clear item. Items without a title and query are dropped on load, but one always remains.
 
@@ -77,7 +77,7 @@ If the user just says "index.html", ask which one they mean, unless the context 
 ## Commands
 
 - `npm start`: serve the site at http://127.0.0.1:8080/ (workspace: `/workspace/`)
-- `npm run pw-test` (skill `/.pw-test`): run all Playwright tests in Chromium, Firefox and Safari (WebKit). Add `--project=webkit` (or another name) for one browser. The server starts on its own.
+- `npm run pw-test` (skill `/.pw-test-all`; `/.pw-test` runs only Chromium by default): run all Playwright tests in Chromium, Firefox and Safari (WebKit). Add `--project=webkit` (or another name) for one browser. The server starts on its own.
 - `npm run pw-test-gui` (skill `/.pw-test-gui`): Playwright UI mode
 - `npm run pw-test-ui`: headed run (browser windows visible). **Flaky**, so there is no skill for it: on 2026-11-24, 2 of 4 headed WebKit runs of `editor-quotes` had one failing test, a different one each time (one timed out closing the browser; fewer workers did not help), while the headless runs passed. The cause is unknown. Use `npm run pw-test` to decide whether a test really fails
 - `npm run pw-codegen` (skill `/.pw-codegen`): record a new test

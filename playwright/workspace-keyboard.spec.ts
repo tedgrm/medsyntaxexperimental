@@ -53,6 +53,82 @@ const tidy = (text: string) => normalise(text).replace(/ \)/g, ')').replace(/\( 
 
 const markers = (page: Page, n: number) => itemFrame(page, n).locator('.current-scope');
 
+test.describe('WORKSPACE starts in navigation mode', () => {
+    /** No text field is active in the page or in an item, and item 1 is current. */
+    async function expectStarted(page: Page, label: string) {
+        await expectNode(page, 0, label);
+        expect(await page.evaluate(() => [document, ...[...document.querySelectorAll('iframe')].map((frame) => frame.contentDocument!)]
+            .filter((doc) => /^(INPUT|TEXTAREA)$/.test(doc.activeElement ? doc.activeElement.tagName : '')).length)).toBe(0);
+        expect(await page.evaluate(() => window.scrollY)).toBe(0);
+    }
+
+    test('on opening a link', async ({page}) => {
+        await openWorkspace(page, items);
+        await expectStarted(page, topA);
+        await expect(markers(page, 0)).toHaveCount(1);
+        await press(page, 'ArrowDown', 0, outer);
+        await press(page, 'Alt+ArrowDown', 1, topB);
+        await page.reload();
+        await waitForItems(page, 3);
+        await expectStarted(page, topA);
+    });
+
+    test('on opening without items: the clear item is current, and Enter goes to its query box', async ({page}) => {
+        await page.goto('/workspace/');
+        await waitForItems(page, 1);
+        await expectStarted(page, 'Query 1');
+        await expect(itemFrame(page, 0).locator('html')).toHaveClass(/item-is-current/);
+        await page.keyboard.press('Enter');
+        await expect(itemBox(page, 0)).toBeFocused();
+    });
+
+    for (const [name, count, label] of [
+        ['Show example', 4, 'P (Population/Problem): handover OR "Patient Handoff"[Mesh] OR handoff OR "patient transfer"'],
+        ['Show a multiline search example', 9, 'Population: MeSH terms: "Patient Handoff"[Mesh]'],
+    ] as const) {
+        test(`on loading an example: ${name}, also with the keyboard`, async ({page}) => {
+            for (const withKey of [false, true]) {
+                await page.goto('/workspace/');
+                await waitForItems(page, 1);
+                if (withKey) {
+                    await button(page, name).focus();
+                    await page.keyboard.press('Enter');
+                } else {
+                    await button(page, name).click();
+                }
+                await waitForItems(page, count);
+                await expectStarted(page, label);
+                await press(page, 'Alt+ArrowDown', 1, await itemFrame(page, 1).locator('[role=treeitem][aria-level="1"]')
+                    .getAttribute('aria-label') as string);
+            }
+        });
+    }
+
+    test('a tall first query, and a small screen: the page stays at the top', async ({page}) => {
+        await page.setViewportSize({width: 600, height: 300});
+        await openWorkspace(page, [{title: 'L', query: Array.from({length: 400}, (_, n) => 'word' + n).join(' OR ')}]);
+        await expect(itemFrame(page, 0).locator('[role=treeitem]:focus')).toHaveCount(1);
+        await page.waitForTimeout(700);
+        expect(await page.evaluate(() => window.scrollY)).toBe(0);
+    });
+
+    test('not if the user is somewhere else before the item has loaded', async ({page}) => {
+        await openWorkspace(page, items);
+        let release = () => {};
+        const gate = new Promise<void>((resolve) => { release = resolve; });
+        await page.route(/\/index\.html\?ws=0&/, async (route) => {
+            await gate;
+            await route.continue();
+        });
+        await page.reload({waitUntil: 'commit'});
+        await titleField(page, 1).focus();
+        release();
+        await waitForItems(page, 3);
+        await page.waitForTimeout(300);
+        await expect(titleField(page, 1)).toBeFocused();
+    });
+});
+
 test.describe('WORKSPACE number keys', () => {
     const status = (page: Page) => page.locator('#workspace-status');
 

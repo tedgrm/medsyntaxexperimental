@@ -83,6 +83,7 @@ Left on the first scope of a level and Right on the last go up, as Up does. With
 | NAV-7 | Clicking an item or scope makes it the current node. | Should |
 | NAV-8 | Typing a number selects the item with that number (a collapsed one expands), from anywhere except a text field, and starts navigation mode. Without such an item the focus stays, and screen readers hear "No query" and the digit. Holding a key doesn't repeat it. | Must |
 | NAV-9 | Escape doesn't make Safari leave full screen in navigation mode, or where it has a job (scope edit, query box, title, More menu). Elsewhere it still does. | Should |
+| NAV-10 | After opening the page or loading an example no text field is active, and navigation mode has started on item 1. The page doesn't scroll. Not if the focus is already somewhere else when that item has loaded. | Must |
 
 ### Editing
 
