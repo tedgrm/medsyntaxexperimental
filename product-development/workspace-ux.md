@@ -25,7 +25,8 @@ Make the WORKSPACE easy to recognise, scan and rearrange.
 - The colours that carry meaning in the visualisation (operators, brackets, quotes, warnings, the scope highlight) stay, as in the fork.
 - The style is inspired by the Medsyntax Framework page in [mrgtverleg-lgtm/MedsyntaxQA](https://github.com/mrgtverleg-lgtm/MedsyntaxQA/tree/Medsyntax-Framework/framework) (commit `12f5d75`, GPL-3.0).
 - The WORKSPACE and its items have a dark mode that follows the system setting, with the fork's dark colours. There is no switch on the page. The visualisation stays white, like paper, as in the fork, because its colours carry meaning.
-- Border colours are the fork's, for cards, buttons and item edges.
+- Border colours of cards and buttons are the fork's.
+- Item colours: 1–4 are the borders of the four textareas of [Medsyntax PICO](https://tedgrm.github.io/picomedsyntax/) (`#query-input1` to `#query-input4`), 5 is a blue, and 6–10 are chosen to differ from those and each other. No pink, which marks the current item. Dark mode lightens them where they are used as lines.
 - Each item has a number and a colour from a fixed palette. Both follow its position: nothing is stored in the link for them. They change when the item moves, or when an item above it is added or deleted, also by a reload.
 - Removing the last item leaves one clear item, so the list is never empty. Its link opens with one clear item too. A new WORKSPACE (`/workspace/`) also starts with one, instead of three.
 - Clear items are deleted on reload, anywhere in the list. If all items are clear, one is left. This replaces the earlier choice to keep empty items on reload (see `FEATURES.md`).
@@ -54,7 +55,8 @@ Make the WORKSPACE easy to recognise, scan and rearrange.
 | Text field border | `#748382` (not in the fork) | 3.95:1 on white; a field needs 3:1, as nothing else marks it |
 | Link text on the page | `#0e6663` (not in the fork: the accent has only 4.14:1 there) | at least 4.5:1 |
 | Danger button: text, background, border | `#8b1d1d`, `#fbe4e4`, `#e3a5a5` | text: 7.56:1 |
-| Items 1–10, then repeated | `#d7263d` `#9a5800` `#3f7a1c` `#7b3fa0` `#1f6fd1` `#00796b` `#c2185b` `#6d4c41` `#455a64` `#b03a12` | white text: at least 4.94:1 |
+| Items with white badge text: 1, 4, 5, 8, 9, 10 | `#E12A39` `#7527A1` `#1F6FD1` `#7A4A2B` `#5B6B7B` `#14613B` | text: at least 4.57:1 |
+| Items with dark badge text (`#1c2525`): 2, 3, 6, 7 | `#FFB407` `#89CA26` `#17B8C9` `#F2760C` | text: at least 5.50:1. As a line on white only 1.78:1 to 2.85:1, see STYLE-8 |
 
 Dark mode:
 
@@ -66,8 +68,8 @@ Dark mode:
 | Text field border | `#82928f` (not in the fork) | 4.41:1 |
 | Accent (also links), with `#052120` text | `#3db6b1` | text 6.85:1, as link 7.22:1 |
 | Danger: text, background, border | `#f4b4b4`, `#3b1d1d`, `#703636` | text 8.72:1 |
-| Item badge | the same palette, with white text | at least 4.94:1 |
-| Item edge and query box border | the palette colour, 55% mixed with white (not in the fork) | at least 5.27:1 on a card |
+| Item badge | the same colours and text as in light mode | text: at least 4.57:1 |
+| Item edge, query box and visualisation border | the item colour, 55% mixed with white | at least 5.00:1 on a card |
 | Marker of the current item | `#ff7ab8` (light mode, and scopes on white: `#b00060`) | 5.97:1 on a card; 6.97:1 on white |
 
 ## Requirements
@@ -78,13 +80,13 @@ Dark mode:
 |---|---|---|
 | STYLE-1 | A header shows the brand mark, the name MedsyntaxQA as the page heading, the line "Workspace for multiline searches", and links to the EDITOR and to "Report an issue" (the same issues page as the EDITOR's menu). | Must |
 | STYLE-2 | Each item is a white card with a 1px line, a 10px radius and a 3px left edge in the item's colour. It replaces the random border. | Must |
-| STYLE-3 | The card's header shows a badge with the item's number in its colour, the summary, and the item's buttons. | Must |
+| STYLE-3 | The card's header shows a badge with the item's number in its colour (white text, or dark where white has less than 4.5:1), the summary, and the item's buttons. After item 10 the colours repeat. | Must |
 | STYLE-4 | The content is centred and at most 1240px wide. | Must |
 | STYLE-5 | Add is a primary (accent) button, Remove a danger button, the others are plain. | Must |
 | STYLE-6 | Colours are CSS variables in `site/workspace/style.css`. Fonts come from the system. | Must |
 | STYLE-7 | The summary follows the title and query while the user types. | Should |
-| STYLE-8 | Items have no grey background. The title is a white field with a 1px border and a 7px radius. The query box is white, monospace, with a 3px border in the item's colour. | Must |
-| STYLE-9 | The visualisation is on white, in a frame with a 1px line and an 8px radius. Its syntax colours stay as now. | Must |
+| STYLE-8 | Items have no grey background. The title is a white field with a 1px border and a 7px radius. The query box is white, monospace, with a 3px border in the item's colour and a 1px line in the text field border colour around it, because some item colours have less than 3:1 on white. | Must |
+| STYLE-9 | The visualisation is on white, in a frame with a 3px border in the item's colour and an 8px radius. Its syntax colours stay as now. | Must |
 | STYLE-10 | Warnings in items are dark red on light red with a dark red left edge. | Must |
 | STYLE-11 | With a dark system setting, the WORKSPACE and its items use the dark colours, and change at once when the setting changes. The visualisation, and a scope edit in it, stay light. | Must |
 | STYLE-12 | Dark mode doesn't reach an EDITOR opened directly. | Must |

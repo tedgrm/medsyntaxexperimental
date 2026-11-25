@@ -54,21 +54,22 @@
     #list { list-style: none; margin: 14px 0 0; padding: 0; display: grid; gap: 14px; }
     .item { --item-line: var(--item-color); min-width: 0; background: var(--card); border: 1px solid var(--line); border-left: 3px solid var(--item-line); border-radius: 10px; padding: 10px 12px; }
     @media (prefers-color-scheme: dark) {
-        /* The palette is made for white text; as a line on a dark card it must be lighter. */
+        /* As lines on a dark card, the darker colours must be lighter. */
         .item { --item-line: color-mix(in srgb, var(--item-color) 55%, white); }
     }
     .item-head { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
-    .badge { display: inline-grid; place-items: center; min-width: 26px; height: 26px; padding: 0 6px; border-radius: 5px; background: var(--item-color); color: #fff; font-weight: 700; font-size: .85rem; }
+    .badge { display: inline-grid; place-items: center; min-width: 26px; height: 26px; padding: 0 6px; border-radius: 5px; background: var(--item-color); color: var(--item-ink); font-weight: 700; font-size: .85rem; }
     .summary { flex: 1 1 140px; min-width: 0; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .actions { display: flex; flex-wrap: wrap; gap: 6px; }
     .editor { margin-top: 10px; padding: 4px; }
     .editor input, .editor textarea { display: block; width: 100%; max-width: 760px; padding: 7px 10px; font: inherit; color: inherit; background: var(--card); border: 1px solid var(--field-line); border-radius: 7px; }
     .editor ::placeholder { color: var(--muted); opacity: 1; font-weight: 400; }
     .editor input[data-part=title] { font-weight: 600; }
-    .editor textarea { margin-top: 8px; border: 3px solid var(--item-line); font: .9rem/1.5 ui-monospace, Menlo, Consolas, monospace; resize: vertical; }
+    /* The thin outer line has 3:1 contrast, also around the bright colours. */
+    .editor textarea { margin-top: 8px; border: 3px solid var(--item-line); box-shadow: 0 0 0 1px var(--field-line); font: .9rem/1.5 ui-monospace, Menlo, Consolas, monospace; resize: vertical; }
     .editor { border-radius: 4px; }
     /* Always white paper, as in the fork: its colours carry meaning. */
-    .visual { --marker: #b00060; --accent: #127c79; color-scheme: light; color: #1c2525; background: #fff; margin: 8px 0; padding: 6px 10px; border: 1px solid var(--line); border-radius: 8px; font: 1rem/2.3 Tahoma, Verdana, sans-serif; white-space: pre-wrap; overflow-wrap: anywhere; }
+    .visual { --marker: #b00060; --accent: #127c79; color-scheme: light; color: #1c2525; background: #fff; margin: 8px 0; padding: 6px 10px; border: 3px solid var(--item-line); border-radius: 8px; font: 1rem/2.3 Tahoma, Verdana, sans-serif; white-space: pre-wrap; overflow-wrap: anywhere; }
     .visual.error { color-scheme: inherit; padding: 4px 10px; border: 0; border-left: 4px solid var(--danger-ink); border-radius: 4px; background: var(--danger-bg); color: var(--danger-ink); font: .9rem/1.5 system-ui, sans-serif; }
     .boolean { color: rgb(11, 11, 107); font: bold 1rem "Courier New", Courier, monospace; }
     /* darkorange + hue-rotate(110deg), as the EDITOR draws its brackets */
@@ -130,7 +131,20 @@
 <div class="sr-only" id="status" role="status"></div>
 
 <script>
-    const PALETTE = ['#d7263d', '#9a5800', '#3f7a1c', '#7b3fa0', '#1f6fd1', '#00796b', '#c2185b', '#6d4c41', '#455a64', '#b03a12'];
+    // 1-4: the textarea borders of https://tedgrm.github.io/picomedsyntax/; then blue, cyan, orange, brown, slate, dark green.
+    const PALETTE = ['#E12A39', '#FFB407', '#89CA26', '#7527A1', '#1F6FD1', '#17B8C9', '#F2760C', '#7A4A2B', '#5B6B7B', '#14613B'];
+
+    function luminance(hex) {
+        const [red, green, blue] = [1, 3, 5].map((i) => {
+            const c = parseInt(hex.slice(i, i + 2), 16) / 255;
+            return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+        });
+        return 0.2126 * red + 0.7152 * green + 0.0722 * blue;
+    }
+
+    // White if it has at least 4.5:1 contrast on the colour, otherwise dark.
+    const inkOn = (hex) => 1.05 / (luminance(hex) + 0.05) >= 4.5 ? '#ffffff' : '#1c2525';
+
     const list = document.getElementById('list');
     const toast = document.getElementById('toast');
     let nextId = 1;
@@ -176,7 +190,9 @@
         items().forEach((item, index, all) => {
             const n = index + 1;
             const collapsed = item.classList.contains('is-collapsed');
-            item.style.setProperty('--item-color', PALETTE[index % PALETTE.length]);
+            const color = PALETTE[index % PALETTE.length];
+            item.style.setProperty('--item-color', color);
+            item.style.setProperty('--item-ink', inkOn(color));
             part(item, 'badge').textContent = n;
             const label = part(item, 'title').value.trim() || 'Query ' + n;
             part(item, 'tree').setAttribute('aria-label', label);
