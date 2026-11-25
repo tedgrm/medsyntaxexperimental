@@ -3,7 +3,7 @@ import {test, expect} from '@playwright/test';
 import {enterQuery} from './helpers';
 import embaseFixture from './fixtures/embase-query.json';
 
-// EDITOR (root index.html) tests. Recorded with `npm run pw-codegen`, then tidied.
+// EDITOR (site/index.html) tests. Recorded with `npm run pw-codegen`, then tidied.
 
 // A real-world PubMed query: four AND-ed concept blocks and a NOT block,
 // with [tiab]/[Mesh] field tags, quoted phrases and nested brackets.

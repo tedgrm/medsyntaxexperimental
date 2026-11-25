@@ -1,4 +1,4 @@
-// Shared helpers for the EDITOR (root index.html) tests. Not a spec file, so
+// Shared helpers for the EDITOR (site/index.html) tests. Not a spec file, so
 // Playwright does not run it as tests.
 import {expect, type Page} from '@playwright/test';
 
@@ -45,7 +45,7 @@ export async function expectWarnings(page: Page, ids: string[]) {
 }
 
 // ---------------------------------------------------------------------------
-// WORKSPACE (workspace/index.html): a list of EDITOR items, each an iframe
+// WORKSPACE (site/workspace/index.html): a list of EDITOR items, each an iframe
 // #page_is_fresh_<n> inside li#li_item_<n>.
 
 /** The WORKSPACE's list items, in order. */

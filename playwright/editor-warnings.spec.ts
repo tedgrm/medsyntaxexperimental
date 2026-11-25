@@ -2,7 +2,7 @@
 import {test, expect} from '@playwright/test';
 import {enterQuery, expectWarnings, target} from './helpers';
 
-// EDITOR (root index.html): syntax warnings. Bracket warnings first, then quote,
+// EDITOR (site/index.html): syntax warnings. Bracket warnings first, then quote,
 // duplicate-operator and ambiguous-operator warnings.
 //
 // Bracket warnings:

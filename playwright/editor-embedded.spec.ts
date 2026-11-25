@@ -2,7 +2,7 @@
 import {test, expect, type Page} from '@playwright/test';
 import {enterQuery, queryBox} from './helpers';
 
-// EDITOR (root index.html) in embedded mode: the WORKSPACE loads it as
+// EDITOR (site/index.html) in embedded mode: the WORKSPACE loads it as
 // index.html?ws=<n> in an iframe. Opened directly, the page is its own parent,
 // so the messages it posts to its parent arrive in the same page and can be
 // recorded.

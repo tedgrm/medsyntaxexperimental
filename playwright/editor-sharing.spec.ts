@@ -2,7 +2,7 @@
 import {test, expect, type Page} from '@playwright/test';
 import {enterQuery, queryBox, target} from './helpers';
 
-// EDITOR (root index.html): sharing via the link. The query and title are
+// EDITOR (site/index.html): sharing via the link. The query and title are
 // compressed with LZString into ?query=…&querytitle=…, and restored on load.
 
 /** Build a link the way the EDITOR does, using its own LZString. */

@@ -4,7 +4,7 @@ import {
     enterItemQuery, itemFrame, itemQuery, linkQueries, waitForItems, workspaceItems,
 } from './helpers';
 
-// WORKSPACE (workspace/index.html): a list of EDITOR items, each an iframe of
+// WORKSPACE (site/workspace/index.html): a list of EDITOR items, each an iframe of
 // ../index.html?ws=<n>&…. The whole list is kept in the WORKSPACE link as
 // <9-digit index>iframequery=<compressed EDITOR query string>.
 
