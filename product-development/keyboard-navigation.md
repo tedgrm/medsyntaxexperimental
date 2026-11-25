@@ -55,7 +55,7 @@ item: (a OR (b AND c)) AND d    whole query
 | Key | On an item | On a scope | In a text field |
 |---|---|---|---|
 | Alt+Up / Alt+Down | previous / next item | previous / next item | normal behaviour |
-| Left / Right | last / first scope of its query | previous / next scope at this level | move the text cursor |
+| Left / Right | last / first scope of its query | previous / next scope at this level; if there is none, the surrounding scope | move the text cursor |
 | Down | first scope of its query | first scope inside | normal behaviour |
 | Up | nothing | surrounding scope; from the top level, the item | normal behaviour |
 | Enter | open the scope edit on the whole query; empty or with an error: go to the query box | open the scope edit | scope edit: confirm; query box: new line |
@@ -66,7 +66,7 @@ item: (a OR (b AND c)) AND d    whole query
 
 Elsewhere on the page (nothing focused, a button, a link, the colour switch), only the digits do something, unless switched off.
 
-At an edge (first, last, or no scope inside) the key does nothing. Navigation does not wrap.
+Left on the first scope of a level and Right on the last go up, as Up does. Without a scope inside, Down does nothing (nor do Left and Right on an item). Navigation does not wrap.
 
 ## Requirements
 
@@ -100,7 +100,7 @@ At an edge (first, last, or no scope inside) the key does nothing. Navigation do
 
 | ID | Requirement | Priority |
 |---|---|---|
-| A11Y-1 | The marker of the current node is clear without colour, works in greyscale, has at least 3:1 contrast, and differs from the hover highlight. It is a line of black and white dashes, so it also differs from the solid borders around it. | Must |
+| A11Y-1 | The marker of the current node is clear without colour, works in greyscale, has at least 3:1 contrast, and differs from the hover highlight. It is a white line with dashes in the item's colour, so it differs from the solid borders around it. Colours with less than 3:1 contrast on white are darkened in the dashes. A glow in the item's colour around it is only decoration. It lights up once when the selection moves, but not with the system's reduced-motion setting. | Must |
 | A11Y-2 | There is no keyboard trap: Tab and Shift+Tab always lead out of an item and its iframe. | Must |
 | A11Y-3 | Single-letter keys work only in navigation mode (WCAG 2.1.4). Digits work on the whole page except in text fields, with a switch, remembered in the browser, that limits them to navigation mode. | Must |
 | A11Y-4 | Each item's tree is labelled with the item's title, or its position if it has none. Screen readers announce the item (its title or number, then its whole query) or scope, its level and its text. | Must |
@@ -119,7 +119,7 @@ At an edge (first, last, or no scope inside) the key does nothing. Navigation do
 
 To become Playwright tests (`playwright/workspace-keyboard.spec.ts`). Unless stated otherwise, item 1 holds `(a OR (b AND c)) AND d` and is current.
 
-1. **Traverse:** Down selects `(a OR (b AND c))`. Right selects `AND d`. Right again does nothing. Up selects item 1.
+1. **Traverse:** Down selects `(a OR (b AND c))`. Right selects `AND d`. Right again selects item 1's whole query, and so does Left on `(a OR (b AND c))`.
 2. **Nest:** from `(a OR (b AND c))`, Down then Right selects `(b AND c)`. Down selects `b AND c`. Up, Up, Up returns to item 1.
 3. **Next item:** Alt+Down selects item 2, also from a scope in item 1. Right on an item without a valid query does nothing.
 4. **Confirm:** on `(b AND c)`, Enter, change it to `(b AND e)`, Enter. The query and link are updated, and `(b AND e)` is current.

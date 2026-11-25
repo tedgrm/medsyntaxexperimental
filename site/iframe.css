@@ -179,15 +179,40 @@ body.ws-iframe-body {
     outline: none;
 }
 
-/* The marker of the current item or scope: black dashes on a white line. Next to any item colour, one of the two
-   has enough contrast. */
+/* The marker of the current item or scope: dashes in the item's colour on a white line. The brightest colours are
+   darkened, so that each has at least 3:1 contrast with the white: all of them a bit in browsers without relative
+   colours. The dashes make it differ from the solid borders around it. */
+.ws-embedded {
+    --dash: color-mix(in srgb, var(--item-color) 70%, black);
+}
+
+@supports (color: oklch(from red min(l, .64) c h)) {
+    .ws-embedded {
+        --dash: oklch(from var(--item-color) min(l, .64) c h);
+    }
+}
+
 .item-is-current body::before,
 #item-marker .current-scope {
+    --glow: var(--item-color);
     border: 3px solid #fff;
     border-radius: 6px;
+    /* Only decoration: the dashes on white have the contrast. */
+    box-shadow: 0 0 8px 2px var(--glow);
+    animation: marker-pulse .6s ease-out;
     pointer-events: none;
 }
 
+/* Around an item it lies on the card, which can be dark; a scope is always on white paper. */
+.item-is-current body::before {
+    --glow: var(--item-line);
+}
+
+/* When the selection moves; item-keyboard.js keeps it from starting again when a marker is drawn again. */
+@keyframes marker-pulse {
+    from { box-shadow: 0 0 0 0 var(--glow); }
+    35% { box-shadow: 0 0 14px 5px var(--glow); }
+}
 
 .item-is-current body::before,
 .item-is-current body::after {
@@ -200,8 +225,8 @@ body.ws-iframe-body {
 
 /* Dashes of 9px with gaps of 4px, slightly longer than those of a scope: CSS can't set that for a dashed border. */
 .item-is-current body::after {
-    --dashes-across: repeating-linear-gradient(90deg, #000 0 9px, transparent 9px 13px);
-    --dashes-down: repeating-linear-gradient(180deg, #000 0 9px, transparent 9px 13px);
+    --dashes-across: repeating-linear-gradient(90deg, var(--dash) 0 9px, transparent 9px 13px);
+    --dashes-down: repeating-linear-gradient(180deg, var(--dash) 0 9px, transparent 9px 13px);
     background:
         var(--dashes-across) top / 100% 3px no-repeat,
         var(--dashes-across) bottom / 100% 3px no-repeat,
@@ -219,12 +244,17 @@ body.ws-iframe-body {
     content: "";
     position: absolute;
     inset: -3px;
-    border: 3px dashed #000;
+    border: 3px dashed var(--dash);
     border-radius: 6px;
 }
 
 @media (prefers-reduced-motion: reduce) {
     .ws-embedded .medsyntax div {
         transition: none;
+    }
+
+    .item-is-current body::before,
+    #item-marker .current-scope {
+        animation: none;
     }
 }

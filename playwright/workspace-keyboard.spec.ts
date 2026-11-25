@@ -264,8 +264,6 @@ test.describe('WORKSPACE keyboard navigation', () => {
     test('K1. Traverse', async ({page}) => {
         await press(page, 'ArrowDown', 0, outer);
         await press(page, 'ArrowRight', 0, 'AND dd');
-        await press(page, 'ArrowRight', 0, 'AND dd');
-        await press(page, 'ArrowLeft', 0, outer);
         await press(page, 'ArrowLeft', 0, outer);
         await press(page, 'ArrowUp', 0, topA);
         await press(page, 'ArrowUp', 0, topA);
@@ -302,7 +300,7 @@ test.describe('WORKSPACE keyboard navigation', () => {
         const compact = (text: string) => normalise(text).replace(/ \)/g, ')').replace(/\( /g, '(');
         await expect.poll(async () => compact(await itemQuery(page, 0))).toBe('(aa OR (bb AND ee)) AND dd');
         await expect.poll(async () => compact((await linkQueries(page))[0])).toBe('(aa OR (bb AND ee)) AND dd');
-        expect(await page.evaluate(() => (window as any).eval('editMode'))).toBe(false);
+        await expect.poll(() => page.evaluate(() => (window as any).eval('editMode'))).toBe(false);
     });
 
     test('editing a run keeps what is around it', async ({page}) => {
@@ -325,7 +323,7 @@ test.describe('WORKSPACE keyboard navigation', () => {
             await press(page, key, 0, outer);
             await expect(dynamicInput(page, 0)).toHaveCount(0);
             expect(await itemQuery(page, 0)).toBe(query);
-            expect(await page.evaluate(() => (window as any).eval('editMode'))).toBe(false);
+            await expect.poll(() => page.evaluate(() => (window as any).eval('editMode'))).toBe(false);
         });
 
         test(`cancel an edit of the whole query with ${key}`, async ({page}) => {
@@ -364,7 +362,7 @@ test.describe('WORKSPACE keyboard navigation', () => {
         await press(page, 'Enter', 0, 'A: xx OR (yy AND zz)');
         await expect.poll(async () => tidy(await itemQuery(page, 0))).toBe('xx OR (yy AND zz)');
         await expect.poll(async () => tidy((await linkQueries(page))[0])).toBe('xx OR (yy AND zz)');
-        expect(await page.evaluate(() => (window as any).eval('editMode'))).toBe(false);
+        await expect.poll(() => page.evaluate(() => (window as any).eval('editMode'))).toBe(false);
         await press(page, 'ArrowDown', 0, 'xx OR');
     });
 
@@ -466,6 +464,29 @@ test.describe('WORKSPACE keyboard navigation', () => {
         await press(page, 'ArrowLeft', 0, 'AND dd');
         await press(page, 'ArrowUp', 0, topA);
         await press(page, 'ArrowUp', 0, topA);
+    });
+
+    test('Left and Right go up where they cannot go further', async ({page}) => {
+        await press(page, 'ArrowRight', 0, outer);
+        await press(page, 'ArrowRight', 0, 'AND dd');
+        await press(page, 'ArrowRight', 0, topA);
+        await press(page, 'ArrowLeft', 0, 'AND dd');
+        await press(page, 'ArrowLeft', 0, outer);
+        await press(page, 'ArrowLeft', 0, topA);
+
+        await press(page, 'ArrowDown', 0, outer);
+        await press(page, 'ArrowDown', 0, 'aa OR');
+        await press(page, 'ArrowLeft', 0, outer);
+        await press(page, 'ArrowDown', 0, 'aa OR');
+        await press(page, 'ArrowRight', 0, inner);
+        await press(page, 'ArrowRight', 0, outer);
+        for (const key of ['ArrowLeft', 'ArrowRight']) { // the only scope inside its brackets
+            await press(page, 'ArrowDown', 0, 'aa OR');
+            await press(page, 'ArrowRight', 0, inner);
+            await press(page, 'ArrowDown', 0, 'bb AND cc');
+            await press(page, key, 0, inner);
+            await press(page, 'ArrowUp', 0, outer);
+        }
     });
 
     test('a query that is one scope has no second node with the same text', async ({page}) => {
@@ -735,24 +756,29 @@ test.describe('WORKSPACE keyboard navigation', () => {
         }
     });
 
-    test('the marker of an item or scope is black dashes on white, and takes no space', async ({page}) => {
+    test('the marker of an item or scope is dashes in the item colour on white with a glow, and takes no space', async ({page}) => {
         await openWorkspace(page, [{title: 'E', query: '(aa OR bb'}, {title: 'A', query}]);
         await selectItem(page, 0, 'E'); // no valid query: the item itself
         const lines = (selector: string, pseudo: string) => itemFrame(page, 0).locator(selector).evaluate((element, name) => {
             const style = getComputedStyle(element, name);
             return style.content === 'none' ? '' : [style.borderTopWidth, style.borderTopStyle, style.borderTopColor].join(' ');
         }, pseudo);
-        const white = 'solid rgb(255, 255, 255)', black = 'dashed rgb(0, 0, 0)';
+        const white = 'solid rgb(255, 255, 255)';
+        const red = 'rgb(225, 42, 57)'; // the first item's colour
         const height = () => workspaceItem(page, 0).locator('iframe').evaluate((frame) => frame.offsetHeight);
 
         expect(await lines('body', '::before')).toBe('3px ' + white);
         expect(await itemFrame(page, 0).locator('body').evaluate((body) => {
             const style = getComputedStyle(body, '::after');
-            return style.backgroundSize + (/rgb\(0, 0, 0\) 0(px|%)?(,| 9px)/.test(style.backgroundImage) ? ' black' : '');
-        })).toBe('100% 3px, 100% 3px, 3px 100%, 3px 100% black');
+            return style.backgroundSize;
+        })).toBe('100% 3px, 100% 3px, 3px 100%, 3px 100%');
+        expect(await itemFrame(page, 0).locator('body').evaluate((body) => getComputedStyle(body, '::after').backgroundImage))
+            .not.toContain('rgb(0, 0, 0)');
         const marked = await height();
-        expect(await itemFrame(page, 0).locator('body').evaluate((body) => getComputedStyle(body, '::before').boxShadow))
-            .toBe('none');
+        expect(await itemFrame(page, 0).locator('body').evaluate((body) => {
+            body.getAnimations({subtree: true}).forEach((animation) => animation.finish());
+            return getComputedStyle(body, '::before').boxShadow;
+        })).toContain(red);
         // The marker is around the visualisation.
         const gaps = await itemFrame(page, 0).locator('body').evaluate((body) => {
             const style = getComputedStyle(body, '::after');
@@ -773,7 +799,11 @@ test.describe('WORKSPACE keyboard navigation', () => {
         expect(await lines('body', '::before')).toBe('');
         expect(await lines('body', '::after')).toBe('');
         expect(await lines('.current-scope', '')).toBe('3px ' + white);
-        expect(await lines('.current-scope', '::after')).toBe('3px ' + black);
+        expect(await lines('.current-scope', '::after')).toMatch(/^3px dashed /);
+        expect(await itemFrame(page, 0).locator('.current-scope').evaluate((box) => {
+            box.getAnimations().forEach((animation) => animation.finish());
+            return getComputedStyle(box).boxShadow;
+        })).toContain(red);
 
         await titleField(page, 0).focus();
         await expect(markers(page, 0)).toHaveCount(0);
@@ -888,5 +918,74 @@ test.describe('WORKSPACE centering', () => {
         await expect.poll(() => offCenter(page, 3)).toBeGreaterThan(50);
         await page.evaluate(() => (window as any).eval('fitItem(items[3])'));
         expect(await offCenter(page, 3)).toBeGreaterThan(50);
+    });
+});
+
+test.describe('WORKSPACE marker colours', () => {
+    /** The red, green and blue of a colour as it is painted */
+    const painted = (page: Page, n: number) => markers(page, n).first().evaluate((box) => {
+        const context = document.createElement('canvas').getContext('2d', {willReadFrequently: true})!;
+        context.fillStyle = getComputedStyle(box, '::after').borderTopColor;
+        context.fillRect(0, 0, 1, 1);
+        return [...context.getImageData(0, 0, 1, 1).data.slice(0, 3)];
+    });
+    const contrastWithWhite = (rgb: number[]) => {
+        const [red, green, blue] = rgb.map((channel) => {
+            const value = channel / 255;
+            return value <= 0.03928 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4;
+        });
+        return 1.05 / (0.2126 * red + 0.7152 * green + 0.0722 * blue + 0.05);
+    };
+
+    test('the dashes have the colour of each item, darkened where it is too bright', async ({page}) => {
+        await openWorkspace(page, Array.from({length: 10}, (_, n) => ({title: 'T' + (n + 1), query: 'heart'})));
+        const colors = ['E12A39', 'FFB407', '89CA26', '7527A1', '1F6FD1', '17B8C9', 'F2760C', '7A4A2B', '5B6B7B', '14613B'];
+        for (let n = 0; n < colors.length; n++) {
+            await selectItem(page, n, `T${n + 1}: heart`);
+            const item = [0, 2, 4].map((start) => parseInt(colors[n].slice(start, start + 2), 16));
+            const dashes = await painted(page, n);
+            const tooBright = contrastWithWhite(item) < 3;
+            const difference = Math.max(...item.map((channel, index) => Math.abs(channel - dashes[index])));
+            expect(contrastWithWhite(dashes), colors[n]).toBeGreaterThanOrEqual(3);
+            if (tooBright) {
+                expect(difference, colors[n]).toBeGreaterThan(10);
+            } else {
+                expect(difference, colors[n]).toBeLessThanOrEqual(2);
+            }
+        }
+    });
+
+    const pulse = (page: Page) => markers(page, 0).first().evaluate((box) => {
+        const style = getComputedStyle(box);
+        return {name: style.animationName, delay: parseFloat(style.animationDelay), running: box.getAnimations().length};
+    });
+
+    test('the glow pulses after a move, and a redraw does not start it again', async ({page}) => {
+        await openWorkspace(page, items);
+        await selectItem(page, 0, topA);
+        await page.waitForTimeout(800);
+        const start = Date.now();
+        await press(page, 'ArrowDown', 0, outer);
+        // Not at once: a box that is being replaced has no style.
+        await expect.poll(async () => (await pulse(page)).name).toBe('marker-pulse');
+        const first = await pulse(page);
+        expect(first.delay * 1000).toBeGreaterThan(-(Date.now() - start) - 50);
+
+        await page.waitForTimeout(800);
+        await page.setViewportSize({width: 900, height: 900}); // draws it again
+        await expect.poll(async () => (await pulse(page)).delay).toBeLessThan(-0.6);
+        expect((await pulse(page)).running).toBe(0);
+    });
+
+    test('with reduced motion the glow does not pulse', async ({page}) => {
+        await page.emulateMedia({reducedMotion: 'reduce'});
+        await openWorkspace(page, items);
+        await selectItem(page, 0, topA);
+        expect((await pulse(page)).name).toBe('none');
+        expect(await markers(page, 0).evaluate((box) => getComputedStyle(box).boxShadow)).toContain('rgb(225, 42, 57)');
+        await openWorkspace(page, [{title: 'E', query: '(aa OR bb'}]);
+        await selectItem(page, 0, 'E');
+        expect(await itemFrame(page, 0).locator('body').evaluate((body) => getComputedStyle(body, '::before').animationName))
+            .toBe('none');
     });
 });

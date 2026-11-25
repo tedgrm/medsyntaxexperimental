@@ -44,6 +44,7 @@ Medsyntax is a syntax assistant for (medical) search engine queries with a scope
 - The query box shows while editing; otherwise only the visualisation
 - Keyboard navigation through items and scopes, and scope editing without a mouse
 - Selecting an item selects its whole query as a scope; Enter edits it in the scope editor
+- The keyboard marker has dashes and a glow in the item's colour; the glow pulses when the selection moves
 - The query that the keyboard selects is centered in the viewport
 - Typing a query's number selects it, from anywhere except a text field (can be limited to navigation mode)
 - Items without a title and query are dropped on reload

@@ -215,9 +215,18 @@ function rectsOfScope(scope) {
     return lines;
 }
 
+// The marked node and since when: drawing it again must not start its pulse (iframe.css) again.
+let markedNode = null;
+let markedSince = 0;
+
 function drawMarker() {
     markerElement.replaceChildren();
     const shown = treeHasFocus();
+    const node = shown ? currentPath.join('.') : null;
+    if (node !== markedNode) {
+        markedNode = node;
+        markedSince = performance.now();
+    }
     const scope = shown ? scopeAt(currentPath) : null;
     document.documentElement.classList.toggle('item-is-current', shown && !scope);
     if (!scope) {
@@ -227,6 +236,7 @@ function drawMarker() {
     rectsOfScope(scope).forEach((rect) => {
         const box = document.createElement('div');
         box.className = 'current-scope';
+        box.style.animationDelay = markedSince - performance.now() + 'ms';
         box.style.left = rect.left + window.scrollX - gap + 'px';
         box.style.top = rect.top + window.scrollY - gap + 'px';
         box.style.width = rect.right - rect.left + 2 * gap + 'px';
@@ -264,13 +274,15 @@ function onScopeKey(key) {
     const index = currentPath[currentPath.length - 1];
     if (key === 'Enter') {
         startKeyboardScopeEdit(currentPath, scopeAt(currentPath).nodes);
-    } else if (key === 'ArrowUp') {
+    } else if (key === 'ArrowUp' || (key === 'ArrowLeft' && index === 0)
+        || (key === 'ArrowRight' && index === scopesAt(parent).length - 1)) {
+        // Left and Right go up where they can't go further.
         selectNodeOrTopNode(parent);
     } else if (key === 'ArrowDown' && scopesAt(currentPath).length) {
         selectNode([...currentPath, 0]);
-    } else if (key === 'ArrowLeft' && index > 0) {
+    } else if (key === 'ArrowLeft') {
         selectNode([...parent, index - 1]);
-    } else if (key === 'ArrowRight' && index < scopesAt(parent).length - 1) {
+    } else if (key === 'ArrowRight') {
         selectNode([...parent, index + 1]);
     }
 }
