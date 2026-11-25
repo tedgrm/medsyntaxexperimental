@@ -79,7 +79,7 @@ Dark mode:
 |---|---|---|
 | STYLE-1 | A header shows the brand mark, the name MedsyntaxQA as the page heading, the line "Workspace for multiline searches", and links to the EDITOR and to "Report an issue" (the same issues page as the EDITOR's menu). | Must |
 | STYLE-2 | Each item is a white card with a 1px line, a 10px radius and a 3px left edge in the item's colour. It replaces the random border. | Must |
-| STYLE-3 | The card's header shows a badge with the item's number in its colour (white text, or dark where white has less than 4.5:1), the title field, and the item's buttons. After item 10 the colours repeat. | Must |
+| STYLE-3 | The card's header shows a badge with the item's number in its colour (white text, or dark where white has less than 4.5:1), the title field, and the item's buttons: Collapse, up, down, Duplicate, Edit query, Copy query, Clear query, Remove. Below a viewport of 1000px, Duplicate to Clear query are in a More menu. On a phone the buttons are below the title. After item 10 the colours repeat. | Must |
 | STYLE-4 | The content is centred and at most 1240px wide. | Must |
 | STYLE-5 | Add is a primary (accent) button, Remove a danger button, the others are plain. | Must |
 | STYLE-6 | Colours are CSS variables in `site/workspace/style.css`. Fonts come from the system. | Must |
@@ -104,12 +104,14 @@ Dark mode:
 | ITEM-8 | An item can be collapsed to its card header, and expanded again. After a reload all items are expanded. | Should |
 | ITEM-9 | Actions on one item leave unfinished edits in the others alone. | Should |
 | ITEM-10 | A reload, or opening a link, deletes every clear item and closes the gaps: the others keep their order, title and query, and the link is updated to match. If all items are clear, one is left. An item with only a title, or only a query, stays. | Must |
-| ITEM-11 | An item's query box shows only while it has the focus, and when there is nothing to visualise: an empty query, or unbalanced brackets or quotes. Otherwise only the visualisation shows, with an "Edit query" button that shows the box with the focus in it. While the user types, the visualisation shows below the box and updates live, as now. Warnings always show. | Must |
+| ITEM-11 | An item's query box shows only while it has the focus, and when there is nothing to visualise: an empty query, or unbalanced brackets or quotes. Otherwise only the visualisation shows. "Edit query" in the card's header shows the box with the focus in it, and expands a collapsed item. While the user types, the visualisation shows below the box and updates live, as now. Warnings always show. | Must |
 | ITEM-12 | Leaving the box never makes the user's click miss its target, although hiding the box moves what is below. | Must |
 | ITEM-13 | A Clear query button, directly before Remove in the card's header, clears the query and keeps the title. It also works on a collapsed item, and drops an unfinished scope edit in that item. It has no Undo, and leaves the Undo of a removal available. The item itself has no clear button. | Must |
 | ITEM-14 | The title can be edited in the card's header, also while the item is collapsed or still loading. A title is never lost by an action right after typing. | Must |
 | ITEM-15 | "Show example", next to "Add query at the top", puts four items with the labels, queries and order of the Medsyntax PICO demo in place of the clear ones (C has no query). It shows only while every item is clear, so it never replaces work. Like add, it ends a pending Undo. Items have no demo button. | Should |
 | ITEM-16 | The button that adds a query after an item is below its card, also while the item is collapsed. | Must |
+| ITEM-17 | "Copy query" in the card's header copies the query, also while the item is collapsed or loading. The button (More, if it is in the menu) says "Copied" or "Not copied" for two seconds. It is disabled without a query. Items have no Edit or Copy buttons of their own. | Must |
+| ITEM-18 | The More menu closes on More, Escape (the focus goes to More), a choice, a click elsewhere or in an item, when the focus leaves it, and when another one opens. | Must |
 
 ### Keyboard navigation
 
@@ -127,7 +129,7 @@ All requirements and decisions in [keyboard-navigation.md](keyboard-navigation.m
 | ID | Requirement | Priority |
 |---|---|---|
 | KEY-1 | The Tab order follows the page: for each card its title, its buttons, the item, then Add. The card's buttons work with Enter and Space. | Must |
-| KEY-2 | The navigation keys above do nothing on the card's buttons and Undo, which are outside the items' trees. There are no shortcuts for the card's actions in the first version. | Must |
+| KEY-2 | The navigation keys above do nothing on the card's buttons and Undo, which are outside the items' trees, also in the More menu, where only Escape closes it. There are no shortcuts for the card's actions in the first version. | Must |
 | KEY-3 | After add and duplicate, Escape in the new title goes to that item. Escape in the title of a collapsed item expands it. | Must |
 | KEY-4 | Alt+Up / Alt+Down follow the order on the page, also after add, remove, undo and move. | Must |
 | KEY-5 | After remove, the focus goes where A11Y-4 says (a button or the clear item's title), so no item is in navigation mode. Tab from there reaches the tree of the item now in that place, with a valid current node. | Must |
@@ -135,7 +137,7 @@ All requirements and decisions in [keyboard-navigation.md](keyboard-navigation.m
 | KEY-7 | Alt+Up / Alt+Down to a collapsed item expands it and selects the item itself. It stays expanded when the user moves on. Tab doesn't expand: it reaches the Expand button. | Must |
 | KEY-8 | The item's tree is labelled with its title, or its number on the badge if it has none, and the label follows changes of either. | Must |
 | KEY-9 | After a reload, the current node of every item's tree is the item itself. | Should |
-| KEY-10 | Enter on an item shows its query box first if it is hidden. Escape in the box returns to the item and hides the box (unless ITEM-11 keeps it). The Edit query button can be reached with Tab. | Must |
+| KEY-10 | Enter on an item shows its query box first if it is hidden. Escape in the box returns to the item and hides the box (unless ITEM-11 keeps it). Edit query can be reached with Tab, if needed through More. | Must |
 
 ### Accessibility
 
@@ -143,10 +145,10 @@ All requirements and decisions in [keyboard-navigation.md](keyboard-navigation.m
 |---|---|---|
 | A11Y-1 | Text has at least 4.5:1 contrast; the focus outline at least 3:1 (WCAG 2.2 AA). Button borders may be lighter, because the button's text or arrow identifies it. This holds in light and dark mode. | Must |
 | A11Y-2 | An item is never recognised by colour alone: its number is always visible. | Must |
-| A11Y-3 | Buttons and iframes have a name with the item's number ("Remove query 2"). Clear query is named after the title instead, or the number without one ("Clear query Population", "Clear query 2"), and follows changes of either. A button's name starts with its visible text. | Must |
-| A11Y-4 | Keyboard focus is visible and never lost after an action: add, duplicate and show example → the (first) new title; move → the same button, or the opposite one at an edge; remove → the Collapse button of the item now in that place (the last item if there is none), or the title of the clear item; undo → the restored item; clear query → the same button. | Must |
+| A11Y-3 | Buttons and iframes have a name with the item's number ("Remove query 2"). Edit, Copy and Clear query are named after the title instead, or the number without one ("Clear query Population", "Clear query 2"), and follow changes of either. The More button is "More actions for query 2". A button's name starts with its visible text. | Must |
+| A11Y-4 | Keyboard focus is visible and never lost after an action: add, duplicate and show example → the (first) new title; move → the same button, or the opposite one at an edge; remove → the Collapse button of the item now in that place (the last item if there is none), or the title of the clear item; undo → the restored item; clear and copy query → the same button, or More; edit query → the query box. | Must |
 | A11Y-5 | After Remove, the focus is not on another Remove button, so a second Enter can't remove more. | Must |
-| A11Y-6 | Screen readers hear the result of add, remove, undo, move, duplicate, clear query and show example. | Must |
+| A11Y-6 | Screen readers hear the result of add, remove, undo, move, duplicate, copy query, clear query and show example. | Must |
 | A11Y-7 | Nothing scrolls the page sideways at 375px. Long queries scroll or wrap inside their item. | Must |
 
 ### Compatibility
@@ -187,6 +189,10 @@ To become Playwright tests. Unless stated otherwise: three items with the titles
 23. **Title:** rename B in its card header. The link, the Clear query button's name and the tree label follow, also after a reload.
 24. **Title while collapsed:** collapse B and empty its title. The field shows the query as placeholder.
 25. **Example:** open `/workspace/` and click Show example. The four PICO items are there, with Medsyntax PICO's colours, also after a reload, and the button is gone.
+26. **Button row:** at 1000px all eight buttons are next to the title; at 999px there are five, with More.
+27. **Copy query:** it copies the query and says so; if the browser refuses, it says that.
+28. **More menu:** every action works from it and closes it.
+29. **Closing the menu:** each way of ITEM-18.
 
 ## As built
 
@@ -196,7 +202,7 @@ To become Playwright tests. Unless stated otherwise: three items with the titles
 - The iframes allow alerts now (`allow-modals`), which the existing sandbox blocked.
 - Clear query asks the item to clear itself (message `clearQuery`). The prototype doesn't have this button in the header.
 - The title field is in the WORKSPACE, which decides about titles: it puts its value in the item's query string, and sends it to the item (message `setTitle`) for the tree label. T sends `focusTitle`.
-- The prototype still has the summary, the title and demo buttons in the item, and Add in the card.
+- The prototype still has the summary, the title, Edit, Copy and demo buttons in the item, and Add in the card. It has no More menu.
 - A moved item loses its own unfinished scope edit, because its iframe loads again.
 
 ## Technical notes

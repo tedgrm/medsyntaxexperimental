@@ -60,7 +60,7 @@ If the user just says "index.html", ask which one they mean, unless the context 
   - `setEditMode`: payload `true`/`false`. The workspace stores it in its global `editMode`.
   - `moveFocus` (-1/1): Alt+Up/Alt+Down. `focusTitle`: T on an item. The title field is in the WORKSPACE's card header, which decides about the title in an item's query string; the EDITOR's own field is hidden in items. `queryBoxLeft` and `pointerState` (true/false): the workspace answers with `hideQueryBox` once the pointer is up, so a click never misses its target.
   - `itemResized`: the workspace fits the iframe to the item, in case iframe-resizer missed a change.
-  - The workspace sends items `itemState` (`{color, number}`), `setTitle`, `focusItem`, `hideQueryBox` and `clearQuery` (the Clear query button in the card header; the EDITOR's own clear button is hidden in items).
+  - The workspace sends items `itemState` (`{color, number}`), `setTitle`, `focusItem`, `hideQueryBox`, `editQuery` and `clearQuery` (buttons in the card header; the EDITOR's own title field and clear, demo and copy buttons are hidden in items).
 - The workspace only accepts messages from its own origin, so both pages must be served from the same server.
 - When the workspace loads, it rebuilds the list from its `…iframequery` parameters. If there are none, it starts with one clear item. Items without a title and query are dropped on load, but one always remains.
 

@@ -437,8 +437,8 @@ test.describe('WORKSPACE Clear query', () => {
     });
 
     test('it is directly before Remove, and the item has no clear button of its own', async ({page}) => {
-        await expect(workspaceItem(page, 0).locator('.actions button')).toHaveText(
-            ['Collapse', '↑', '↓', 'Duplicate', 'Clear query', 'Remove']);
+        await expect(workspaceItem(page, 0).locator('.actions button:visible')).toHaveText(
+            ['Collapse', '↑', '↓', 'Duplicate', 'Edit query', 'Copy query', 'Clear query', 'Remove']);
         await expect(itemFrame(page, 0).locator('#clear-button')).toBeHidden();
     });
 
@@ -509,6 +509,185 @@ test.describe('WORKSPACE Clear query', () => {
     });
 });
 
+test.describe('WORKSPACE Edit, Copy and the More menu', () => {
+    const D = {title: 'D', query: '"a b"[tiab] AND x*'};
+    const status = (page: Page) => page.locator('#workspace-status');
+    const copied = (page: Page) => page.evaluate(() => (window as any).copied);
+    const more = (page: Page, n: number) => button(page, 'More actions for query ' + n);
+    const menus = (page: Page) => page.locator('.more-menu:visible');
+    const shown = (page: Page) => workspaceItem(page, 0).locator('.actions button:visible');
+    const narrow = (page: Page) => page.setViewportSize({width: 800, height: 900});
+
+    test.beforeEach(async ({page}) => {
+        await page.addInitScript(() => {
+            (window as any).copied = [];
+            Object.defineProperty(navigator, 'clipboard', {
+                configurable: true,
+                value: {writeText: (text: string) => {
+                    if ((window as any).refuse) {
+                        return Promise.reject(new Error('refused'));
+                    }
+                    (window as any).copied.push(text);
+                    return Promise.resolve();
+                }},
+            });
+        });
+        await openWorkspace(page, [A, B, D]);
+    });
+
+    test('26. all buttons are next to the title from 1000px, and four are in a menu below that', async ({page}) => {
+        const all = ['Collapse', '↑', '↓', 'Duplicate', 'Edit query', 'Copy query', 'Clear query', 'Remove'];
+        const few = ['Collapse', '↑', '↓', 'More ▾', 'Remove'];
+        for (const [width, texts] of [[1920, all], [1000, all], [999, few], [640, few], [375, few]] as const) {
+            await page.setViewportSize({width, height: 900});
+            await expect(shown(page)).toHaveText([...texts]);
+            const tops = await shown(page).evaluateAll((buttons) => [...new Set(buttons.map((b) => Math.round(b.getBoundingClientRect().top)))]);
+            expect(tops.length).toBe(1);
+            const title = (await titleField(page, 0).boundingBox())!;
+            if (width >= 640) {
+                expect(Math.abs(tops[0] - title.y)).toBeLessThan(6);
+                expect(title.width).toBeGreaterThan(190);
+            }
+        }
+    });
+
+    test('items have no Edit or Copy buttons of their own', async ({page}) => {
+        await expect(itemFrame(page, 0).locator('button:visible')).toHaveCount(0);
+        await page.goto('/index.html');
+        await expect(page.locator('#copy-query-button')).toBeVisible();
+    });
+
+    test('Edit and Copy are named after the title, or the number without one', async ({page}) => {
+        await enterItemTitle(page, 0, 'New');
+        await expect(button(page, 'Edit query New')).toBeVisible();
+        await enterItemTitle(page, 0, '');
+        await expect(button(page, 'Edit query 1')).toBeVisible();
+        await expect(button(page, 'Copy query 1')).toBeVisible();
+    });
+
+    test('Edit opens the box: also when it is open, collapsed, or still loading', async ({page}) => {
+        for (let turn = 0; turn < 2; turn++) {
+            await button(page, 'Edit query A').click();
+            await expect(itemBox(page, 0)).toBeFocused();
+            await page.waitForTimeout(300);
+            await expect(itemBox(page, 0)).toBeFocused();
+        }
+        await button(page, 'Collapse query 2').click();
+        await button(page, 'Edit query B').click();
+        await expect(itemBox(page, 1)).toBeFocused();
+        await expect(button(page, 'Collapse query 2')).toBeVisible();
+        await page.evaluate(() => {
+            (document.querySelectorAll('[data-part=down]')[0] as HTMLElement).click();
+            (document.querySelectorAll('[data-part=edit]')[1] as HTMLElement).click();
+        });
+        await expect(titleField(page, 1)).toHaveValue('A');
+        await expect(itemBox(page, 1)).toBeFocused();
+    });
+
+    test('27. Copy copies the query and says so for a moment', async ({page}) => {
+        const copy = button(page, 'Copy query D');
+        await copy.click();
+        await expect(copy).toHaveText('Copied');
+        await expect(status(page)).toHaveText('Query D: copied');
+        expect(await copied(page)).toEqual([D.query]);
+        await expect(copy).toBeFocused();
+        await expect(copy).toHaveText('Copy query', {timeout: 4000});
+        await page.evaluate(() => { (window as any).refuse = true; });
+        await copy.click();
+        await expect(copy).toHaveText('Not copied');
+        await expect(status(page)).toHaveText('Query D: not copied');
+    });
+
+    test('Copy: just typed, collapsed, and loading; disabled without a query', async ({page}) => {
+        await openItemBox(page, 1);
+        await page.keyboard.press('End');
+        await page.keyboard.type(' AND kidney');
+        await button(page, 'Copy query B').click();
+        await expect.poll(() => copied(page)).toEqual([B.query + ' AND kidney']);
+        await button(page, 'Collapse query 3').click();
+        await button(page, 'Copy query D').click();
+        await expect.poll(async () => (await copied(page)).length).toBe(2);
+        await page.evaluate(() => {
+            (document.querySelectorAll('[data-part=down]')[0] as HTMLElement).click();
+            (document.querySelectorAll('[data-part=copy]')[1] as HTMLElement).click();
+        });
+        await expect.poll(async () => (await copied(page)).slice(1)).toEqual([D.query, A.query]);
+        await waitForItems(page, 3);
+        await button(page, 'Clear query A').click();
+        await expect(button(page, 'Copy query A')).toBeDisabled();
+        await openItemBox(page, 1);
+        await page.keyboard.type('x');
+        await expect(button(page, 'Copy query A')).toBeEnabled();
+    });
+
+    test('28. every action works from the menu, and closes it', async ({page}) => {
+        await narrow(page);
+        await more(page, 3).click();
+        await expect(more(page, 3)).toHaveAttribute('aria-expanded', 'true');
+        await button(page, 'Copy query D').click();
+        await expect(menus(page)).toHaveCount(0);
+        await expect(more(page, 3)).toHaveText('Copied');
+        await expect(more(page, 3)).toBeFocused();
+        expect(await copied(page)).toEqual([D.query]);
+        await expect(more(page, 3)).toHaveText('More ▾', {timeout: 4000});
+
+        await more(page, 2).click();
+        await button(page, 'Clear query B').click();
+        await expect(menus(page)).toHaveCount(0);
+        await expect(more(page, 2)).toBeFocused();
+        await expect.poll(() => linkQueries(page)).toEqual([A.query, '', D.query]);
+
+        await more(page, 1).click();
+        await button(page, 'Edit query A').click();
+        await expect(itemBox(page, 0)).toBeFocused();
+        await expect(menus(page)).toHaveCount(0);
+
+        await more(page, 1).click();
+        await button(page, 'Duplicate query 1').click();
+        await waitForItems(page, 4);
+        await expect(titleField(page, 1)).toBeFocused();
+        await expect(menus(page)).toHaveCount(0);
+        expect(await titles(page)).toEqual(['A', 'A', 'B', 'D']);
+    });
+
+    test('29. the menu closes: More, Escape, a click elsewhere or in an item, another menu', async ({page}) => {
+        await narrow(page);
+        const open = async () => {
+            await more(page, 1).click();
+            await expect(menus(page)).toHaveCount(1);
+        };
+        await open();
+        await more(page, 1).click();
+        await expect(menus(page)).toHaveCount(0);
+        await open();
+        await page.keyboard.press('Escape');
+        await expect(menus(page)).toHaveCount(0);
+        await open();
+        await page.getByRole('heading', {level: 1}).click();
+        await expect(menus(page)).toHaveCount(0);
+        await open();
+        await visual(page, 2).click({position: {x: 5, y: 5}});
+        await expect(menus(page)).toHaveCount(0);
+        await open();
+        await more(page, 3).click();
+        await expect(menus(page)).toHaveCount(1);
+        await expect(more(page, 1)).toHaveAttribute('aria-expanded', 'false');
+        await expect(more(page, 3)).toHaveAttribute('aria-expanded', 'true');
+    });
+
+    test('the open menu stays on the screen at 375px, also for the last item', async ({page}) => {
+        await page.setViewportSize({width: 375, height: 812});
+        for (const n of [1, 3]) {
+            await more(page, n).click();
+            const box = (await menus(page).boundingBox())!;
+            expect(box.x).toBeGreaterThanOrEqual(0);
+            expect(box.x + box.width).toBeLessThanOrEqual(375);
+            expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(375);
+            await menus(page).locator('button').last().click({trial: true});
+        }
+    });
+});
+
 test.describe('WORKSPACE links', () => {
     test('an old link with clear items and leading "&" opens', async ({page}) => {
         await page.goto('/workspace/');
@@ -555,7 +734,7 @@ test.describe('WORKSPACE query box', () => {
         await expect(visual(page, 0)).toBeVisible();
         await expect(itemBox(page, 1)).toBeVisible();
 
-        await itemFrame(page, 0).getByRole('button', {name: 'Edit query'}).click();
+        await button(page, 'Edit query 1').click();
         await expect(itemBox(page, 0)).toBeFocused();
         await expect(visual(page, 0)).toBeVisible();
         await page.keyboard.press('End');
@@ -570,8 +749,7 @@ test.describe('WORKSPACE query box', () => {
         await openWorkspace(page, [A, B]);
         await openItemBox(page, 0);
         await page.waitForTimeout(400);
-        const copy = itemFrame(page, 1).getByRole('button', {name: 'Edit query'});
-        const box = (await copy.boundingBox())!;
+        const box = (await button(page, 'Edit query B').boundingBox())!;
         await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
         await page.mouse.down();
         await page.waitForTimeout(400);

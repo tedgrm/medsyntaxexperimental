@@ -38,6 +38,7 @@ Medsyntax is a syntax assistant for (medical) search engine queries with a scope
 ## WORKSPACE (MedsyntaxQA)
 - A list of queries (items), each an embedded EDITOR, kept in one shareable link
 - Add, duplicate, move, collapse, clear the query, and remove with Undo, without disturbing other items
+- Edit, copy and clear query in the card header, with a More menu on narrow screens
 - Title per item in its card header, and a Show example button with four PICO queries while every item is clear
 - Number and colour per item; a light and a dark mode that follow the system setting
 - The query box shows while editing; otherwise only the visualisation

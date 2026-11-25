@@ -122,8 +122,15 @@ function createItem(queryString) {
                     <button class="btn" data-part="collapse" data-label="Collapse" aria-controls="item_editor_${id}"></button>
                     <button class="btn" data-part="up" data-label="Move up">↑</button>
                     <button class="btn" data-part="down" data-label="Move down">↓</button>
-                    <button class="btn" data-part="duplicate" data-label="Duplicate">Duplicate</button>
-                    <button class="btn" data-part="clear">Clear query</button>
+                    <div class="more">
+                        <button class="btn" data-part="more" data-label="More actions for" aria-expanded="false" aria-controls="item_menu_${id}">More ▾</button>
+                        <div class="more-menu" id="item_menu_${id}">
+                            <button class="btn" data-part="duplicate" data-label="Duplicate">Duplicate</button>
+                            <button class="btn" data-part="edit">Edit query</button>
+                            <button class="btn" data-part="copy">Copy query</button>
+                            <button class="btn" data-part="clear">Clear query</button>
+                        </div>
+                    </div>
                     <button class="btn danger" data-part="remove" data-label="Remove">Remove</button>
                 </div>
             </div>
@@ -137,7 +144,7 @@ function createItem(queryString) {
     // allow-modals: the EDITOR uses alerts, for example for an invalid scope edit.
     frame.setAttribute('sandbox', 'allow-same-origin allow-scripts allow-top-navigation allow-modals');
 
-    const item = {id, element, frame, queryString: queryString || '', loaded: false, focusOnLoad: false,
+    const item = {id, element, frame, queryString: queryString || '', loaded: false, focusOnLoad: null,
         clearOnLoad: false};
     frame.addEventListener('load', () => {
         item.loaded = true;
@@ -147,7 +154,7 @@ function createItem(queryString) {
             clearItem(item);
         }
         if (item.focusOnLoad) {
-            focusItem(item);
+            focusItem(item, item.focusOnLoad);
         }
     });
     setUpTitle(item);
@@ -259,7 +266,11 @@ function itemName(item) {
 }
 
 function refreshItem(item) {
-    part(item, 'clear').setAttribute('aria-label', 'Clear query ' + itemName(item));
+    ['edit', 'copy', 'clear'].forEach((name) => {
+        const label = {edit: 'Edit', copy: 'Copy', clear: 'Clear'}[name];
+        part(item, name).setAttribute('aria-label', label + ' query ' + itemName(item));
+    });
+    part(item, 'copy').disabled = itemQuery(item) === '';
     // Collapsed and without a title, the start of the query shows which item it is.
     part(item, 'title').placeholder = item.element.classList.contains('is-collapsed')
         ? itemQuery(item) || 'Empty query' : titlePlaceholder;
@@ -313,26 +324,75 @@ function sendItemState(item) {
     sendToItem(item, 'itemState', {color: itemColor(position), number: position + 1});
 }
 
-// The item itself, in its tree. Waits until the item has loaded.
-function focusItem(item) {
+// message: 'focusItem' for the item itself, in its tree, or 'editQuery' for its query box. Waits until the
+// item has loaded.
+function focusItem(item, message = 'focusItem') {
     if (!item.loaded) {
-        item.focusOnLoad = true;
+        item.focusOnLoad = message;
         return;
     }
-    item.focusOnLoad = false;
+    item.focusOnLoad = null;
     item.frame.focus({preventScroll: true});
     item.frame.contentWindow.focus();
-    sendToItem(item, 'focusItem', null);
+    sendToItem(item, message, null);
 }
 
 function focusPart(item, name) {
     // A pending focus of another item must not take it away again.
     items.forEach((other) => {
-        other.focusOnLoad = false;
+        other.focusOnLoad = null;
     });
-    part(item, name).focus({preventScroll: true});
+    // Not shown: in the closed More menu.
+    const button = part(item, name).offsetParent ? part(item, name) : part(item, 'more');
+    button.focus({preventScroll: true});
     item.element.scrollIntoView({block: 'nearest'});
 }
+
+// --- The More menu, on narrow screens (see style.css)
+
+let itemWithMenu = null;
+
+function closeMenu() {
+    if (itemWithMenu) {
+        itemWithMenu.element.classList.remove('menu-open');
+        part(itemWithMenu, 'more').setAttribute('aria-expanded', 'false');
+        itemWithMenu = null;
+    }
+}
+
+function toggleMenu(item) {
+    const open = itemWithMenu !== item;
+    closeMenu();
+    if (open) {
+        itemWithMenu = item;
+        item.element.classList.add('menu-open');
+        part(item, 'more').setAttribute('aria-expanded', 'true');
+    }
+}
+
+function isOutsideMenu(element) {
+    return itemWithMenu && !itemWithMenu.element.querySelector('.more').contains(element);
+}
+
+document.addEventListener('pointerdown', (event) => {
+    if (isOutsideMenu(event.target)) {
+        closeMenu();
+    }
+}, true);
+document.addEventListener('focusin', (event) => {
+    if (isOutsideMenu(event.target)) {
+        closeMenu();
+    }
+});
+// The focus goes into an item.
+window.addEventListener('blur', closeMenu);
+document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && itemWithMenu) {
+        const item = itemWithMenu;
+        closeMenu();
+        part(item, 'more').focus();
+    }
+});
 
 // --- Actions
 
@@ -416,6 +476,35 @@ function clearItem(item) {
     sendToItem(item, 'clearQuery', null);
 }
 
+function editQuery(item) {
+    setCollapsed(item, false);
+    focusItem(item, 'editQuery');
+}
+
+// The text of the button that the user sees becomes the result for a moment.
+function showCopyResult(item, text) {
+    const button = part(item, 'copy').offsetParent ? part(item, 'copy') : part(item, 'more');
+    clearTimeout(item.copyTimer);
+    part(item, 'copy').textContent = 'Copy query';
+    part(item, 'more').textContent = 'More ▾';
+    button.textContent = text;
+    announce('Query ' + itemName(item) + ': ' + text.toLowerCase());
+    item.copyTimer = setTimeout(() => {
+        button.textContent = button.dataset.part === 'copy' ? 'Copy query' : 'More ▾';
+    }, 2000);
+}
+
+async function copyQuery(item) {
+    const queryBox = item.loaded && item.frame.contentDocument.getElementById('query-input1');
+    try {
+        await navigator.clipboard.writeText(queryBox ? queryBox.value
+            : decompress(new URLSearchParams(item.queryString).get('query')));
+        showCopyResult(item, 'Copied');
+    } catch (error) {
+        showCopyResult(item, 'Not copied');
+    }
+}
+
 function moveItem(item, direction) {
     clearUndo();
     currentQueryString(item);
@@ -435,7 +524,20 @@ document.getElementById('myList').addEventListener('click', (event) => {
         return;
     }
     const item = itemOf(button);
+    if (button.dataset.part !== 'more') {
+        closeMenu();
+    }
     switch (button.dataset.part) {
+        case 'more':
+            toggleMenu(item);
+            break;
+        case 'edit':
+            editQuery(item);
+            break;
+        case 'copy':
+            focusPart(item, 'copy');
+            copyQuery(item);
+            break;
         case 'add':
             addItem(items.indexOf(item) + 1, '', 'Added query');
             break;
@@ -534,6 +636,7 @@ window.addEventListener('message', (event) => {
             focusPart(item, 'title');
             break;
         case 'pointerState':
+            closeMenu();
             setPointerDown(event.data.payload);
             break;
         case 'queryBoxLeft':

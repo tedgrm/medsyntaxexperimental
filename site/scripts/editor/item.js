@@ -24,7 +24,6 @@ function updateQueryView() {
     const isEmpty = queryBoxElement.value.trim() === '';
     const showBox = queryBoxOpen || isEmpty || queryHasError();
     queryBoxElement.hidden = !showBox;
-    document.getElementById('edit-query-button').hidden = showBox;
     document.getElementById('medsyntax-target1').hidden = isEmpty;
 }
 
@@ -42,12 +41,6 @@ function itemLabel() {
 }
 
 if (ws) {
-    const editButton = document.createElement('button');
-    editButton.id = 'edit-query-button';
-    editButton.textContent = 'Edit query';
-    editButton.addEventListener('click', openQueryBox);
-    document.getElementById('medsyntax').after(editButton);
-
     document.addEventListener('medsyntax:rendered', updateQueryView);
     $(document).ready(updateQueryView);
 
@@ -86,6 +79,9 @@ if (ws) {
             document.getElementById('query-title1').value = event.data.payload;
             updateTitle('query-title1');
             updateTreeLabel();
+        }
+        if (event.data.type === 'editQuery') {
+            openQueryBox();
         }
         if (event.data.type === 'clearQuery') {
             clearButtonFunc();

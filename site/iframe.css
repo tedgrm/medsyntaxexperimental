@@ -52,6 +52,7 @@ body.ws-iframe-body {
 /* the WORKSPACE has these in the card header */
 .ws-embedded #query-title1,
 .ws-embedded #clear-button,
+.ws-embedded .tooltip,
 .ws-embedded body > br {
     display: none !important;
 }
@@ -161,12 +162,6 @@ body.ws-iframe-body {
     max-width: 100%;
     box-sizing: border-box;
     color: #1c2525;
-}
-
-/* ends at its button, so it stays inside a narrow item */
-.ws-embedded .tooltip .tooltiptext {
-    left: auto;
-    right: 0;
 }
 
 .ws-embedded #demo2 {
