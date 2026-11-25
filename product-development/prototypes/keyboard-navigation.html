@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Keyboard navigation prototype</title>
+<!-- THROWAWAY prototype for ../keyboard-navigation.md. Not part of the site and
+     not the site's parser: one page, no iframes, a minimal bracket/quote parser. -->
+<style>
+    body { font: 16px/1.5 sans-serif; max-width: 60rem; margin: 1rem auto; padding: 0 1rem; color: #222; background: #eee; }
+    fieldset, .item { background: #fff; border: 2px solid #999; border-radius: 10px; margin: 0 0 1rem; padding: .75rem 1rem; }
+    fieldset label { display: block; }
+    .item input, .item textarea { display: block; width: 100%; box-sizing: border-box; font: inherit; margin: 0 0 .5rem; }
+    .visual { font-size: 1.1rem; white-space: pre-wrap; overflow-wrap: anywhere; line-height: 2.2; }
+    .group { background: #e3eefb; border: 1px solid #8ab; border-radius: 4px; padding: 3px 4px; }
+    .run { padding: 2px 1px; }
+    .error { color: #a00; }
+    [role=treeitem]:focus { outline: 3px solid #b00060; outline-offset: 2px; border-radius: 4px; }
+    .visual input.edit { display: inline-block; width: auto; min-width: 20rem; max-width: 100%; margin: 0; }
+    #status { position: sticky; bottom: 0; background: #222; color: #fff; padding: .4rem 1rem; border-radius: 6px; }
+</style>
+</head>
+<body>
+<h1>Keyboard navigation prototype</h1>
+<fieldset id="schemes">
+    <legend>Keys for moving between items</legend>
+    <label><input type="radio" name="scheme" value="tree" checked> A: one tree. Left/Right between items, Down into the query</label>
+    <label><input type="radio" name="scheme" value="vertical"> B: Up/Down between items, Right into the query</label>
+    <label><input type="radio" name="scheme" value="alt"> C: Alt+Up/Alt+Down between items from anywhere, Down into the query</label>
+</fieldset>
+<p>Click an item or scope, or press Tab until one is outlined. Inside a query, all schemes are the same: Left/Right between scopes,
+    Down to go inside, Up to go out. <b>Enter</b> edits a scope (Enter confirms, Escape cancels). On an item, <b>Enter</b> goes to
+    the query and <b>T</b> to the title; Escape comes back.</p>
+<div id="list" role="tree" aria-label="Queries"></div>
+<p id="status" aria-live="polite">Nothing selected yet</p>
+
+<script>
+    const items = [
+        {title: 'Nested', query: '(heart OR (lung AND liver)) AND child*'},
+        {title: 'PubMed', query: '("heart failure"[Mesh] OR cardiac[tiab]) AND (therapy OR (drug AND (oral OR topical))) NOT mice'},
+        {title: 'Error (missing bracket)', query: '(heart OR lung'}
+    ];
+    let current = {item: 0, path: []};
+    const list = document.getElementById('list');
+
+    // --- Minimal parser. A level is a list of scopes {type, start, end, children}.
+    function parseQuery(text) {
+        const pairs = {}, stack = [];
+        let quoted = false;
+        for (let i = 0; i < text.length; i++) {
+            if (text[i] === '"') quoted = !quoted;
+            if (quoted) continue;
+            if (text[i] === '(') stack.push(i);
+            if (text[i] === ')') {
+                if (!stack.length) return null;
+                pairs[stack.pop()] = i;
+            }
+        }
+        return quoted || stack.length ? null : parseLevel(text, pairs, 0, text.length);
+    }
+
+    function parseLevel(text, pairs, from, to) {
+        const scopes = [];
+        let runStart = from;
+        const endRun = (end) => {
+            const run = text.slice(runStart, end);
+            if (!run.trim()) return;
+            const start = runStart + run.length - run.trimStart().length;
+            scopes.push({type: 'run', start, end: start + run.trim().length, children: []});
+        };
+        for (let i = from; i < to; i++) {
+            if (pairs[i] === undefined) continue;
+            endRun(i);
+            scopes.push({type: 'group', start: i, end: pairs[i] + 1, children: parseLevel(text, pairs, i + 1, pairs[i])});
+            i = pairs[i];
+            runStart = i + 1;
+        }
+        endRun(to);
+        return scopes;
+    }
+
+    function levelAt(item, path) {
+        let level = parseQuery(items[item].query) || [];
+        for (const index of path) level = level[index].children;
+        return level;
+    }
+
+    function scopeAt(item, path) {
+        return levelAt(item, path.slice(0, -1))[path[path.length - 1]];
+    }
+
+    // Nearest remaining place: a neighbour, then the surrounding scope, then the item.
+    function validPath(item, path) {
+        const result = [];
+        for (const index of path) {
+            const level = levelAt(item, result);
+            if (!level.length) break;
+            result.push(Math.min(index, level.length - 1));
+            if (index >= level.length) break;
+        }
+        return result;
+    }
+
+    // --- Rendering
+    function renderLevel(parent, item, scopes, from, to, path) {
+        const text = items[item].query;
+        let at = from;
+        scopes.forEach((scope, index) => {
+            parent.append(text.slice(at, scope.start));
+            const el = document.createElement('span');
+            const elPath = [...path, index];
+            el.className = scope.type;
+            el.tabIndex = -1;
+            el.setAttribute('role', 'treeitem');
+            el.setAttribute('aria-level', elPath.length + 1);
+            el.setAttribute('aria-label', text.slice(scope.start, scope.end));
+            el.dataset.path = elPath.join('.');
+            if (scope.type === 'group') {
+                el.append('(');
+                renderLevel(el, item, scope.children, scope.start + 1, scope.end - 1, elPath);
+                el.append(')');
+            } else {
+                el.append(text.slice(scope.start, scope.end));
+            }
+            parent.append(el);
+            at = scope.end;
+        });
+        parent.append(text.slice(at, to));
+    }
+
+    function renderVisual(item) {
+        const visual = itemElement(item).querySelector('.visual');
+        visual.replaceChildren();
+        const scopes = parseQuery(items[item].query);
+        visual.classList.toggle('error', !scopes);
+        if (scopes) renderLevel(visual, item, scopes, 0, items[item].query.length, []);
+        else visual.append('Brackets or quotes do not match: ' + items[item].query);
+    }
+
+    function itemElement(item) {
+        return list.children[item];
+    }
+
+    function nodeElement(node) {
+        const el = itemElement(node.item);
+        return node.path.length ? el.querySelector('[data-path="' + node.path.join('.') + '"]') : el;
+    }
+
+    function select(item, path) {
+        current = {item, path: validPath(item, path)};
+        updateTabStop();
+        const el = nodeElement(current);
+        el.focus();
+        el.scrollIntoView({block: 'nearest'});
+        const scope = current.path.length && scopeAt(item, current.path);
+        document.getElementById('status').textContent = scope
+            ? `Item ${item + 1}, level ${current.path.length}, ${scope.type}: ${items[item].query.slice(scope.start, scope.end)}`
+            : `Item ${item + 1}: ${items[item].title}`;
+    }
+
+    function updateTabStop() {
+        list.querySelectorAll('[role=treeitem]').forEach((el) => { el.tabIndex = -1; });
+        nodeElement(current).tabIndex = 0;
+    }
+
+    items.forEach((data, item) => {
+        const el = document.createElement('div');
+        el.className = 'item';
+        el.setAttribute('role', 'treeitem');
+        el.setAttribute('aria-level', 1);
+        el.setAttribute('aria-label', 'Item ' + (item + 1) + ': ' + data.title);
+        const title = document.createElement('input');
+        title.value = data.title;
+        title.setAttribute('aria-label', 'Title');
+        title.oninput = () => { data.title = title.value; };
+        const query = document.createElement('textarea');
+        query.value = data.query;
+        query.setAttribute('aria-label', 'Query');
+        query.oninput = () => {
+            data.query = query.value;
+            renderVisual(item);
+            current.path = current.item === item ? [] : current.path;
+            updateTabStop();
+        };
+        const visual = document.createElement('div');
+        visual.className = 'visual';
+        el.append(title, query, visual);
+        list.append(el);
+        renderVisual(item);
+    });
+    updateTabStop();
+
+    // --- Scope edit
+    function startEdit() {
+        const {item, path} = {item: current.item, path: [...current.path]};
+        const scope = scopeAt(item, path);
+        const text = items[item].query;
+        const input = document.createElement('input');
+        let done = false;
+        input.className = 'edit';
+        input.setAttribute('aria-label', 'Edit scope');
+        input.value = text.slice(scope.start, scope.end);
+        input.size = input.value.length + 10;
+
+        function finish(refocus) {
+            if (done) return;
+            done = true;
+            renderVisual(item);
+            itemElement(item).querySelector('textarea').value = items[item].query;
+            if (refocus) select(item, path);
+            else { current = {item, path: validPath(item, path)}; updateTabStop(); }
+        }
+
+        input.addEventListener('keydown', (e) => {
+            e.stopPropagation();
+            if (e.isComposing) return;
+            if (e.key === 'Escape') { e.preventDefault(); finish(true); }
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                const changed = text.slice(0, scope.start) + input.value + text.slice(scope.end);
+                if (!parseQuery(changed)) {
+                    document.getElementById('status').textContent = 'Brackets or quotes do not match: fix before pressing Enter';
+                    return;
+                }
+                items[item].query = changed;
+                finish(true);
+            }
+        });
+        input.addEventListener('blur', () => finish(false));
+        nodeElement(current).replaceWith(input);
+        input.focus();
+        document.getElementById('status').textContent = 'Editing: Enter confirms, Escape cancels';
+    }
+
+    // --- Keys
+    const scheme = () => document.querySelector('[name=scheme]:checked').value;
+
+    function moveItem(step) {
+        const next = current.item + step;
+        if (next >= 0 && next < items.length) select(next, []);
+    }
+
+    function enterQuery() {
+        if (levelAt(current.item, []).length) select(current.item, [0]);
+    }
+
+    function onItem(key) {
+        const mode = scheme();
+        if (key === 'Enter') itemElement(current.item).querySelector('textarea').focus();
+        else if (key.toLowerCase() === 't') itemElement(current.item).querySelector('input').focus();
+        else if (mode === 'vertical') {
+            if (key === 'ArrowUp') moveItem(-1);
+            if (key === 'ArrowDown') moveItem(1);
+            if (key === 'ArrowRight') enterQuery();
+        } else {
+            if (key === 'ArrowDown') enterQuery();
+            if (mode === 'tree' && key === 'ArrowLeft') moveItem(-1);
+            if (mode === 'tree' && key === 'ArrowRight') moveItem(1);
+        }
+    }
+
+    function onScope(key) {
+        const {item, path} = current;
+        const parent = path.slice(0, -1), index = path[path.length - 1];
+        if (key === 'Enter') startEdit();
+        if (key === 'ArrowUp') select(item, parent);
+        if (key === 'ArrowDown' && levelAt(item, path).length) select(item, [...path, 0]);
+        if (key === 'ArrowLeft' && index > 0) select(item, [...parent, index - 1]);
+        if (key === 'ArrowRight' && index < levelAt(item, parent).length - 1) select(item, [...parent, index + 1]);
+    }
+
+    list.addEventListener('keydown', (e) => {
+        if (e.target.matches('input, textarea')) {
+            if (e.key === 'Escape' && !e.isComposing) {
+                select([...list.children].indexOf(e.target.closest('.item')), []);
+            }
+            return;
+        }
+        if (e.ctrlKey || e.metaKey) return;
+        if (e.altKey) {
+            if (scheme() === 'alt' && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) {
+                e.preventDefault();
+                moveItem(e.key === 'ArrowUp' ? -1 : 1);
+            }
+            return;
+        }
+        if (!/^(Arrow(Up|Down|Left|Right)|Enter|t)$/i.test(e.key)) return;
+        e.preventDefault();
+        current.path.length ? onScope(e.key) : onItem(e.key);
+    });
+
+    list.addEventListener('click', (e) => {
+        if (e.target.matches('input, textarea')) return;
+        const el = e.target.closest('[role=treeitem]');
+        if (!el) return;
+        const item = [...list.children].indexOf(el.closest('.item'));
+        select(item, el.dataset.path ? el.dataset.path.split('.').map(Number) : []);
+    });
+</script>
+</body>
+</html>

@@ -53,7 +53,7 @@ Medsyntax is a syntax assistant for (medical) search engine queries with a scope
 - [x] WORKSPACE dropped new empty items on reload (stored as `Q`, skipped by the ready handler); every item is now restored (`site/workspace/index.html`; test: `workspace.spec.ts` "reloading the link keeps empty items too")
 - [x] Clear button: hide syntax warnings, and reset `stringLatestString` so re-entering the same query renders it again (`clearButtonFunc` in `site/index.html`; tests in `editor-controls.spec.ts`)
 - [ ] Verify the `savedLatestInputTime !== latestInputTime` check in `afterParseFunction` actually works (`site/index.html` TODO)
-- [ ] `site/scripts/key-commands.js` is a stub (only `console.log`s); implement keyboard commands or remove it
+- [ ] `site/scripts/key-commands.js` is a stub (only `console.log`s); implement keyboard commands (requirements: `product-development/keyboard-navigation.md`) or remove it
 - [x] Typing in the query box during a scope edit did not update the visualisation; it now renders the query and cancels the edit (`syntaxCheck` in `site/index.html`; tests: `editor-edge-cases.spec.ts` "during a scope edit")
 - [ ] EDITOR bugs with a `test.fail` test in `playwright/editor-edge-cases.spec.ts` (remove that line when fixed):
   - [ ] **Security (XSS):** HTML in a query, also from a shared link, runs as code (`innerHTML`, unescaped)
@@ -99,4 +99,4 @@ Medsyntax is a syntax assistant for (medical) search engine queries with a scope
 ### Ideas
 - [ ] Support more search engine syntaxes (PubMed, Ovid, etc.)
 - [ ] Undo/redo for scope edits
-- [ ] Accessibility: keyboard navigation for the scope editor
+- [ ] Accessibility: keyboard navigation for the WORKSPACE and the scope editor (requirements: `product-development/keyboard-navigation.md`)

@@ -23,6 +23,8 @@ See `FEATURES.md` for the feature list and the TODO list. Keep it up to date whe
   - `editor-layout.spec.ts-snapshots/`: screenshot baselines, one per browser and OS (`-darwin`). After an intended layout change, refresh them with `npx playwright test editor-layout --update-snapshots`, look at the new images, and commit them.
 - `.claude/skills/`: skills (slash commands) that run the Playwright commands below. Only `/pw-test` can be started by Claude itself; the others open windows, so only the user starts them.
 - `product-development/`: product development resources (research, roadmap, designs, feedback). Not part of the site's code. See its `README.md`.
+  - `keyboard-navigation.md`: draft requirements for keyboard navigation in the WORKSPACE. Not built yet.
+  - `prototypes/`: throwaway prototypes, opened straight from disk. Not part of the site and not tested.
   - `external documents/`: source documents from outside the project. **Read-only.** See Conventions.
     - `Zoekstrategie Medsyntax Ted.docx`: a PubMed search strategy, the query used in `playwright/editor.spec.ts`.
     - `embase string example.xlsx`: an Embase.com search strategy as 28 numbered lines (`#1`–`#28`, with result counts and syntax explanations) and as one combined string.
