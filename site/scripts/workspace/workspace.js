@@ -27,6 +27,19 @@ const picoExample = [
         + ' OR "safety culture")))'],
 ];
 
+// A search line by line; the last two lines combine the others, the last one with nested brackets.
+const multilineExample = [
+    ['Population: MeSH terms', '"Patient Handoff"[Mesh]'],
+    ['Population: free text', 'handover OR handoff OR "patient transfer"'],
+    ['Population', '#1 OR #2'],
+    ['Intervention', 'SBAR OR ISBAR OR SBAR-R OR ISBARR OR ISOBAR'],
+    ['Outcome: MeSH terms', '"Communication"[Mesh] OR "Interdisciplinary Communication"[Mesh] OR "Patient Safety"[Mesh]'],
+    ['Outcome: free text', 'teamwork OR communication OR "patient safety" OR "safety culture"'],
+    ['Outcome', '#5 OR #6'],
+    ['Full search', '#3 AND #4 AND #7'],
+    ['Full search, nested', '(#1 OR #2) AND (#4 AND (#5 OR (#6 AND #2)))'],
+];
+
 let items = [];
 let nextItemId = 0;
 let removedItem = null; // the last removed item, while Undo is available
@@ -72,6 +85,101 @@ function setQueryString(item, queryString) {
         params.set('querytitle', LZString.compressToEncodedURIComponent(title));
         item.queryString = params.toString();
     }
+}
+
+// --- References to other items (#3) in queries: ../references.js
+
+function renumberedQueryString(queryString, mapping) {
+    const params = new URLSearchParams(queryString);
+    const query = decompress(params.get('query'));
+    const renumbered = renumberText(query, mapping).text;
+    if (renumbered === query) {
+        return queryString;
+    }
+    params.set('query', LZString.compressToEncodedURIComponent(renumbered));
+    return params.toString();
+}
+
+function renumberItem(item, mapping, willReload) {
+    const itemWindow = item.frame.contentWindow;
+    if (!willReload && itemWindow && itemWindow.itemIsReady) {
+        // Also for a query without these references: an open scope edit can have them.
+        itemWindow.renumberItemReferences(mapping);
+        currentQueryString(item);
+        return;
+    }
+    const queryString = renumberedQueryString(item.queryString, mapping);
+    if (queryString === item.queryString) {
+        return;
+    }
+    item.queryString = queryString;
+    const place = item.frame.parentNode;
+    if (willReload || !item.frame.isConnected) {
+        setFrameSource(item);
+    } else {
+        // It is loading the old numbers. Out of the page and back: what the old one still sends is ignored.
+        item.frame.remove();
+        setFrameSource(item);
+        place.append(item.frame);
+    }
+}
+
+// Every change to the order or number of items goes through this: references follow their item. The numbers change
+// first, so that an iframe that loads because of the change has the new ones.
+//  - newItems: the items after the change; change() makes it
+//  - more: changes to the mapping; moved: the item whose iframe loads again; except: one that has the right numbers
+function changeItems(newItems, change, {more = {}, moved = null, except = null} = {}) {
+    items.forEach(currentQueryString);
+    const mapping = {};
+    items.forEach((item, position) => {
+        const newPosition = newItems.indexOf(item);
+        if (newPosition !== position) {
+            mapping[position + 1] = newPosition === -1 ? (position + 1) + '?' : String(newPosition + 1);
+        }
+    });
+    Object.assign(mapping, more);
+    if (Object.keys(mapping).length) {
+        newItems.filter((item) => item !== except).forEach((item) => renumberItem(item, mapping, item === moved));
+    }
+    change();
+}
+
+function withItemAt(list, position, item) {
+    return [...list.slice(0, position), item, ...list.slice(position)];
+}
+
+function resolvedItems() {
+    return resolveQueries(items.map(itemQuery));
+}
+
+// Tells each item about its references, and shows what can be copied.
+function refreshReferences() {
+    const resolved = resolvedItems();
+    items.forEach((item, position) => {
+        const {references, full, problem: ownProblem} = resolved[position];
+        const hasReferences = Object.keys(references).length > 0;
+        item.element.classList.toggle('has-references', hasReferences);
+        part(item, 'copy-full').hidden = !hasReferences;
+        part(item, 'copy-full').disabled = full === '';
+        const payload = {};
+        Object.entries(references).forEach(([key, problem]) => {
+            payload[key] = problem ? {problem} : {
+                problem: '',
+                color: itemColor(key - 1),
+                ink: inkOn(itemColor(key - 1)) === '#ffffff' ? '#ffffff' : '#1c2525',
+                title: key + '. ' + [itemTitle(items[key - 1]), resolved[key - 1].full.slice(0, 500)]
+                    .filter((text) => text).join(': '),
+            };
+        });
+        // The other problems already have a warning or a red chip.
+        const tooLong = hasReferences && ownProblem.includes('too long') ? 'The query ' + ownProblem + '.' : '';
+        const message = {references: payload, warning: tooLong};
+        const sent = JSON.stringify(message);
+        if (item.loaded && item.sentReferences !== sent) {
+            item.sentReferences = sent;
+            sendToItem(item, 'references', message);
+        }
+    });
 }
 
 // --- The link
@@ -129,6 +237,7 @@ function createItem(queryString) {
                             <button class="btn" data-part="duplicate" data-label="Duplicate">Duplicate</button>
                             <button class="btn" data-part="edit">Edit query</button>
                             <button class="btn" data-part="copy">Copy query</button>
+                            <button class="btn" data-part="copy-full" hidden>Copy full query</button>
                             <button class="btn" data-part="clear">Clear query</button>
                         </div>
                     </div>
@@ -146,12 +255,15 @@ function createItem(queryString) {
     frame.setAttribute('sandbox', 'allow-same-origin allow-scripts allow-top-navigation allow-modals');
 
     const item = {id, element, frame, queryString: queryString || '', loaded: false, focusOnLoad: null,
-        clearOnLoad: false};
+        clearOnLoad: false, repairs: 0};
     frame.addEventListener('load', () => {
         item.loaded = true;
+        item.sentReferences = null;
+        setTimeout(() => repairItem(item), repairTime);
         frame.contentWindow.addEventListener('wheel', stopCentering, {passive: true});
         sendItemState(item);
         sendToItem(item, 'setTitle', part(item, 'title').value);
+        refreshReferences();
         if (item.clearOnLoad) {
             clearItem(item);
         }
@@ -165,6 +277,16 @@ function createItem(queryString) {
     return item;
 }
 
+// During quick changes, WebKit can stop loading an item's scripts. Then it loads again, at most three times.
+const repairTime = 1500;
+
+function repairItem(item) {
+    if (items.includes(item) && item.loaded && !item.frame.contentWindow.itemIsReady && item.repairs < 3) {
+        item.repairs++;
+        setFrameSource(item);
+    }
+}
+
 function setUpTitle(item) {
     const title = part(item, 'title');
     title.value = storedTitle(item);
@@ -173,6 +295,7 @@ function setUpTitle(item) {
         setQueryString(item, item.queryString);
         sendToItem(item, 'setTitle', title.value);
         refreshItem(item);
+        refreshReferences();
         writeLink();
     });
     title.addEventListener('focus', () => {
@@ -259,6 +382,7 @@ function refreshList() {
         refreshItem(item);
         sendItemState(item);
     });
+    refreshReferences();
     writeLink();
 }
 
@@ -268,8 +392,8 @@ function itemName(item) {
 }
 
 function refreshItem(item) {
-    ['edit', 'copy', 'clear'].forEach((name) => {
-        const label = {edit: 'Edit', copy: 'Copy', clear: 'Clear'}[name];
+    ['edit', 'copy', 'copy-full', 'clear'].forEach((name) => {
+        const label = {edit: 'Edit', copy: 'Copy', 'copy-full': 'Copy full', clear: 'Clear'}[name];
         part(item, name).setAttribute('aria-label', label + ' query ' + itemName(item));
     });
     part(item, 'copy').disabled = itemQuery(item) === '';
@@ -277,7 +401,9 @@ function refreshItem(item) {
     part(item, 'title').placeholder = item.element.classList.contains('is-collapsed')
         ? itemQuery(item) || 'Empty query' : titlePlaceholder;
     part(item, 'remove').disabled = items.length === 1 && isClear(item);
-    document.getElementById('show-example').hidden = !items.every(isClear);
+    ['show-example', 'show-multiline-example'].forEach((id) => {
+        document.getElementById(id).hidden = !items.every(isClear);
+    });
 }
 
 function refreshCollapse(item) {
@@ -509,21 +635,21 @@ function clearUndo() {
 function addItem(position, queryString, message) {
     clearUndo();
     const item = createItem(queryString);
-    placeItem(item, position);
+    changeItems(withItemAt(items, position, item), () => placeItem(item, position));
     refreshList();
     focusPart(item, 'title');
     announce(message + ' ' + (position + 1));
 }
 
-// Four items, in place of the clear ones.
-function showExample() {
+// In place of the clear items.
+function showExample(example) {
     items.forEach(currentQueryString);
     if (!items.every(isClear)) {
         return;
     }
     clearUndo();
     [...items].forEach(takeItem);
-    picoExample.forEach(([title, query], position) => {
+    example.forEach(([title, query], position) => {
         placeItem(createItem(new URLSearchParams({
             querytitle: LZString.compressToEncodedURIComponent(title),
             query: LZString.compressToEncodedURIComponent(query),
@@ -531,7 +657,7 @@ function showExample() {
     });
     refreshList();
     focusPart(items[0], 'title');
-    announce('Example added: ' + picoExample.length + ' queries');
+    announce('Example added: ' + example.length + ' queries');
 }
 
 function duplicateItem(item) {
@@ -539,14 +665,22 @@ function duplicateItem(item) {
 }
 
 function removeItem(item) {
-    const queryString = currentQueryString(item);
-    const position = takeItem(item);
-    removedItem = {queryString, position, replacement: null};
+    const position = items.indexOf(item);
+    // Older missing references can't come back any more: Undo is for this removal only.
+    const olderMissing = {'*?': '?'};
+    removedItem = {queryString: renumberedQueryString(currentQueryString(item), olderMissing), position,
+        replacement: null};
     // The list is never empty: one clear item takes the place of the only item.
-    if (items.length === 0) {
+    if (items.length === 1) {
         removedItem.replacement = createItem();
-        placeItem(removedItem.replacement, 0);
     }
+    const {replacement} = removedItem;
+    changeItems(replacement ? [replacement] : items.filter((other) => other !== item), () => {
+        takeItem(item);
+        if (replacement) {
+            placeItem(replacement, 0);
+        }
+    }, {more: olderMissing});
     refreshList();
     document.getElementById('undo-toast-text').textContent = 'Query ' + (position + 1) + ' removed';
     document.getElementById('undo-toast').hidden = false;
@@ -562,14 +696,18 @@ function removeItem(item) {
 function undoRemove() {
     const {queryString, position, replacement} = removedItem;
     clearUndo();
+    const item = createItem(queryString);
     if (replacement) {
         currentQueryString(replacement);
-        if (isClear(replacement)) {
+    }
+    const replaced = replacement && isClear(replacement);
+    const others = replaced ? items.filter((other) => other !== replacement) : items;
+    changeItems(withItemAt(others, position, item), () => {
+        if (replaced) {
             takeItem(replacement);
         }
-    }
-    const item = createItem(queryString);
-    placeItem(item, position);
+        placeItem(item, position);
+    }, {more: {[(position + 1) + '?']: String(position + 1)}, except: item});
     refreshList();
     focusPart(item, 'collapse');
     announce('Query ' + (position + 1) + ' restored');
@@ -586,16 +724,19 @@ function editQuery(item) {
     focusItem(item, 'editQuery');
 }
 
+const copyLabels = {copy: 'Copy query', 'copy-full': 'Copy full query', more: 'More ▾'};
+
 // The text of the button that the user sees becomes the result for a moment.
-function showCopyResult(item, text) {
-    const button = part(item, 'copy').offsetParent ? part(item, 'copy') : part(item, 'more');
+function showCopyResult(item, name, text) {
+    const button = part(item, name).offsetParent ? part(item, name) : part(item, 'more');
     clearTimeout(item.copyTimer);
-    part(item, 'copy').textContent = 'Copy query';
-    part(item, 'more').textContent = 'More ▾';
+    Object.entries(copyLabels).forEach(([other, label]) => {
+        part(item, other).textContent = label;
+    });
     button.textContent = text;
     announce('Query ' + itemName(item) + ': ' + text.toLowerCase());
     item.copyTimer = setTimeout(() => {
-        button.textContent = button.dataset.part === 'copy' ? 'Copy query' : 'More ▾';
+        button.textContent = copyLabels[button.dataset.part];
     }, 2000);
 }
 
@@ -604,19 +745,36 @@ async function copyQuery(item) {
     try {
         await navigator.clipboard.writeText(queryBox ? queryBox.value
             : decompress(new URLSearchParams(item.queryString).get('query')));
-        showCopyResult(item, 'Copied');
+        showCopyResult(item, 'copy', 'Copied');
     } catch (error) {
-        showCopyResult(item, 'Not copied');
+        showCopyResult(item, 'copy', 'Not copied');
+    }
+}
+
+async function copyFullQuery(item) {
+    items.forEach(currentQueryString);
+    const {full} = resolvedItems()[items.indexOf(item)];
+    try {
+        if (!full) {
+            throw new Error('a reference has a problem');
+        }
+        await navigator.clipboard.writeText(full);
+        showCopyResult(item, 'copy-full', 'Copied');
+    } catch (error) {
+        showCopyResult(item, 'copy-full', 'Not copied');
     }
 }
 
 function moveItem(item, direction) {
     clearUndo();
-    currentQueryString(item);
-    const position = takeItem(item) + (direction === 'up' ? -1 : 1);
-    // The iframe loads again in its new place.
-    setFrameSource(item);
-    placeItem(item, position);
+    const position = items.indexOf(item) + (direction === 'up' ? -1 : 1);
+    const newItems = withItemAt(items.filter((other) => other !== item), position, item);
+    changeItems(newItems, () => {
+        takeItem(item);
+        // The iframe loads again in its new place.
+        setFrameSource(item);
+        placeItem(item, position);
+    }, {moved: item});
     refreshList();
     const opposite = direction === 'up' ? 'down' : 'up';
     focusPart(item, part(item, direction).disabled ? opposite : direction);
@@ -643,6 +801,10 @@ document.getElementById('myList').addEventListener('click', (event) => {
             focusPart(item, 'copy');
             copyQuery(item);
             break;
+        case 'copy-full':
+            focusPart(item, 'copy-full');
+            copyFullQuery(item);
+            break;
         case 'add':
             addItem(items.indexOf(item) + 1, '', 'Added query');
             break;
@@ -667,7 +829,8 @@ document.getElementById('myList').addEventListener('click', (event) => {
     }
 });
 document.getElementById('add-first-item').addEventListener('click', () => addItem(0, '', 'Added query'));
-document.getElementById('show-example').addEventListener('click', showExample);
+document.getElementById('show-example').addEventListener('click', () => showExample(picoExample));
+document.getElementById('show-multiline-example').addEventListener('click', () => showExample(multilineExample));
 document.getElementById('undo-button').addEventListener('click', undoRemove);
 
 // --- Hiding a query box after it lost the focus. Hiding it moves what is below, so this waits until the
@@ -718,11 +881,13 @@ window.addEventListener('message', (event) => {
             editMode = event.data.payload;
             break;
         case 'updateUrl': {
-            // payload: <id>%index%<EDITOR query string without ws>
-            const [id, queryString] = event.data.payload.split('%index%');
+            // payload: <id>%index%<EDITOR query string without ws>. The numbers in it can be old by now, so it
+            // is only a sign: what the item holds is always the newest.
+            const [id] = event.data.payload.split('%index%');
             if (id === String(item.id)) {
-                setQueryString(item, queryString);
+                currentQueryString(item);
                 refreshItem(item);
+                refreshReferences();
                 writeLink();
             }
             break;
@@ -767,10 +932,16 @@ window.addEventListener('message', (event) => {
 
 // --- Start: the items in the link without the clear ones, but never an empty list
 
-queryStringsFromLink()
-    .map((queryString) => ({queryString}))
-    .filter((item) => !isClear(item))
-    .forEach((item, position) => placeItem(createItem(item.queryString), position));
+const linkedItems = queryStringsFromLink().map((queryString) => ({queryString}));
+const keptItems = linkedItems.filter((item) => !isClear(item));
+const linkMapping = {};
+linkedItems.forEach((item, position) => {
+    const newPosition = keptItems.indexOf(item);
+    linkMapping[position + 1] = newPosition === -1 ? (position + 1) + '?' : String(newPosition + 1);
+});
+keptItems.forEach((item, position) => {
+    placeItem(createItem(renumberedQueryString(item.queryString, linkMapping)), position);
+});
 if (items.length === 0) {
     placeItem(createItem(), 0);
 }

@@ -2,7 +2,7 @@
 
 Medsyntax is a syntax assistant for (medical) search-engine queries, with a scope-driven editor. It is a plain static site (HTML + JS + jQuery), with no build step and no framework. It is deployed to GitHub Pages by `.github/workflows/static.yml`, which publishes only the `site/` folder (the Pages source must be GitHub Actions).
 
-See `FEATURES.md` for the feature list and the TODO list. Keep it up to date when you add or finish features.
+See `product-development/FEATURES.md` for the feature list and the TODO list. Keep it up to date when you add or finish features.
 
 ## Layout
 
@@ -16,19 +16,22 @@ See `FEATURES.md` for the feature list and the TODO list. Keep it up to date whe
     - `menu.js` (dropdown menu), `color-mode.js` (colour/greyscale), `help-image.js` (help image modal).
     - `editor.js`: most of the logic: parsing and rendering (`syntaxCheck`), warnings, the scope editor (`setEditMode`, dynamic input), URL sharing (`updateUrl`, `getParameterByName`) and copy buttons.
     - `item.js`, `item-keyboard.js`: only for an EDITOR embedded in the WORKSPACE (`ws`): hiding the query box, and keyboard navigation. Without `ws` they must do nothing.
+  - `references.js`: references between items (`#1`): finding, renumbering, full queries. No DOM; loaded by both pages.
+    - `editor/item-references.js`: their chips and warnings in an item (`ws`). The WORKSPACE calls its `renumberItemReferences` directly, only once `itemIsReady` is true. Every change to the order or number of items goes through `changeItems` in `workspace.js`.
   - `workspace/color-mode.js`: the WORKSPACE's colour switch (system, light, dark, greyscale), kept in `localStorage`. Sets `data-theme` on `<html>`; loaded in the head. Not the EDITOR's `editor/color-mode.js`.
   - `workspace/workspace.js`: the WORKSPACE's list: items, their buttons, Undo, the link, messages.
 - `server.js`: a static dev server with no dependencies. It serves `site/` on `PORT` (default 8080).
 - `playwright/`: end-to-end tests. `playwright.config.js` starts `server.js`, sets `baseURL` to `http://127.0.0.1:8080`, and starts every browser at a **1920x1080** viewport (set after each device preset, which has its own size). Keep that default. Only resize inside a test when the test is about another screen size.
   - `editor.spec.ts`: EDITOR behaviour with a PubMed query and an Embase query. `editor-layout.spec.ts`: EDITOR layout (structure checks plus screenshot comparisons). `editor-warnings.spec.ts`: syntax warnings (bracket warnings so far). `editor-scope.spec.ts`: the scope-driven editor (hover to pick a scope, click to edit, Enter to confirm, click outside to cancel, alerts on invalid edits).
-  - `editor-parser.spec.ts`: how queries are rendered and cleaned up. `editor-quotes.spec.ts`: conversion of curly and look-alike quotes. `editor-controls.spec.ts`: title, demo/clear/copy buttons, menu, colour mode, help image. `editor-sharing.spec.ts`: restoring query and title from a link. `editor-edge-cases.spec.ts`: unusual input, including the known bugs listed in `FEATURES.md` (as `test.fail`). `editor-embedded.spec.ts`: the EDITOR inside the WORKSPACE (`?ws=<n>`, messages to the parent).
-  - `workspace.spec.ts`: the WORKSPACE (items, Add/Remove, query sync to its link, edit mode, reload, item sizing). `workspace-ux.spec.ts`: the scenarios of `workspace-ux.md`. `workspace-keyboard.spec.ts`: keyboard navigation. `workspace-layout.spec.ts`: screenshots, light, dark and greyscale (baselines in its `-snapshots` folder, refreshed like the EDITOR's).
+  - `editor-parser.spec.ts`: how queries are rendered and cleaned up. `editor-quotes.spec.ts`: conversion of curly and look-alike quotes. `editor-controls.spec.ts`: title, demo/clear/copy buttons, menu, colour mode, help image. `editor-sharing.spec.ts`: restoring query and title from a link. `editor-edge-cases.spec.ts`: unusual input, including the known bugs listed in `product-development/FEATURES.md` (as `test.fail`). `editor-embedded.spec.ts`: the EDITOR inside the WORKSPACE (`?ws=<n>`, messages to the parent).
+  - `workspace.spec.ts`: the WORKSPACE (items, Add/Remove, query sync to its link, edit mode, reload, item sizing). `workspace-ux.spec.ts`: the scenarios of `workspace-ux.md`. `workspace-keyboard.spec.ts`: keyboard navigation. `workspace-references.spec.ts`: references between items (moving, Undo, open edits, loading, circles). `workspace-layout.spec.ts`: screenshots, light, dark and greyscale (baselines in its `-snapshots` folder, refreshed like the EDITOR's).
   - `jquery-fallback.spec.ts`: the order of jQuery sources in the EDITOR and the WORKSPACE, with stubbed CDNs that are unreachable or serve a changed file (SRI).
   - `helpers.ts`: shared test helpers. EDITOR: `enterQuery`, `queryBox`, `target`, `captureAlerts`, `expectWarnings`. WORKSPACE: `openWorkspace`, `waitForItems`, `workspaceItem`, `itemFrame`, `titleField`, `itemBox`, `openItemBox`, `enterItemQuery`, `enterItemTitle`, `itemQuery`, `linkQueries`, `linkTitles` (items by position, from 0). Use them in new tests. Tests that document a known bug use `test.fail(true, 'Known bug: …')`; remove that line when the bug is fixed.
   - `fixtures/`: test inputs copied from `product-development/external documents/` (tests never read the originals). See its `README.md` for each file's source.
   - `editor-layout.spec.ts-snapshots/`: screenshot baselines, one per browser and OS (`-darwin`). After an intended layout change, refresh them with `npx playwright test editor-layout --update-snapshots`, look at the new images, and commit them.
 - `.claude/skills/`: skills (slash commands) that run the Playwright commands below. Only `/.pw-test` can be started by Claude itself; the others open windows, so only the user starts them.
 - `product-development/`: product development resources (research, roadmap, designs, feedback). Not part of the site's code. See its `README.md`.
+  - `FEATURES.md`: the feature list, the TODO list and known risks.
   - `keyboard-navigation.md`: requirements for keyboard navigation in the WORKSPACE. Built.
   - `workspace-ux.md`: UX requirements for the WORKSPACE (visual style with dark mode, managing items, how they meet keyboard navigation). Built.
   - `prototypes/`: throwaway prototypes, opened straight from disk. Not part of the site and not tested.
@@ -57,11 +60,11 @@ If the user just says "index.html", ask which one they mean, unless the context 
 **How they work together:**
 - The workspace builds each list item as `<iframe id="page_is_fresh_<id>" src="../index.html?ws=<id>&...">` (`createItem`), sized with iframe-resizer. An item's id stays the same while the page is open; its position in the list gives its number, its colour and its place in the link. Actions must not reload the iframes of other items.
 - The app detects workspace mode from the `ws` URL parameter. In that mode it adds the `ws-embedded` class to `<html>` (in the head, before anything shows) and `ws-iframe-body` to `<body>`, and sends messages to the parent with `window.parent.postMessage`:
-  - `updateUrl`: payload `"<id>%index%<app query string without ws>"`. The workspace stores it in its own URL as `<position padded to 9 digits>iframequery`, compressed with LZString.
+  - `updateUrl`: payload `"<id>%index%<app query string without ws>"`. The workspace then reads the item's state itself (`itemQueryString`), because a payload can hold old reference numbers, and stores it in its own URL as `<position padded to 9 digits>iframequery`, compressed with LZString.
   - `setEditMode`: payload `true`/`false`. The workspace stores it in its global `editMode`.
   - `moveFocus` (-1/1): Alt+Up/Alt+Down. `centerItem`: the keyboard selected the item's top node. `selectNumber` (`{digit, inTree}`): a digit outside a text field; the workspace handles digits on its own page itself. `focusTitle`: T on an item. The title field is in the WORKSPACE's card header, which decides about the title in an item's query string; the EDITOR's own field is hidden in items. `queryBoxLeft` and `pointerState` (true/false): the workspace answers with `hideQueryBox` once the pointer is up, so a click never misses its target.
   - `itemResized`: the workspace fits the iframe to the item, in case iframe-resizer missed a change.
-  - The workspace sends items `itemState` (`{color, number, theme}`), `setTitle`, `focusItem`, `hideQueryBox`, `editQuery` and `clearQuery` (buttons in the card header; the EDITOR's own title field and clear, demo and copy buttons are hidden in items).
+  - The workspace sends items `itemState` (`{color, number, theme}`), `references` (`{references: {key: {color, ink, title, problem}}, warning}`), `setTitle`, `focusItem`, `hideQueryBox`, `editQuery` and `clearQuery` (buttons in the card header; the EDITOR's own title field and clear, demo and copy buttons are hidden in items).
 - The workspace only accepts messages from its own origin, so both pages must be served from the same server.
 - When the workspace loads, it rebuilds the list from its `…iframequery` parameters. If there are none, it starts with one clear item. Items without a title and query are dropped on load, but one always remains.
 
