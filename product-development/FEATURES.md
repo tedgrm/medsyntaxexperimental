@@ -47,6 +47,7 @@ Medsyntax is a syntax assistant for (medical) search engine queries with a scope
 - The keyboard marker has dashes and a glow in the item's colour; the glow pulses when the selection moves
 - The query that the keyboard selects is centered in the viewport
 - Typing a query's number selects it, from anywhere except a text field (can be limited to navigation mode)
+- Combine items: `#1 AND (#3 OR #7)` refers to other items, as coloured chips. References follow their item when items are moved, added or removed; Copy full query copies the combined query, and Show a multiline search example shows how
 - Items without a title and query are dropped on reload
 
 ## Embedding
@@ -86,6 +87,19 @@ Medsyntax is a syntax assistant for (medical) search engine queries with a scope
   - [ ] The Back button changes the link but not the query
   - [ ] A link with malformed percent-encoding stops the start-up code
   - [ ] Emptying the query box by hand does not bring back the demo button
+
+### Known risks: # references
+Not covered by the WORKSPACE's references between items (REF in `product-development/workspace-ux.md`):
+- [ ] `#` numbers that aren't seen as references (`#1[tiab]`, ranges as `#1-#3`) are not rewritten, so they silently point to the wrong line after a move
+- [ ] In existing links, and in a strategy pasted from elsewhere, `#1` means item 1, also if it meant another line. A strategy pasted below other items refers to the wrong ones
+- [ ] The browser's own undo (Cmd/Ctrl+Z) in a query box or scope edit may not work well after a rewrite, and can bring old numbers back (not tested)
+- [ ] Moving an item closes the scope edit open in it, and loses what wasn't confirmed (already so before references)
+- [ ] Once Undo is no longer possible, a missing reference (`#2?`) can only be retyped
+- [ ] Copy full query doesn't check the combined query against a database: length limits and field syntax can still make it invalid
+- [ ] A chip's tooltip can't be reached with the keyboard, and only its number and colour link it to its card. Not tested with a real screen reader
+- [ ] The EDITOR's known bugs count here too: brackets in quotes and apostrophes (`"smile :)"`, `Crohn's`) make a referenced query "unbalanced", and text between two apostrophes is seen as quoted, so a `#1` in it is no reference
+- [ ] After over 100 changes in 10 seconds in Safari the link lags behind; a reload in that time gives an older, but consistent, list
+- [ ] WebKit can stop loading an item's scripts during quick changes (already so before references). The item then loads again, at most three times; what was typed in it in that time can be lost
 
 ### Testing
 - [x] Add EDITOR edge-case tests: `playwright/editor-edge-cases.spec.ts`

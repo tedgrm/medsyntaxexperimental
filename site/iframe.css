@@ -166,6 +166,30 @@ body.ws-iframe-body {
     display: none;
 }
 
+/* A reference to another item. Here only its room: it is drawn over the visualisation, in its item's colour
+   (scripts/editor/item-references.js). A problem also has a dashed line. */
+.ws-embedded .item-ref {
+    padding: 0 5px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+#item-refs .drawn-ref {
+    position: absolute;
+    box-sizing: border-box;
+    border-radius: 4px;
+    font: 700 15px var(--font-sans);
+    text-align: center;
+    pointer-events: none;
+}
+
+#item-refs .drawn-ref.has-problem {
+    outline: 1px dashed #8b1d1d;
+    outline-offset: -1px;
+    background: #fbe4e4;
+    color: #8b1d1d;
+}
+
 /* --- Keyboard navigation (scripts/editor/item-keyboard.js) --- */
 
 /* The tree has the focus; the marker shows where it is. */

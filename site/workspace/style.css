@@ -65,6 +65,14 @@ main.wrap { padding-top: 18px; padding-bottom: 90px; }
     .item:not(.menu-open) .more-menu { display: none; }
     .more-menu .btn { text-align: left; }
 }
+/* With Copy full query, there is enough room from 1150px. */
+@media (min-width: 1000px) and (max-width: 1149.98px) {
+    .has-references .more { display: block; position: relative; }
+    .has-references [data-part="more"] { display: inline-block; }
+    .has-references .more-menu { display: flex; position: absolute; z-index: 1; top: calc(100% + 4px); right: 0; width: max-content; flex-direction: column; padding: 8px; background: var(--card); border: 1px solid var(--field-line); border-radius: 10px; box-shadow: 0 6px 18px rgb(0 0 0 / .25); }
+    .has-references.item:not(.menu-open) .more-menu { display: none; }
+    .has-references .more-menu .btn { text-align: left; }
+}
 @media (max-width: 420px) {
     .brand { gap: 6px 10px; }
     .brand-mark { font-size: 1.15rem; padding-right: 10px; }

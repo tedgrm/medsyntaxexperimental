@@ -69,7 +69,7 @@ Dark mode:
 | Danger: text, background, border | `#f4b4b4`, `#3b1d1d`, `#703636` | text 8.72:1 |
 | Item badge | the same colours and text as in light mode | text: at least 4.57:1 |
 | Item edge, query box and visualisation border | the item colour, 55% mixed with white | at least 5.00:1 on a card |
-| Marker of the current item or scope (every mode) | black (`#000`) dashes on a white (`#fff`) line, 3px. Around an item the dashes are slightly longer (9px, gaps 4px) | black or white has at least 4.5:1 on any colour |
+| Marker of the current item or scope (every mode) | dashes in the item's colour on a white (`#fff`) line, 3px, with a glow. Around an item the dashes are slightly longer (9px, gaps 4px) | dashes: at least 3:1 on the white; the brightest colours are darkened for that |
 
 ## Requirements
 
@@ -110,10 +110,23 @@ Dark mode:
 | ITEM-12 | Leaving the box never makes the user's click miss its target, although hiding the box moves what is below. | Must |
 | ITEM-13 | A Clear query button, directly before Remove in the card's header, clears the query and keeps the title. It also works on a collapsed item, and drops an unfinished scope edit in that item. It has no Undo, and leaves the Undo of a removal available. The item itself has no clear button. | Must |
 | ITEM-14 | The title can be edited in the card's header, also while the item is collapsed or still loading. A title is never lost by an action right after typing. | Must |
-| ITEM-15 | "Show example", next to "Add query at the top", puts four items with the labels, queries and order of the Medsyntax PICO demo in place of the clear ones (C has no query; O is nested, with brackets in brackets in brackets). It shows only while every item is clear, so it never replaces work. Like add, it ends a pending Undo. Items have no demo button. | Should |
+| ITEM-15 | "Show a multiline search example", next to "Show example", puts nine items, the last one with nested references, in place of the clear ones, under the same conditions. "Show example", next to "Add query at the top", puts four items with the labels, queries and order of the Medsyntax PICO demo in place of the clear ones (C has no query; O is nested, with brackets in brackets in brackets). It shows only while every item is clear, so it never replaces work. Like add, it ends a pending Undo. Items have no demo button. | Should |
 | ITEM-16 | The button that adds a query after an item is below its card, also while the item is collapsed. | Must |
 | ITEM-17 | "Copy query" in the card's header copies the query, also while the item is collapsed or loading. The button (More, if it is in the menu) says "Copied" or "Not copied" for two seconds. It is disabled without a query. Items have no Edit or Copy buttons of their own. | Must |
 | ITEM-18 | The More menu closes on More, Escape (the focus goes to More), a choice, a click elsewhere or in an item, when the focus leaves it, and when another one opens. | Must |
+
+### References between items
+
+| ID | Requirement | Priority |
+|---|---|---|
+| REF-1 | `#` and a number, outside quotes and as a word of its own (next to a space, a bracket, or the start or end), refers to the item with that number. So not in `"#1"`, `a#1`, `#1[tiab]` or `#1-#3`. Only in the WORKSPACE. | Must |
+| REF-2 | A reference is a chip in the visualisation, in the colour of its item, with that item's title and full query (at most 500 characters) as tooltip. Scopes, scope edits and keys work as without chips. | Must |
+| REF-3 | "Copy query" copies the text as typed. "Copy full query", only on items with references, copies the query with each reference replaced by that item's full query in brackets (not doubled). With it, all buttons are next to the title from 1150px. | Must |
+| REF-4 | After move, add, duplicate, remove and Undo, references follow their item: in the queries, the link, a query box that is being typed in (the cursor stays) and an open scope edit (it stays open). | Must |
+| REF-5 | A reference to a removed item becomes `#3?`. Undo makes it `#3` again. At the next removal, older ones become `#?`. | Must |
+| REF-6 | When clear items are dropped on reload (ITEM-10), references follow; those to a dropped item become missing. | Must |
+| REF-7 | A problem shows as a red dashed chip and a warning, and disables Copy full query: no such item, a removed one, no query, unbalanced brackets or quotes, a circle, or over 1 million characters. It counts for the items that refer to that item too. It doesn't turn scope editing off. | Must |
+| REF-8 | The link format doesn't change. | Must |
 
 ### Keyboard navigation
 
@@ -197,6 +210,7 @@ To become Playwright tests. Unless stated otherwise: three items with the titles
 28. **More menu:** every action works from it and closes it.
 29. **Closing the menu:** each way of ITEM-18.
 30. **Colour switch:** choose Dark, Greyscale and Light: the page and all items change at once, and the link stays the same. After a reload the last choice is still there.
+31. **References:** with A `aa`, B `bb`, C `#1 OR #2` and D `#3 AND #1`: Copy full query of D gives `((aa) OR (bb)) AND (aa)`. Move B up: C is `#2 OR #1`, D is `#3 AND #2`, and the full queries are the same. Remove B: C is `#1 OR #2?`, with a warning in C and D; Undo restores both. All scenarios are in `playwright/workspace-references.spec.ts`.
 
 ## As built
 
@@ -207,6 +221,8 @@ To become Playwright tests. Unless stated otherwise: three items with the titles
 - Clear query asks the item to clear itself (message `clearQuery`). The prototype doesn't have this button in the header.
 - The title field is in the WORKSPACE, which decides about titles: it puts its value in the item's query string, and sends it to the item (message `setTitle`) for the tree label. T sends `focusTitle`.
 - The prototype still has the summary, the title, Edit, Copy and demo buttons in the item, and Add in the card. It has no More menu.
+- The numbers change before the list does, at once in each item (`renumberItemReferences`, a direct call). What an item holds is always the newest; its `updateUrl` message is only a sign. An item that hasn't read its query yet (`itemIsReady`) loads again with the new numbers.
+- An item that loads without its scripts (WebKit, during quick changes) loads again, at most three times.
 - A moved item loses its own unfinished scope edit, because its iframe loads again.
 
 ## Technical notes

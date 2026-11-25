@@ -4,7 +4,7 @@ import {captureAlerts, enterQuery, expectWarnings, queryBox, target} from './hel
 
 // EDITOR (site/index.html): unusual input. Tests marked 'Known bug' describe
 // the wanted behaviour and are expected to fail; remove their test.fail line
-// when the bug is fixed. The bugs are listed in FEATURES.md.
+// when the bug is fixed. The bugs are listed in product-development/FEATURES.md.
 
 const dynamicInput = (page: Page) => page.locator('#dynamic-input');
 const knownBug = (bug?: string) => test.fail(bug !== undefined, `Known bug: ${bug}`);

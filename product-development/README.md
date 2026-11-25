@@ -5,13 +5,14 @@ Material for planning and shaping Medsyntax (EDITOR) and MedsyntaxQA (WORKSPACE)
 Suggested contents:
 
 - **Research:** user interviews, librarian or searcher workflows, notes on search-engine syntax (PubMed, Embase, Ovid, ...).
-- **Roadmap:** goals, priorities and release plans. The feature list and TODOs stay in `../FEATURES.md`.
+- **Roadmap:** goals, priorities and release plans. The feature list and TODOs are in `FEATURES.md`.
 - **Designs:** sketches, mock-ups and screenshots of proposed UI changes.
 - **Feedback:** user feedback, issue summaries and conference notes.
 - **Example queries:** real-world queries useful for demos and test cases.
 
 Documents:
 
+- [FEATURES.md](FEATURES.md): the feature list, the TODO list and known risks.
 - [keyboard-navigation.md](keyboard-navigation.md): requirements for keyboard navigation in the WORKSPACE (built).
 - [prototypes/keyboard-navigation.html](prototypes/keyboard-navigation.html): throwaway prototype for it. Open it in a browser; it needs no server.
 - [workspace-ux.md](workspace-ux.md): UX requirements for the WORKSPACE: visual style, managing items, and keyboard navigation on top of `keyboard-navigation.md` (built).
