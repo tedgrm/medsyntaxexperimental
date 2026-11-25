@@ -14,7 +14,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "jq -c 'if .duration_ms == null then empty else (.duration_ms as $d | \"Command took \" + (if $d < 1000 then \"\\($d) ms\" elif $d < 60000 then \"\\($d / 100 | round / 10) s\" else \"\\($d / 60000 | floor) min \\($d % 60000 / 1000 | floor) s\" end)) as $t | {systemMessage: $t, hookSpecificOutput: {hookEventName: .hook_event_name, additionalContext: ($t + \". The user asked to see this: state the time in your next message to them.\")}} end' 2>/dev/null || true",
+            "command": "jq -c 'if .duration_ms == null then empty else (.duration_ms as $d | \"Command took \" + (if $d < 1000 then \"\\($d) ms\" elif $d < 60000 then \"\\($d / 100 | round / 10) s\" else \"\\($d / 60000 | floor) min \\($d % 60000 / 1000 | floor) s\" end)) as $t | {systemMessage: $t, hookSpecificOutput: {hookEventName: .hook_event_name, additionalContext: (\"Start your next message to the user with exactly this line, on its own, then the regular output: \" + $t + \"\\nFor several commands, one line each, in order. Do not mention the times anywhere else.\")}} end' 2>/dev/null || true",
             "timeout": 10
           }
         ]
@@ -26,7 +26,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "jq -c 'if .duration_ms == null then empty else (.duration_ms as $d | \"Command took \" + (if $d < 1000 then \"\\($d) ms\" elif $d < 60000 then \"\\($d / 100 | round / 10) s\" else \"\\($d / 60000 | floor) min \\($d % 60000 / 1000 | floor) s\" end)) as $t | {systemMessage: $t, hookSpecificOutput: {hookEventName: .hook_event_name, additionalContext: ($t + \". The user asked to see this: state the time in your next message to them.\")}} end' 2>/dev/null || true",
+            "command": "jq -c 'if .duration_ms == null then empty else (.duration_ms as $d | \"Command took \" + (if $d < 1000 then \"\\($d) ms\" elif $d < 60000 then \"\\($d / 100 | round / 10) s\" else \"\\($d / 60000 | floor) min \\($d % 60000 / 1000 | floor) s\" end)) as $t | {systemMessage: $t, hookSpecificOutput: {hookEventName: .hook_event_name, additionalContext: (\"Start your next message to the user with exactly this line, on its own, then the regular output: \" + $t + \"\\nFor several commands, one line each, in order. Do not mention the times anywhere else.\")}} end' 2>/dev/null || true",
             "timeout": 10
           }
         ]
