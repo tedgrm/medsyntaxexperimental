@@ -110,7 +110,7 @@ Dark mode:
 | ITEM-12 | Leaving the box never makes the user's click miss its target, although hiding the box moves what is below. | Must |
 | ITEM-13 | A Clear query button, directly before Remove in the card's header, clears the query and keeps the title. It also works on a collapsed item, and drops an unfinished scope edit in that item. It has no Undo, and leaves the Undo of a removal available. The item itself has no clear button. | Must |
 | ITEM-14 | The title can be edited in the card's header, also while the item is collapsed or still loading. A title is never lost by an action right after typing. | Must |
-| ITEM-15 | "Show example", next to "Add query at the top", puts four items with the labels, queries and order of the Medsyntax PICO demo in place of the clear ones (C has no query). It shows only while every item is clear, so it never replaces work. Like add, it ends a pending Undo. Items have no demo button. | Should |
+| ITEM-15 | "Show example", next to "Add query at the top", puts four items with the labels, queries and order of the Medsyntax PICO demo in place of the clear ones (C has no query; O is nested, with brackets in brackets in brackets). It shows only while every item is clear, so it never replaces work. Like add, it ends a pending Undo. Items have no demo button. | Should |
 | ITEM-16 | The button that adds a query after an item is below its card, also while the item is collapsed. | Must |
 | ITEM-17 | "Copy query" in the card's header copies the query, also while the item is collapsed or loading. The button (More, if it is in the menu) says "Copied" or "Not copied" for two seconds. It is disabled without a query. Items have no Edit or Copy buttons of their own. | Must |
 | ITEM-18 | The More menu closes on More, Escape (the focus goes to More), a choice, a click elsewhere or in an item, when the focus leaves it, and when another one opens. | Must |
@@ -122,16 +122,17 @@ All requirements and decisions in [keyboard-navigation.md](keyboard-navigation.m
 | Key | Does |
 |---|---|
 | Alt+Up / Alt+Down | previous / next item, from an item or a scope |
-| Left / Right | previous / next scope at this level |
-| Down / Up | into the query or scope / out of it, up to the item |
-| Enter | on an item: go to the query box; on a scope: edit it, then confirm |
-| T | on an item: go to the title |
-| Escape | cancel a scope edit; from the title or query box: back to the item |
+| Left / Right | previous / next scope at this level; on a whole query: its last / first scope |
+| Down / Up | into the query or scope / out of it, up to the whole query |
+| Enter | edit the whole query or scope, then confirm; on an item without a valid query: go to the query box |
+| T | on a whole query, or an item without a valid one: go to the title |
+| 0–9 | the item with that number, from anywhere except a text field |
+| Escape | cancel a scope edit (Tab too); from the title or query box: back to the whole query or item |
 
 | ID | Requirement | Priority |
 |---|---|---|
 | KEY-1 | The Tab order follows the page: for each card its title, its buttons, the item, then Add. The card's buttons work with Enter and Space. | Must |
-| KEY-2 | The navigation keys above do nothing on the card's buttons and Undo, which are outside the items' trees, also in the More menu, where only Escape closes it. There are no shortcuts for the card's actions in the first version. | Must |
+| KEY-2 | The navigation keys above, except the digits, do nothing on the card's buttons and Undo, which are outside the items' trees, also in the More menu, where only Escape, or a digit that selects an item, closes it. There are no shortcuts for the card's actions in the first version. | Must |
 | KEY-3 | After add and duplicate, Escape in the new title goes to that item. Escape in the title of a collapsed item expands it. | Must |
 | KEY-4 | Alt+Up / Alt+Down follow the order on the page, also after add, remove, undo and move. | Must |
 | KEY-5 | After remove, the focus goes where A11Y-4 says (a button or the clear item's title), so no item is in navigation mode. Tab from there reaches the tree of the item now in that place, with a valid current node. | Must |
@@ -139,7 +140,7 @@ All requirements and decisions in [keyboard-navigation.md](keyboard-navigation.m
 | KEY-7 | Alt+Up / Alt+Down to a collapsed item expands it and selects the item itself. It stays expanded when the user moves on. Tab doesn't expand: it reaches the Expand button. | Must |
 | KEY-8 | The item's tree is labelled with its title, or its number on the badge if it has none, and the label follows changes of either. | Must |
 | KEY-9 | After a reload, the current node of every item's tree is the item itself. | Should |
-| KEY-10 | Enter on an item shows its query box first if it is hidden. Escape in the box returns to the item and hides the box (unless ITEM-11 keeps it). Edit query can be reached with Tab, if needed through More. | Must |
+| KEY-10 | Enter on an item whose query is empty or has an error goes to its query box; otherwise it edits the whole query as a scope, and the box stays hidden. Escape in the box returns to the item and hides the box (unless ITEM-11 keeps it). Edit query can be reached with Tab, if needed through More. | Must |
 
 ### Accessibility
 
@@ -182,7 +183,7 @@ To become Playwright tests. Unless stated otherwise: three items with the titles
 14. **Keys after move:** move A down and press Alt+Down on B (item 1). A (item 2) is selected.
 15. **Keys and collapse:** collapse B and press Alt+Down on A. B expands and is selected. Alt+Down again selects C, and B stays expanded.
 16. **Keys after add:** add after A, then Escape. Item 2 is selected; Alt+Down selects B.
-17. **Keys on buttons:** with the focus on a card's Duplicate button, the arrow keys, Alt+Down, T and Escape do nothing.
+17. **Keys on buttons:** with the focus on a card's Duplicate button, the arrow keys, Alt+Down, T and Escape do nothing. A digit selects the item with that number.
 18. **Query box:** type `(heart OR lung)` in an empty item: the visualisation follows while typing. Click its Duplicate button. The item is duplicated, and its box is hidden but its visualisation shows. Edit query shows the box, focused, above the visualisation. Remove the last bracket and press Tab: the box stays, with a warning.
 19. **EDITOR opened directly:** it looks and works as before (the existing EDITOR tests pass, with the same screenshot baselines).
 20. **Dark mode:** with a dark system setting, the WORKSPACE and its items are dark and the visualisation is white. An EDITOR opened directly looks the same as with a light setting.

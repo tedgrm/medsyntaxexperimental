@@ -1,13 +1,15 @@
 // Keyboard navigation in an item (an EDITOR embedded in the WORKSPACE, ?ws=<id>).
 // See product-development/keyboard-navigation.md. Does nothing in an EDITOR that is opened directly.
 //
-// The item has its own tree: the item, the scopes of its query, and the scopes inside them. A scope is
+// The item has its own tree: the whole query (or the item itself, if its query is empty or has an error),
+// its scopes, and the scopes inside them. A scope is
 //  - a group: a bracket group, brackets included; or
 //  - a run: neighbouring parts between groups at one level, without the surrounding group's brackets.
 // The visualisation can't hold the tree: hovering walks through its siblings and parents. So the tree is
 // a visually hidden copy that has the focus, and a marker is drawn over the visualisation.
 
-let currentPath = []; // the current node: indexes of scopes from the top level; [] is the item itself
+// The current node: indexes of scopes from the top level. [] is the top node: the whole query, or the item.
+let currentPath = [];
 
 const treeElement = document.createElement('div');
 const markerElement = document.createElement('div');
@@ -39,20 +41,33 @@ function scopesIn(element) {
     return scopes;
 }
 
-function topScopes() {
+// null for an empty query, or one with an error
+function wholeQueryScope() {
     const searchString = document.getElementById('search-string');
     // Scope editing is off while brackets or quotes are unbalanced.
     if (!searchString || queryHasError() || queryBoxElement.value.trim() === '') {
-        return [];
+        return null;
     }
-    return scopesIn(searchString);
+    const scopes = scopesIn(searchString);
+    // A single scope is the whole query itself.
+    const children = scopes.length === 1 ? scopes[0].children : scopes;
+    return {nodes: [...searchString.childNodes], children};
+}
+
+function topScopes() {
+    const scope = wholeQueryScope();
+    return scope ? scope.children : [];
 }
 
 function scopesAt(path) {
     return path.reduce((scopes, index) => scopes[index].children, topScopes());
 }
 
+// For the top node: null if it is the item itself
 function scopeAt(path) {
+    if (!path.length) {
+        return wholeQueryScope();
+    }
     return scopesAt(path.slice(0, -1))[path[path.length - 1]];
 }
 
@@ -80,6 +95,11 @@ function validPath(path) {
 function pathOf(element, scopes = topScopes()) {
     const index = scopes.findIndex((scope) => scope.nodes.some((node) => node.contains(element)));
     return index === -1 ? [] : [index, ...pathOf(element, scopes[index].children)];
+}
+
+function topNodeLabel() {
+    const scope = wholeQueryScope();
+    return itemLabel() + (scope ? ': ' + scopeText(scope) : '');
 }
 
 // --- The hidden tree
@@ -119,7 +139,7 @@ function treeHasFocus() {
 function rebuildTree() {
     const hadFocus = treeHasFocus();
     currentPath = validPath(currentPath);
-    const root = treeNode([], itemLabel());
+    const root = treeNode([], topNodeLabel());
     appendScopes(root, topScopes(), []);
     treeElement.replaceChildren(root);
     updateTreeLabel();
@@ -134,7 +154,7 @@ function updateTreeLabel() {
     treeElement.setAttribute('aria-label', itemLabel());
     const root = nodeElement([]);
     if (root) {
-        root.setAttribute('aria-label', itemLabel());
+        root.setAttribute('aria-label', topNodeLabel());
     }
 }
 
@@ -154,6 +174,20 @@ function selectNode(path) {
         visible.scrollIntoView({block: 'nearest'});
     }
     drawMarker();
+}
+
+// With the keyboard: the WORKSPACE also centers the item. Not after a click: the page must not move then.
+function selectTopNode() {
+    selectNode([]);
+    sendToWorkspace('centerItem', null);
+}
+
+function selectNodeOrTopNode(path) {
+    if (path.length) {
+        selectNode(path);
+    } else {
+        selectTopNode();
+    }
 }
 
 // --- The marker of the current node
@@ -184,12 +218,13 @@ function rectsOfScope(scope) {
 function drawMarker() {
     markerElement.replaceChildren();
     const shown = treeHasFocus();
-    document.documentElement.classList.toggle('item-is-current', shown && currentPath.length === 0);
-    if (!shown || currentPath.length === 0) {
+    const scope = shown ? scopeAt(currentPath) : null;
+    document.documentElement.classList.toggle('item-is-current', shown && !scope);
+    if (!scope) {
         return;
     }
     const gap = 3;
-    rectsOfScope(scopeAt(currentPath)).forEach((rect) => {
+    rectsOfScope(scope).forEach((rect) => {
         const box = document.createElement('div');
         box.className = 'current-scope';
         box.style.left = rect.left + window.scrollX - gap + 'px';
@@ -202,13 +237,25 @@ function drawMarker() {
 
 // --- Keys
 
-function onItemKey(key) {
-    if (key === 'Enter') {
+// Edit these neighbouring parts of the visualisation; path is the node to go back to.
+function startKeyboardScopeEdit(path, nodes) {
+    editedPath = path;
+    startScopeEdit($(nodes));
+    // The spaces around a run belong to its neighbours.
+    $('#dynamic-input').val($('#dynamic-input').val().trim());
+}
+
+function onTopNodeKey(key) {
+    const scope = wholeQueryScope();
+    if (key === 'Enter' && scope) {
+        startKeyboardScopeEdit([], scope.nodes);
+    } else if (key === 'Enter') {
         openQueryBox();
     } else if (key.toLowerCase() === 't') {
         sendToWorkspace('focusTitle', null);
-    } else if (key === 'ArrowDown' && topScopes().length) {
-        selectNode([0]);
+    } else if (/^Arrow(Down|Right|Left)$/.test(key) && scope && scope.children.length) {
+        // It has no neighbours: Right goes into it from the start, Left from the end.
+        selectNode([key === 'ArrowLeft' ? scope.children.length - 1 : 0]);
     }
 }
 
@@ -216,12 +263,9 @@ function onScopeKey(key) {
     const parent = currentPath.slice(0, -1);
     const index = currentPath[currentPath.length - 1];
     if (key === 'Enter') {
-        editedPath = currentPath;
-        startScopeEdit($(scopeAt(currentPath).nodes));
-        // The spaces around a run belong to its neighbours.
-        $('#dynamic-input').val($('#dynamic-input').val().trim());
+        startKeyboardScopeEdit(currentPath, scopeAt(currentPath).nodes);
     } else if (key === 'ArrowUp') {
-        selectNode(parent);
+        selectNodeOrTopNode(parent);
     } else if (key === 'ArrowDown' && scopesAt(currentPath).length) {
         selectNode([...currentPath, 0]);
     } else if (key === 'ArrowLeft' && index > 0) {
@@ -242,6 +286,10 @@ function onTreeKey(event) {
         }
         return;
     }
+    if (event.key === 'Escape') {
+        event.preventDefault(); // Safari: stay in full screen, also on a second press
+        return;
+    }
     if (!/^(Arrow(Up|Down|Left|Right)|Enter|t)$/i.test(event.key)) {
         return;
     }
@@ -249,7 +297,7 @@ function onTreeKey(event) {
     if (currentPath.length) {
         onScopeKey(event.key);
     } else {
-        onItemKey(event.key);
+        onTopNodeKey(event.key);
     }
 }
 
@@ -260,7 +308,7 @@ let editedPath = [];
 function endScopeEdit() {
     // focusout may not fire when the dynamic input is removed.
     setEditMode(false);
-    selectNode(editedPath);
+    selectNodeOrTopNode(editedPath);
 }
 
 function onScopeEditKey(event) {
@@ -271,8 +319,9 @@ function onScopeEditKey(event) {
         } else {
             endScopeEdit();
         }
-    } else if (event.key === 'Escape' || event.key === 'Tab') {
-        // Tab then goes on from the tree.
+    } else if ((event.key === 'Escape' || event.key === 'Tab') && !event.isComposing) {
+        // Escape: Safari stays in full screen. Tab: the focus stays on the node; the next Tab leaves the item.
+        event.preventDefault();
         syntaxCheck('query-input1', 'medsyntax-target1', true);
         endScopeEdit();
     }
@@ -310,10 +359,24 @@ if (ws) {
         if (event.target.id === 'dynamic-input') {
             onScopeEditKey(event);
         } else if (event.key === 'Escape' && !event.isComposing && event.target.id === 'query-input1') {
+            event.preventDefault(); // Safari: stay in full screen
             // First: leaving the query box renders the query again, which rebuilds the tree.
             event.target.blur();
-            selectNode([]);
+            selectTopNode();
         }
+    });
+
+    // A digit selects the item with that number. The WORKSPACE knows the numbers.
+    document.addEventListener('keydown', (event) => {
+        if (!/^[0-9]$/.test(event.key) || event.ctrlKey || event.altKey || event.metaKey || event.repeat
+            || event.isComposing || event.target.matches('textarea, input:not([type=radio], [type=checkbox])')) {
+            return;
+        }
+        const inTree = treeHasFocus();
+        if (inTree) {
+            event.preventDefault();
+        }
+        sendToWorkspace('selectNumber', {digit: event.key, inTree});
     });
 
     // Clicking an item or scope makes it the current node. On a scope this starts its edit, as before.
@@ -325,8 +388,9 @@ if (ws) {
         }
     }, true);
     document.addEventListener('click', (event) => {
+        // The border and empty parts of the visualisation too
         if (event.target === document.body || event.target === document.documentElement
-            || event.target.id === 'medsyntax') {
+            || ['medsyntax', 'medsyntax-target1', 'search-string'].includes(event.target.id)) {
             selectNode([]);
         }
     });

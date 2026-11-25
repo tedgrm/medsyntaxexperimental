@@ -73,7 +73,7 @@ if (ws) {
             updateTreeLabel();
         }
         if (event.data.type === 'focusItem') {
-            selectNode([]);
+            selectTopNode();
         }
         if (event.data.type === 'setTitle') {
             // The title field is in the card header; the one here is hidden.
