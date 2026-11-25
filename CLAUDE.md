@@ -17,7 +17,7 @@ See `product-development/FEATURES.md` for the feature list and the TODO list. Ke
     - `editor.js`: most of the logic: parsing and rendering (`syntaxCheck`), warnings, the scope editor (`setEditMode`, dynamic input), URL sharing (`updateUrl`, `getParameterByName`) and copy buttons.
     - `item.js`, `item-keyboard.js`: only for an EDITOR embedded in the WORKSPACE (`ws`): hiding the query box, and keyboard navigation. Without `ws` they must do nothing.
   - `references.js`: references between items (`#1`): finding, renumbering, full queries. No DOM; loaded by both pages.
-    - `editor/item-references.js`: their chips and warnings in an item (`ws`). The WORKSPACE calls its `renumberItemReferences` directly, only once `itemIsReady` is true. Every change to the order or number of items goes through `changeItems` in `workspace.js`.
+    - `editor/item-references.js`: their chips and warnings in an item (`ws`). The WORKSPACE calls its `renumberItemReferences` directly, only once `itemIsReady` is true: all its scripts are there and `editor.js` has finished its start-up. Add a script that items need to that check. Every change to the order or number of items goes through `changeItems` in `workspace.js`.
   - `workspace/color-mode.js`: the WORKSPACE's colour switch (system, light, dark, greyscale), kept in `localStorage`. Sets `data-theme` on `<html>`; loaded in the head. Not the EDITOR's `editor/color-mode.js`.
   - `workspace/workspace.js`: the WORKSPACE's list: items, their buttons, Undo, the link, messages.
 - `server.js`: a static dev server with no dependencies. It serves `site/` on `PORT` (default 8080).

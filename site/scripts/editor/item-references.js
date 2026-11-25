@@ -140,8 +140,10 @@ if (ws) {
     // The query of the link is in the query box now (editor.js): renumberItemReferences works.
     $(document).ready(() => {
         // Not if one of the scripts did not load; then the WORKSPACE loads the item again.
-        window.itemIsReady = typeof syntaxCheck === 'function' && typeof openQueryBox === 'function'
-            && typeof drawMarker === 'function';
+        // The class is the last part of the start-up in editor.js, so nothing stopped it halfway.
+        window.itemIsReady = document.body.classList.contains('ws-iframe-body')
+            && typeof LZString === 'object' && typeof grayscale === 'boolean' && typeof openQueryBox === 'function'
+            && typeof drawMarker === 'function' && typeof renumberText === 'function';
     });
     chipsElement.id = 'item-refs';
     chipsElement.setAttribute('aria-hidden', 'true'); // the visualisation has the text

@@ -911,22 +911,33 @@ test.describe('References: loading (R4, R6)', () => {
     });
 });
 
-test.describe('References: an item that loads without its scripts', () => {
-    test('loads again', async ({page}) => {
-        let failures = 0;
-        await page.route('**/scripts/editor/item-keyboard.js', async (route) => {
-            if (failures < 1) {
-                failures++;
-                await route.abort();
-            } else {
-                await route.continue();
-            }
+test.describe('References: an item that loads without one of its scripts', () => {
+    for (const script of ['lzstring.js', 'color-mode.js', 'editor.js', 'item.js', 'item-keyboard.js', 'references.js',
+        'item-references.js']) {
+        test(`${script}: it loads again, with the numbers of a move in between`, async ({page}) => {
+            await openWorkspace(page, base);
+            let failures = 0;
+            await page.route(new RegExp('/' + script.replace('.', '\\.') + '$'), async (route) => {
+                const frame = route.request().frame();
+                if (failures < 1 && frame !== page.mainFrame() && frame.url().includes('ws=2&')) {
+                    failures++;
+                    await route.abort();
+                } else {
+                    await route.continue();
+                }
+            });
+            // Only item C (id 2) loads again.
+            await itemFrame(page, 2).locator('html').evaluate(() => window.location.reload());
+            await expect.poll(() => failures).toBe(1);
+            await page.waitForTimeout(500);
+            await clickNow(page, 1, 'up');
+            await expect.poll(() => itemFrame(page, 2).locator('html').evaluate(() => (window as any).itemIsReady),
+                {timeout: 10000}).toBe(true);
+            await waitForItems(page, 4);
+            await expectQueries(page, ['bb', 'aa', '#2 OR #1', '#3 AND #2'], [null, null, fullC, fullD]);
+            pageErrors = []; // of the failed load
         });
-        await page.goto('/workspace/');
-        await expect(itemFrame(page, 0).locator('#item-tree')).toHaveCount(1, {timeout: 8000});
-        await expect.poll(() => itemFrame(page, 0).locator('html').evaluate(() => (window as any).itemIsReady)).toBe(true);
-        pageErrors = []; // of the failed load
-    });
+    }
 });
 
 test.describe('References: problems (R8)', () => {
