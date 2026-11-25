@@ -42,6 +42,7 @@ Medsyntax is a syntax assistant for (medical) search engine queries with a scope
 - Title per item in its card header, and a Show example button with four PICO queries while every item is clear
 - Number and colour per item; a switch for system, light, dark or greyscale colours, remembered in the browser
 - The query box shows while editing; otherwise only the visualisation
+- Opening the page or loading an example starts keyboard navigation on the first item
 - Keyboard navigation through items and scopes, and scope editing without a mouse
 - Selecting an item selects its whole query as a scope; Enter edits it in the scope editor
 - The keyboard marker has dashes and a glow in the item's colour; the glow pulses when the selection moves
@@ -55,7 +56,7 @@ Medsyntax is a syntax assistant for (medical) search engine queries with a scope
 
 ## Tooling
 - jQuery fallbacks in the EDITOR and WORKSPACE: code.jquery.com, then jsDelivr, then cdnjs, then a local copy; the CDN files are checked with an SRI hash
-- Playwright end-to-end tests (`npm run pw-test`, `npm run pw-test-ui`), also as Claude Code skills (`/.pw-test`, `/.pw-test-gui`, `/.pw-codegen`, `/.pw-report`)
+- Playwright end-to-end tests (`npm run pw-test`, `npm run pw-test-ui`), also as Claude Code skills (`/.pw-test`, `/.pw-test-all`, `/.pw-test-gui`, `/.pw-codegen`, `/.pw-report`)
 - Claude Code hooks that report how long each shell command took (`.claude/settings.json`, needs `jq`)
 - GitHub Pages deployment via `.github/workflows/static.yml` (publishes only `site/`)
 - Qodana code analysis config

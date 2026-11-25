@@ -368,7 +368,7 @@ test.describe('WORKSPACE example', () => {
     test('25. it puts the four PICO items in place of the clear one, also after a reload', async ({page}) => {
         await show(page).click();
         await waitForItems(page, 4);
-        await expect(titleField(page, 0)).toBeFocused();
+        await expect(itemFrame(page, 0).locator('[role=treeitem][aria-level="1"]')).toBeFocused();
         await expect(page.locator('#workspace-status')).toHaveText('Example added: 4 queries');
         await expect(show(page)).toBeHidden();
         for (const reload of [false, true]) {
