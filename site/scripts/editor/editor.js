@@ -333,6 +333,8 @@ const termStrayNumberRe = new RegExp('(\\/div>([0-9]{1,}?)<div)', 'gi');
 const termStraySpaceNumberRe = new RegExp('(\\/div>[ ]([0-9]{1,}?)<div)', 'gi');
 const termStraySpaceNumberSpaceRe = new RegExp('(\\/div>[ ]([0-9]{1,}?)[ ]<div)', 'gi');
 const termStrayNumberSpaceRe = new RegExp('(\\/div>([0-9]{1,}?)[ ]<div)', 'gi');
+// any other text between two elements, such as D, #1 or écart (not spaces alone)
+const termRestRe = new RegExp('<\\/div>(\\s*[^<\\s][^<]*)(?=<div)', 'g');
 const andRe = new RegExp('( AND | and )', 'gi');
 const doubleAndRe = new RegExp('( AND AND | AND and | and AND | and and )', 'gi');
 const orRe = new RegExp('( OR | or )', 'gi');
@@ -537,6 +539,11 @@ function syntaxParser(str) {
             return termReFunction(x);
         }); //make stray words elements
     }
+
+    // The patterns above need an ASCII letter or digit first; make what they missed elements too.
+    str = str.replace(termRestRe, function (x, term) {
+        return '</div><div class="term">' + term + '</div>';
+    });
 
     console.log(str_Random() + ' syntaxParser duration: ' + (Date.now() - time) + 'ms');
     return str;

@@ -108,7 +108,7 @@ At an edge (first, last, or no scope inside) the key does nothing. Navigation do
 
 ## Scenarios
 
-To become Playwright tests (`playwright/workspace-keyboard.spec.ts`). Unless stated otherwise, item 1 holds `(a OR (b AND c)) AND d` and is current. (Use longer terms in the tests: one-letter last terms are a known bug.)
+To become Playwright tests (`playwright/workspace-keyboard.spec.ts`). Unless stated otherwise, item 1 holds `(a OR (b AND c)) AND d` and is current.
 
 1. **Traverse:** Down selects `(a OR (b AND c))`. Right selects `AND d`. Right again does nothing. Up selects item 1.
 2. **Nest:** from `(a OR (b AND c))`, Down then Right selects `(b AND c)`. Down selects `b AND c`. Up, Up, Up returns to item 1.
