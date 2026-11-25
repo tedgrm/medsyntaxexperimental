@@ -60,7 +60,7 @@ Medsyntax is a syntax assistant for (medical) search engine queries with a scope
 - [ ] EDITOR bugs with a `test.fail` test in `playwright/editor-edge-cases.spec.ts` (remove that line when fixed):
   - [ ] **Security (XSS):** HTML in a query, also from a shared link, runs as code (`innerHTML`, unescaped)
   - [ ] Fast typing in Safari stops rendering: over 100 history changes in 10 seconds (`updateUrl` calls `replaceState` and `pushState`)
-  - [ ] The last term is not recognised if it is one letter or starts with a symbol or non-ASCII letter (`vitamin AND D`, `#1 AND #2`, `é AND écart`), and a one-letter one is left out of the scope
+  - [x] Terms were not recognised if they started with a symbol or non-ASCII letter, or were a one-letter last term (`vitamin AND D`, `#1 AND #2`, `é AND écart`), and such a last term was left out of the scope; `syntaxParser` now makes any remaining text a term (tests: "terms")
   - [ ] Brackets inside quotes give a false bracket warning (`"smile :)"`)
   - [ ] Wrongly ordered brackets that balance give no warning (`(heart))((lung)`, `([)]`), and the scope editor accepts them
   - [ ] Apostrophes count as quotes (`Crohn's disease`, `Crohn's AND Parkinson's`)

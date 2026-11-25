@@ -69,18 +69,24 @@ test.describe('EDITOR edge cases', () => {
     });
 
     test.describe('terms', () => {
-        const cases: {query: string, terms: string[], bug?: string}[] = [
-            {query: 'vitamin AND D', terms: ['vitamin', 'D'], bug: 'a one-letter last term is not recognised'},
-            {query: '#1 AND #2', terms: ['#1', '#2'], bug: 'a term starting with a symbol is not recognised'},
-            {query: 'heart OR *itis', terms: ['heart', '*itis'], bug: 'a term starting with a symbol is not recognised'},
-            {query: 'é AND écart', terms: ['é', 'écart'], bug: 'a term starting with a non-ASCII letter is not recognised'},
+        const cases: {query: string, terms: string[]}[] = [
+            {query: 'vitamin AND D', terms: ['vitamin', 'D']},
+            {query: '#1 AND #2', terms: ['#1', '#2']},
+            {query: 'heart OR *itis', terms: ['heart', '*itis']},
+            {query: 'é AND écart', terms: ['é', 'écart']},
+            {query: 'D', terms: ['D']},
+            {query: '(heart OR lung) AND D', terms: ['heart', 'lung', 'D']},
+            {query: '(#1 OR heart) NOT #2', terms: ['#1', 'heart', '#2']},
+            {query: 'α OR β', terms: ['α', 'β']},
+            {query: 'heart/exp OR D', terms: ['heart', 'D']},
+            {query: 'vitamin NEAR/3 D', terms: ['vitamin', 'D']},
+            {query: '(  ) AND heart', terms: ['heart']},
             {query: '2019 AND 2020', terms: ['2019', '2020']},
             {query: '2019', terms: ['2019']},
             {query: 'heart$ OR lun?', terms: ['heart$', 'lun?']},
         ];
-        for (const {query, terms, bug} of cases) {
+        for (const {query, terms} of cases) {
             test(`${JSON.stringify(query)} has terms ${terms.join(', ')}`, async ({page}) => {
-                knownBug(bug);
                 await enterQuery(page, query);
                 await expect(target(page).locator('#search-string')).toBeAttached();
                 await expect(target(page).locator('.term')).toHaveText(terms);
@@ -88,10 +94,15 @@ test.describe('EDITOR edge cases', () => {
         }
 
         test('the scope of a query ending in a one-letter term is the whole query', async ({page}) => {
-            knownBug('a one-letter last term is left out of the scope');
             await enterQuery(page, 'vitamin AND D');
             await startEdit(page, target(page).locator('.term', {hasText: 'vitamin'}));
             await expect(dynamicInput(page)).toHaveValue('vitamin AND D');
+        });
+
+        test('the scope of a query with terms starting with a symbol is the whole query', async ({page}) => {
+            await enterQuery(page, '#1 AND heart AND #2');
+            await startEdit(page, target(page).locator('.term', {hasText: 'heart'}));
+            await expect(dynamicInput(page)).toHaveValue('#1 AND heart AND #2');
         });
 
         test('Embase field codes ending in a dot are recognised', async ({page}) => {
