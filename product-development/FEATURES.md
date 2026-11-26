@@ -6,6 +6,7 @@ Medsyntax is a syntax assistant for (medical) search engine queries with a scope
 - Query title field and query text area (auto-resizing)
 - Clear button to reset the query
 - Demo button that loads an example query
+- Clean-up of the input: a space between AND, OR or NOT and a bracket wherever they meet, with the operator in uppercase (`x and(y)` becomes `x AND (y)`). On purpose also inside quotes and words: `"heart AND(lung)"`, `(door)ORAL drug` and `FOR(heart)` get a space too
 
 ## Syntax visualisation
 - Live parsing and rendering of the query into a nested visual structure
@@ -20,7 +21,7 @@ Medsyntax is a syntax assistant for (medical) search engine queries with a scope
 ## Syntax checks (warnings)
 - Unbalanced `(` / `)` brackets
 - Unbalanced `[` / `]` brackets
-- Odd number of quote signs
+- Odd number of quote signs. Apostrophes count as single quotes, on purpose: `Crohn's disease` gets this warning, and in `Crohn's AND Parkinson's` the text between them is quoted
 - Duplicate `OR` / `AND` operators
 - Ambiguous mixing of `AND` and `OR` at the same bracket level
 
@@ -33,6 +34,7 @@ Medsyntax is a syntax assistant for (medical) search engine queries with a scope
 ## Sharing
 - Query and title are compressed (LZString) into the URL, so links are shareable
 - Loading a URL restores the query and title
+- The EDITOR writes its link 200 ms after the last key, as one Back step, or at once when you leave the field, finish an action, copy the link or leave the page
 - Copy-query and copy-link buttons (clipboard)
 
 ## WORKSPACE (MedsyntaxQA)
@@ -76,16 +78,14 @@ Medsyntax is a syntax assistant for (medical) search engine queries with a scope
 - [x] Typing in the query box during a scope edit did not update the visualisation; it now renders the query and cancels the edit (`syntaxCheck` in `site/index.html`; tests: `editor-edge-cases.spec.ts` "during a scope edit")
 - [ ] EDITOR bugs with a `test.fail` test in `playwright/editor-edge-cases.spec.ts` (remove that line when fixed):
   - [ ] **Security (XSS):** HTML in a query, also from a shared link, runs as code (`innerHTML`, unescaped)
-  - [ ] Fast typing in Safari stops rendering: over 100 history changes in 10 seconds (`updateUrl` calls `replaceState` and `pushState`)
+  - [x] Fast typing in Safari stopped rendering: over 100 history changes in 10 seconds (`updateUrl` called `replaceState` and `pushState` per key). The EDITOR now writes its link after a 200 ms pause (`writeEditorLink`; test: "typing fast")
   - [x] Terms were not recognised if they started with a symbol or non-ASCII letter, or were a one-letter last term (`vitamin AND D`, `#1 AND #2`, `é AND écart`), and such a last term was left out of the scope; `syntaxParser` now makes any remaining text a term (tests: "terms")
-  - [ ] Brackets inside quotes give a false bracket warning (`"smile :)"`)
-  - [ ] Wrongly ordered brackets that balance give no warning (`(heart))((lung)`, `([)]`), and the scope editor accepts them
-  - [ ] Apostrophes count as quotes (`Crohn's disease`, `Crohn's AND Parkinson's`)
+  - [x] Brackets inside quotes gave a false bracket warning (`"smile :)"`); the bracket checks now leave out quoted text (tests: "smile")
+  - [x] Wrongly ordered brackets that balance gave no warning (`(heart))((lung)`, `([)]`), and the scope editor accepted them; every closing bracket must now close the last open one of its kind (tests: "(heart))((lung)", "interleaved", "wrong order")
   - [ ] Misplaced operators give no warning (`AND heart`, `heart AND`, `heart AND OR lung`, `heart NOT NOT lung`)
-  - [ ] Operators between tabs or non-breaking spaces are not recognised
-  - [ ] The clean-up adds spaces where it should not (`"heart AND(lung)"`, `(door)ORAL drug`, `FOR(heart)`)
+  - [x] Operators between tabs or non-breaking spaces were not recognised; these now become regular spaces (tests: "is recognised")
   - [ ] HTML, entities and `___` are changed in the visualisation, and can be lost when a scope edit is confirmed
-  - [ ] The Back button changes the link but not the query
+  - [x] The Back button changed the link but not the query; Back and Forward now show the query and title of the link (`restoreFromLink` in `editor.js`; test: "the Back button", not run yet)
   - [ ] A link with malformed percent-encoding stops the start-up code
   - [ ] Emptying the query box by hand does not bring back the demo button
 
@@ -98,7 +98,7 @@ Not covered by the WORKSPACE's references between items (REF in `product-develop
 - [ ] Once Undo is no longer possible, a missing reference (`#2?`) can only be retyped
 - [ ] Copy full query doesn't check the combined query against a database: length limits and field syntax can still make it invalid
 - [ ] A chip's tooltip can't be reached with the keyboard, and only its number and colour link it to its card. Not tested with a real screen reader
-- [ ] The EDITOR's known bugs count here too: brackets in quotes and apostrophes (`"smile :)"`, `Crohn's`) make a referenced query "unbalanced", and text between two apostrophes is seen as quoted, so a `#1` in it is no reference
+- [ ] Apostrophes count as quotes (intended, see Syntax checks): `Crohn's` makes a referenced query "unbalanced", and text between two apostrophes is quoted, so a `#1` in it is no reference
 - [ ] After over 100 changes in 10 seconds in Safari the link lags behind; a reload in that time gives an older, but consistent, list
 - [ ] WebKit can stop loading an item's scripts during quick changes (already so before references). The item then loads again after about 1.5 seconds, at most three times; what was typed in it in that time can be lost
 

@@ -1,6 +1,8 @@
 let medsyntaxTargetWidth;
 let stringLatestString = "";
 let queryParamsLatestParams;
+// true while Back or Forward restores a query: the link is already right then
+let restoringFromHistory = false;
 let time = Date.now();
 let latestInputTime = Date.now();
 // the item's id when embedded in the WORKSPACE, otherwise null
@@ -70,6 +72,9 @@ $(document).ready(function () {
 
         setEditMode(false);
     }
+
+    // The link of the opened page, as the start-up has made it: in place of the current entry, not as a Back step.
+    replaceEditorLink();
 });
 
 function textAreaAdjust(element, updateHeight, targetWidth) {
@@ -131,10 +136,12 @@ function clearButtonFunc() {
     // (syntaxCheck skips input equal to stringLatestString).
     stringLatestString = "";
     announceRendered();
+    flushEditorLink();
 }
 
 
 function copyLinkFunction() {
+    flushEditorLink();
     const copyText = document.getElementById("myLinkInput");
     copyText.value = "test";
     copyText.value = window.location.href;
@@ -159,8 +166,9 @@ function updateTitle(titleId) {
 }
 
 function updateUrl(name, value) {
-    // Construct URLSearchParams object instance from current URL querystring
-    let queryParams = new URLSearchParams(window.location.search);
+    // Construct URLSearchParams object instance from current URL querystring. Opened directly, the link can be
+    // behind (see writeEditorLink): start from the last state.
+    let queryParams = new URLSearchParams(!ws && queryParamsLatestParams ? queryParamsLatestParams : window.location.search);
     if (ws && typeof window.itemQueryString === 'string') {
         queryParams = new URLSearchParams(window.itemQueryString);
     }
@@ -174,6 +182,9 @@ function updateUrl(name, value) {
         return false;
     } else {
         queryParamsLatestParams = queryParams;
+    }
+    if (restoringFromHistory) {
+        return false;
     }
 
 
@@ -204,11 +215,100 @@ function updateUrl(name, value) {
         // Use postMessage to send data to the parent window
         window.parent.postMessage(messageData);
     } else {
-        // Replace current querystring with the new one
-        history.replaceState(null, null, "?" + queryParams.toString());
-        history.pushState(null, null, "?" + queryParams.toString());
+        // Not on every key: Safari allows 100 history changes in 10 seconds, and each step would be a Back step.
+        pendingEditorLink = "?" + queryParams.toString();
+        clearTimeout(editorLinkTimer);
+        editorLinkTimer = setTimeout(writeEditorLink, editorLinkPause);
     }
 }
+
+// The EDITOR opened directly writes its link after a pause in typing, as one history entry: one Back step.
+const editorLinkPause = 200;
+let pendingEditorLink = null;
+let editorLinkTimer = null;
+
+function writeEditorLink() {
+    clearTimeout(editorLinkTimer);
+    if (pendingEditorLink === null) {
+        return;
+    }
+    if (pendingEditorLink === window.location.search) {
+        pendingEditorLink = null;
+        return;
+    }
+    try {
+        history.pushState(null, null, pendingEditorLink);
+        pendingEditorLink = null;
+    } catch (error) {
+        // The browser refused (too many changes): try again; the rendering goes on.
+        editorLinkTimer = setTimeout(writeEditorLink, 1000);
+    }
+}
+
+// At once, without the pause: after a finished action, and before the link is used or the page is left.
+function flushEditorLink() {
+    if (!ws) {
+        writeEditorLink();
+    }
+}
+
+function replaceEditorLink() {
+    clearTimeout(editorLinkTimer);
+    if (!ws && pendingEditorLink !== null) {
+        try {
+            history.replaceState(null, null, pendingEditorLink);
+        } catch (error) {
+            // refused: the link stays as it was opened
+        }
+        pendingEditorLink = null;
+    }
+}
+
+// Back and Forward: a link that wasn't written yet must not undo the step.
+function dropEditorLink() {
+    clearTimeout(editorLinkTimer);
+    pendingEditorLink = null;
+}
+
+// Back and Forward change the link: show its query and title again. Without changing the link, so the history stays.
+// Not in the WORKSPACE, whose items never add to the history.
+function restoreFromLink() {
+    if (ws) {
+        return;
+    }
+    dropEditorLink();
+    const decompress = (name) => LZString.decompressFromEncodedURIComponent(getParameterByName(name) || '') || '';
+    const query = decompress('query');
+    const title = decompress('querytitle');
+    restoringFromHistory = true;
+    try {
+        $("#query-title1").val(title);
+        document.title = 'Medsyntax: ' + title;
+        if (query === '') {
+            clearButtonFunc();
+        } else {
+            document.getElementById('query-input1').value = query;
+            stringLatestString = ''; // render it, also if it was shown before
+            syntaxCheck('query-input1', 'medsyntax-target1');
+        }
+    } finally {
+        restoringFromHistory = false;
+        queryParamsLatestParams = new URLSearchParams(window.location.search);
+    }
+}
+
+window.addEventListener('popstate', restoreFromLink);
+window.addEventListener('pagehide', flushEditorLink);
+document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') {
+        flushEditorLink();
+    }
+});
+document.addEventListener('focusout', (event) => {
+    if (event.target.id === 'query-title1') {
+        flushEditorLink();
+    }
+});
 
 // Tells item.js and item-keyboard.js that the visualisation or the query changed.
 function announceRendered() {
@@ -287,6 +387,9 @@ function syntaxCheck(sourceElementId, targetElementId, force) {
 
     str = str.replace(/[\u000A\u000D\u2028\u2029]/g, ' ')
     str = str.replace(/\r?\n|\r/g, ' ');
+    // Tabs and non-breaking spaces (also narrow and figure spaces) become regular spaces, so operators between
+    // them are recognised.
+    str = str.replace(/[\t\u00A0\u2007\u202F]/g, ' ');
     if (force) {
         str = str.replace(/  +/g, ' ');
     }
@@ -338,6 +441,10 @@ function syntaxCheck(sourceElementId, targetElementId, force) {
     $("#query-input1").val(str);
     stringLatestString = str; // after clean-up, as it is now in the query box
     announceRendered();
+    if (force) {
+        // A finished action: leaving the box, a scope edit, the demo. Typing waits for a pause.
+        flushEditorLink();
+    }
 }
 
 //*** Syntax 'parser' code ***//
@@ -566,15 +673,44 @@ function syntaxParser(str) {
     return str;
 }
 
+// Brackets inside quotes are text, not brackets: blank out the quoted parts before counting them.
+function withoutQuotedText(text) {
+    return text.replace(quotedTermRe, (quoted) => ' '.repeat(quoted.length));
+}
+
+// Brackets in the wrong order: a closing bracket without an open one before it, or one that closes the other kind
+// (([)]). {round, square}: which kind is wrong; interleaving makes both wrong.
+function bracketOrderProblems(text) {
+    const open = [];
+    const problems = {round: false, square: false};
+    for (const character of text) {
+        if (character === '(' || character === '[') {
+            open.push(character);
+        } else if (character === ')' || character === ']') {
+            const kind = character === ')' ? 'round' : 'square';
+            const last = open.pop();
+            if (last === undefined) {
+                problems[kind] = true;
+            } else if (last !== (kind === 'round' ? '(' : '[')) {
+                problems.round = true;
+                problems.square = true;
+            }
+        }
+    }
+    return problems;
+}
+
 function afterParseFunction(str, targetElementId, hasError, savedLatestInputTime) {
     document.getElementById(targetElementId).innerHTML = str;
+    // The query as text, for the bracket checks
+    const bracketText = withoutQuotedText(document.getElementById(targetElementId).textContent);
 
     // WARNINGS
     time = Date.now();
 
     // bracket warnings ( and )
-    const bracketOpenCount = (str.match(new RegExp('(\\()', 'gi')) || []).length;
-    const bracketCloseCount = (str.match(new RegExp('(\\))', 'gi')) || []).length;
+    const bracketOpenCount = (bracketText.match(new RegExp('(\\()', 'gi')) || []).length;
+    const bracketCloseCount = (bracketText.match(new RegExp('(\\))', 'gi')) || []).length;
     if (bracketOpenCount > bracketCloseCount) {
         document.getElementById(warningBracketOpenElementId).hidden = false;
         hasError = true;
@@ -583,18 +719,10 @@ function afterParseFunction(str, targetElementId, hasError, savedLatestInputTime
         document.getElementById(warningBracketCloseElementId).hidden = false;
         hasError = true;
     }
-    // wrong order: a ) before the first (. Only compare when there is a ),
-    // because indexOf returns -1 when it is missing.
-    const firstBracketOpen = str.indexOf("(");
-    const firstBracketClose = str.indexOf(")");
-    if (firstBracketClose !== -1 && firstBracketOpen > firstBracketClose) {
-        document.getElementById(warningBracketCloseElementId).hidden = false;
-        document.getElementById(warningBracketOpenElementId).hidden = false;
-    }
 
     // bracket warnings [ and ]
-    const squareBracketOpenCount = (str.match(new RegExp('(\\[)', 'gi')) || []).length;
-    const squareBracketCloseCount = (str.match(new RegExp('(])', 'gi')) || []).length;
+    const squareBracketOpenCount = (bracketText.match(new RegExp('(\\[)', 'gi')) || []).length;
+    const squareBracketCloseCount = (bracketText.match(new RegExp('(])', 'gi')) || []).length;
     if (squareBracketOpenCount > squareBracketCloseCount) {
         document.getElementById(warningSquareBracketOpenElementId).hidden = false;
         hasError = true;
@@ -603,12 +731,20 @@ function afterParseFunction(str, targetElementId, hasError, savedLatestInputTime
         document.getElementById(warningSquareBracketCloseElementId).hidden = false;
         hasError = true;
     }
-    // wrong order: a ] before the first [. Only compare when there is a ].
-    const firstSquareBracketOpen = str.indexOf("[");
-    const firstSquareBracketClose = str.indexOf("]");
-    if (firstSquareBracketClose !== -1 && firstSquareBracketOpen > firstSquareBracketClose) {
+    // Wrong order, where the numbers do match: both warnings of that kind. Not when they don't: the warning for the
+    // missing bracket says enough.
+    const orderProblems = bracketOrderProblems(bracketText);
+    const roundOrderWrong = orderProblems.round && bracketOpenCount === bracketCloseCount;
+    const squareOrderWrong = orderProblems.square && squareBracketOpenCount === squareBracketCloseCount;
+    if (roundOrderWrong) {
+        document.getElementById(warningBracketCloseElementId).hidden = false;
+        document.getElementById(warningBracketOpenElementId).hidden = false;
+        hasError = true;
+    }
+    if (squareOrderWrong) {
         document.getElementById(warningSquareBracketCloseElementId).hidden = false;
         document.getElementById(warningSquareBracketOpenElementId).hidden = false;
+        hasError = true;
     }
 
     //TODO does this "savedLatestInputTime != latestInputTime" thing even work?
@@ -694,7 +830,7 @@ function afterParseFunction(str, targetElementId, hasError, savedLatestInputTime
     }
 
     if (squareBracketOpenCount === squareBracketCloseCount
-        && bracketOpenCount === bracketCloseCount
+        && bracketOpenCount === bracketCloseCount && !roundOrderWrong && !squareOrderWrong
         && document.getElementById(warningQuotesElementId).hidden) {
         let elementForHover;
         $('#' + targetElementId + ' .search-string div').mousemove(function (event) {
@@ -822,9 +958,10 @@ function onEnterDynamicInput() {
         return false;
     }
 
-    // bracket warnings ( and )
-    const bracketOpenCount = (str.match(new RegExp('(\\()', 'gi')) || []).length;
-    const bracketCloseCount = (str.match(new RegExp('(\\))', 'gi')) || []).length;
+    // bracket warnings ( and ), without those inside quotes
+    const bracketText = withoutQuotedText(str);
+    const bracketOpenCount = (bracketText.match(new RegExp('(\\()', 'gi')) || []).length;
+    const bracketCloseCount = (bracketText.match(new RegExp('(\\))', 'gi')) || []).length;
     if (bracketOpenCount > bracketCloseCount) {
         alert("( or ) bracket error: please fix before pressing Enter");
         $("#entered-text").remove();
@@ -835,15 +972,16 @@ function onEnterDynamicInput() {
         $("#entered-text").remove();
         return false;
     }
-    if (str.indexOf("(") > str.indexOf(")")) {
+    const orderProblems = bracketOrderProblems(bracketText);
+    if (orderProblems.round) {
         alert("( or ) bracket error: please fix before pressing Enter");
         $("#entered-text").remove();
         return false;
     }
 
     // bracket warnings [ and ]
-    const squareBracketOpenCount = (str.match(new RegExp('(\\[)', 'gi')) || []).length;
-    const squareBracketCloseCount = (str.match(new RegExp('(])', 'gi')) || []).length;
+    const squareBracketOpenCount = (bracketText.match(new RegExp('(\\[)', 'gi')) || []).length;
+    const squareBracketCloseCount = (bracketText.match(new RegExp('(])', 'gi')) || []).length;
     if (squareBracketOpenCount > squareBracketCloseCount) {
         alert("[ or ] bracket error: please fix before pressing Enter");
         $("#entered-text").remove();
@@ -854,7 +992,7 @@ function onEnterDynamicInput() {
         $("#entered-text").remove();
         return false;
     }
-    if (str.indexOf("[") > str.indexOf("]")) {
+    if (orderProblems.square) {
         alert("[ or ] bracket error: please fix before pressing Enter");
         $("#entered-text").remove();
         return false;

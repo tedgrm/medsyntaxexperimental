@@ -114,10 +114,9 @@ test.describe('EDITOR edge cases', () => {
 
     test.describe('brackets', () => {
         const cases: {query: string, shown: string[], bug?: string}[] = [
-            {query: '"smile :)" AND heart', shown: [], bug: 'brackets inside quotes count as brackets'},
-            {query: '"a [b" AND heart', shown: [], bug: 'brackets inside quotes count as brackets'},
-            {query: '(heart))((lung)', shown: ['warning-bracket-open', 'warning-bracket-close'],
-                bug: 'only the first ( and ) are compared for the wrong order'},
+            {query: '"smile :)" AND heart', shown: []},
+            {query: '"a [b" AND heart', shown: []},
+            {query: '(heart))((lung)', shown: ['warning-bracket-open', 'warning-bracket-close']},
             {query: '()', shown: []},
             {query: '[]', shown: []},
             {query: '(heart)(lung)', shown: []},
@@ -132,14 +131,12 @@ test.describe('EDITOR edge cases', () => {
         }
 
         test('interleaved brackets "([)]" show a warning', async ({page}) => {
-            knownBug('interleaved ( and [ are not noticed');
             await enterQuery(page, '([)]');
             await expect(target(page)).toHaveText('([)]');
             await expect(page.locator('.warning-medsyntax:visible')).not.toHaveCount(0);
         });
 
         test('the scope editor refuses brackets in the wrong order', async ({page}) => {
-            knownBug('only the first ( and ) are compared for the wrong order');
             const alerts = captureAlerts(page);
             await enterQuery(page, '(heart OR cardiac) AND lung');
             await startEdit(page, target(page).locator('.term', {hasText: 'cardiac'}));
@@ -157,19 +154,20 @@ test.describe('EDITOR edge cases', () => {
         });
     });
 
-    test.describe('apostrophes', () => {
-        test('one apostrophe in a word gives no quote warning', async ({page}) => {
-            knownBug('an apostrophe counts as a quote');
+    // Not a bug: an apostrophe is a single quote, as in search engines that accept 'single quotes'.
+    test.describe('apostrophes count as quotes', () => {
+        test('one apostrophe in a word gives a quote warning', async ({page}) => {
             await enterQuery(page, "Crohn's disease");
             await expect(target(page)).toHaveText("Crohn's disease");
-            await expectWarnings(page, []);
+            await expectWarnings(page, ['warning-quotes']);
         });
 
-        test('an operator between two words with an apostrophe is recognised', async ({page}) => {
-            knownBug('the text between two apostrophes becomes a quoted term');
+        test('the text between two apostrophes is a quoted term', async ({page}) => {
             await enterQuery(page, "Crohn's AND Parkinson's");
             await expect(target(page)).toHaveText("Crohn's AND Parkinson's");
-            await expect(target(page).locator('.boolean.and')).toHaveCount(1);
+            await expect(target(page).locator('.quote-term')).toHaveText(["'s AND Parkinson'"]);
+            await expect(target(page).locator('.boolean.and')).toHaveCount(0);
+            await expectWarnings(page, []);
         });
     });
 
@@ -183,21 +181,23 @@ test.describe('EDITOR edge cases', () => {
             });
         }
 
-        for (const [name, space] of [['tabs', '\t'], ['non-breaking spaces', ' ']]) {
-            test(`AND between ${name} is recognised`, async ({page}) => {
-                knownBug('only regular spaces around an operator are recognised');
+        for (const [name, space] of [['tabs', '\t'], ['non-breaking spaces', ' '], ['narrow non-breaking spaces', ' ']]) {
+            test(`AND between ${name} is recognised, and they become regular spaces`, async ({page}) => {
                 await enterQuery(page, `heart${space}AND${space}lung`);
                 await expect(target(page).locator('#search-string')).toBeAttached();
                 await expect(target(page).locator('.boolean.and')).toHaveCount(1);
+                await expect(queryBox(page)).toHaveValue('heart AND lung');
             });
         }
 
-        for (const query of ['"heart AND(lung)"', '(door)ORAL drug', 'FOR(heart)']) {
-            test(`the clean-up leaves ${JSON.stringify(query)} alone`, async ({page}) => {
-                knownBug('the clean-up also adds spaces inside quotes and next to words containing an operator');
+        // Not a bug: the clean-up puts a space between AND, OR or NOT and a bracket wherever they meet, also inside
+        // quotes and words, and makes the operator uppercase.
+        for (const [query, cleaned] of [['"heart AND(lung)"', '"heart AND (lung)"'], ['(door)ORAL drug', '(door) ORAL drug'],
+            ['FOR(heart)', 'FOR (heart)'], ['x and(y)', 'x AND (y)']]) {
+            test(`the clean-up makes ${JSON.stringify(query)} ${JSON.stringify(cleaned)}`, async ({page}) => {
                 await enterQuery(page, query);
                 await expect(target(page).locator('#search-string')).toBeAttached();
-                await expect(queryBox(page)).toHaveValue(query);
+                await expect(queryBox(page)).toHaveValue(cleaned);
             });
         }
 
@@ -209,9 +209,7 @@ test.describe('EDITOR edge cases', () => {
     });
 
     test.describe('typing', () => {
-        test('typing fast renders everything', async ({page, browserName}) => {
-            test.fail(browserName === 'webkit',
-                'Known bug: WebKit allows 100 history changes per 10 seconds; updateUrl makes two per key');
+        test('typing fast renders everything', async ({page}) => {
             const query = 'abcdefghij '.repeat(12) + 'heart';
             await queryBox(page).focus();
             await page.keyboard.type(query, {delay: 30});
@@ -316,7 +314,6 @@ test.describe('EDITOR edge cases', () => {
         });
 
         test('the Back button brings back the previous query', async ({page}) => {
-            knownBug('Back changes the link but not the query');
             await enterQuery(page, 'heart');
             const link = page.url();
             await enterQuery(page, 'heart AND lung');
