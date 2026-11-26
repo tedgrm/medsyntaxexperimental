@@ -1,5 +1,5 @@
 // @ts-check
-import {test, expect, type Page} from '@playwright/test';
+import {test, expect, type Page} from './base-test';
 import {
     enterItemQuery, itemBox, itemFrame, itemQuery, linkQueries, openItemBox, openWorkspace, waitForItems, workspaceItem,
     workspaceItems,

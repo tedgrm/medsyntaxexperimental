@@ -1,5 +1,5 @@
 // @ts-check
-import {test, expect} from '@playwright/test';
+import {test, expect} from './base-test';
 import {captureAlerts, enterQuery, expectWarnings, queryBox, target} from './helpers';
 
 // EDITOR (site/index.html): converting quote signs (syntaxCheck).

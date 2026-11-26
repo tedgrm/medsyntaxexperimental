@@ -1,5 +1,5 @@
 // @ts-check
-import {test, expect, type Page} from '@playwright/test';
+import {test, expect, type Page} from './base-test';
 import {enterQuery, queryBox} from './helpers';
 
 // EDITOR (site/index.html) in embedded mode: the WORKSPACE loads it as

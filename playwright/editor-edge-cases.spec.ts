@@ -1,5 +1,5 @@
 // @ts-check
-import {test, expect, type Page} from '@playwright/test';
+import {test, expect, type Page} from './base-test';
 import {captureAlerts, enterQuery, expectWarnings, queryBox, target} from './helpers';
 
 // EDITOR (site/index.html): unusual input. Tests marked 'Known bug' describe

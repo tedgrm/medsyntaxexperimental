@@ -1,5 +1,5 @@
 // @ts-check
-import {test, expect} from '@playwright/test';
+import {test, expect} from './base-test';
 import {openItemBox, openWorkspace} from './helpers';
 
 // WORKSPACE layout: screenshots, light, dark and greyscale. After an intended change:

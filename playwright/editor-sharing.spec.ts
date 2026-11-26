@@ -1,5 +1,5 @@
 // @ts-check
-import {test, expect, type Page} from '@playwright/test';
+import {test, expect, type Page} from './base-test';
 import {enterItemQuery, enterQuery, itemFrame, openItemBox, openWorkspace, queryBox, target} from './helpers';
 
 // EDITOR (site/index.html): sharing via the link. The query and title are

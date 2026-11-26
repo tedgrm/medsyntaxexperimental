@@ -1,5 +1,5 @@
 // @ts-check
-import {test, expect, type Page} from '@playwright/test';
+import {test, expect, type Page} from './base-test';
 import {enterQuery, expectWarnings, queryBox, target} from './helpers';
 
 // EDITOR (site/index.html): title, buttons, colour mode, menu and help image.
