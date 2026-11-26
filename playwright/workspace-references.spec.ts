@@ -131,14 +131,15 @@ test.describe('References: what they are and look like', () => {
             for (const [n, color] of [red, yellow, red, yellow, problem].entries()) {
                 const chip = drawn(page, 2).nth(n);
                 await expect(chip).toHaveCSS('background-color', color);
-                expect(await chip.evaluate((element) => {
+                // Polled: a resize redraws the chips, and a chip that was just replaced is off the page, where its filter is '' instead of 'none'.
+                await expect.poll(() => chip.evaluate((element) => {
                     for (let parent: Element | null = element; parent; parent = parent.parentElement) {
                         if (getComputedStyle(parent).filter !== 'none') {
                             return false;
                         }
                     }
                     return true;
-                })).toBe(true);
+                }), 'no filter on the chip or its parents').toBe(true);
                 await expect.poll(async () => {
                     const [a, b] = [(await chip.boundingBox())!, (await chips(page, 2).nth(n).boundingBox())!];
                     return Math.max(Math.abs(a.x - b.x), Math.abs(a.y - b.y), Math.abs(a.width - b.width));
