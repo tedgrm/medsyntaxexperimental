@@ -1,6 +1,6 @@
 // Shared helpers for the EDITOR (site/index.html) tests. Not a spec file, so
 // Playwright does not run it as tests.
-import {expect, type Locator, type Page} from '@playwright/test';
+import {expect, type Dialog, type Locator, type Page} from '@playwright/test';
 
 /** The EDITOR's query text area. */
 export const queryBox = (page: Page) => page.getByRole('textbox', {name: 'query', exact: true});
@@ -27,10 +27,36 @@ export const normalise = (text: string) => text.replace(/\s+/g, ' ').trim();
 export function captureAlerts(page: Page): string[] {
     const alerts: string[] = [];
     page.on('dialog', async (dialog) => {
+        if (isRemovalPrompt(dialog)) {
+            return; // answered by removalPrompts
+        }
         alerts.push(dialog.message());
         await dialog.dismiss();
     });
     return alerts;
+}
+
+const isRemovalPrompt = (dialog: Dialog) => dialog.type() === 'confirm' && dialog.message().startsWith('Remove query');
+const removals = new WeakMap<Page, {accept: boolean, messages: string[]}>();
+
+/**
+ * WORKSPACE: answers the confirmation of Remove (OK unless `accept` is set to false)
+ * and keeps its messages. openWorkspace starts it.
+ */
+export function removalPrompts(page: Page) {
+    let state = removals.get(page);
+    if (!state) {
+        const created = {accept: true, messages: [] as string[]};
+        page.on('dialog', async (dialog) => {
+            if (isRemovalPrompt(dialog)) {
+                created.messages.push(dialog.message());
+                await (created.accept ? dialog.accept() : dialog.dismiss());
+            }
+        });
+        removals.set(page, created);
+        state = created;
+    }
+    return state;
 }
 
 /** Ids of the syntax warnings that are currently visible. */
@@ -105,6 +131,7 @@ export async function enterItemTitle(page: Page, n: number, title: string) {
 
 /** Open a WORKSPACE with these items in its link, and wait for them. */
 export async function openWorkspace(page: Page, items: {title?: string, query?: string}[]) {
+    removalPrompts(page);
     await page.goto('/workspace/');
     await waitForItems(page, 1);
     const link = await page.evaluate((list) => {

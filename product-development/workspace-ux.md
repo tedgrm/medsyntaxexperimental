@@ -79,7 +79,7 @@ Dark mode:
 |---|---|---|
 | STYLE-1 | A header shows the brand mark (text only, so it does not look like a button), the name MedsyntaxQA as the page heading, the line "Workspace for multiline searches", and links to the EDITOR and to "Report an issue" (the same issues page as the EDITOR's menu). | Must |
 | STYLE-2 | Each item is a white card with a 1px line, a 10px radius and a 3px left edge in the item's colour. It replaces the random border. | Must |
-| STYLE-3 | The card's header shows a badge with the item's number in its colour (white text, or dark where white has less than 4.5:1), the title field, and the item's buttons: Collapse, up, down, Duplicate, Edit query, Copy query, Clear query, Remove. Below a viewport of 1000px, Duplicate to Clear query are in a More menu. On a phone the buttons are below the title. After item 10 the colours repeat. | Must |
+| STYLE-3 | The card's header shows a badge with the item's number in its colour (white text, or dark where white has less than 4.5:1), the title field, and the item's buttons: Collapse, up, down, Duplicate, Edit query, Copy query, Clear query, + Add query, Remove. Below a viewport of 1140px, Duplicate to Clear query are in a More menu. Below 800px, + Add query shows only "+" (its accessible name stays "+ Add query after <number>"). On a phone the buttons are below the title. After item 10 the colours repeat. | Must |
 | STYLE-4 | The content is centred and at most 1240px wide. | Must |
 | STYLE-5 | Add is a primary (accent) button, Remove a danger button, the others are plain. | Must |
 | STYLE-6 | Colours are CSS variables in `site/workspace/style.css`. Fonts come from the system. | Must |
@@ -97,7 +97,7 @@ Dark mode:
 | ID | Requirement | Priority |
 |---|---|---|
 | ITEM-1 | The user can add an empty item at the top and after any item. It scrolls into view, with its title focused. | Must |
-| ITEM-2 | Remove works at once and shows a message with Undo. Undo restores the title, query and position. | Must |
+| ITEM-2 | Remove first asks for confirmation ("Remove query <number> \"<title>\"?", without the title when there is none), except for an item without title and query. After OK it shows a message with Undo. Undo restores the title, query and position. | Must |
 | ITEM-3 | Undo covers the last removal, and stays available until the next add, remove, move or duplicate. | Must |
 | ITEM-4 | Each item can move up and down one place. Up is disabled on the first item, Down on the last. | Must |
 | ITEM-5 | Removing the only item puts one clear item in its place, also after a reload or when the link is opened. Remove is disabled when the only item is already clear. Undo puts the removed item back instead of the clear one, or before it if the user has typed in it. | Must |
@@ -121,7 +121,7 @@ Dark mode:
 |---|---|---|
 | REF-1 | `#` and a number, outside quotes and as a word of its own (next to a space, a bracket, or the start or end), refers to the item with that number. So not in `"#1"`, `a#1`, `#1[tiab]` or `#1-#3`. Only in the WORKSPACE. | Must |
 | REF-2 | A reference is a chip in the visualisation, in the colour of its item, with that item's title and full query (at most 500 characters) as tooltip. Scopes, scope edits and keys work as without chips. | Must |
-| REF-3 | "Copy query" copies the text as typed. "Copy full query", only on items with references, copies the query with each reference replaced by that item's full query in brackets (not doubled). With it, all buttons are next to the title from 1150px. | Must |
+| REF-3 | "Copy query" copies the text as typed. "Copy full query", only on items with references, copies the query with each reference replaced by that item's full query in brackets (not doubled). With it, all buttons are next to the title from 1270px. | Must |
 | REF-4 | After move, add, duplicate, remove and Undo, references follow their item: in the queries, the link, a query box that is being typed in (the cursor stays) and an open scope edit (it stays open). | Must |
 | REF-5 | A reference to a removed item becomes `#3?`. Undo makes it `#3` again. At the next removal, older ones become `#?`. | Must |
 | REF-6 | When clear items are dropped on reload (ITEM-10), references follow; those to a dropped item become missing. | Must |
@@ -205,7 +205,7 @@ To become Playwright tests. Unless stated otherwise: three items with the titles
 23. **Title:** rename B in its card header. The link, the Clear query button's name and the tree label follow, also after a reload.
 24. **Title while collapsed:** collapse B and empty its title. The field shows the query as placeholder.
 25. **Example:** open `/workspace/` and click Show example. The four PICO items are there, with Medsyntax PICO's colours, also after a reload, and the button is gone.
-26. **Button row:** at 1000px all eight buttons are next to the title; at 999px there are five, with More.
+26. **Button row:** at 1140px all nine buttons are next to the title; at 1139px there are six, with More.
 27. **Copy query:** it copies the query and says so; if the browser refuses, it says that.
 28. **More menu:** every action works from it and closes it.
 29. **Closing the menu:** each way of ITEM-18.

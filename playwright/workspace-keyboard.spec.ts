@@ -421,7 +421,7 @@ test.describe('WORKSPACE keyboard navigation', () => {
         await expect(dynamicInput(page, 0)).toBeFocused();
         await press(page, 'Tab', 0, topA);
         await page.keyboard.press(browserName === 'webkit' ? 'Alt+Tab' : 'Tab');
-        await expect(button(page, '+ Add query after 1')).toBeFocused();
+        await expect(titleField(page, 1)).toBeFocused();
     });
 
     test('Tab cancels an edit started with the mouse, and stays on its scope', async ({page}) => {
@@ -663,7 +663,7 @@ test.describe('WORKSPACE keyboard navigation', () => {
         await expect(button(page, 'Collapse query 2')).toBeFocused();
         // Safari's Tab skips buttons; Option+Tab does not.
         const tab = browserName === 'webkit' ? 'Alt+Tab' : 'Tab';
-        for (let presses = 0; presses < 8 && await currentNode(page) === ''; presses++) {
+        for (let presses = 0; presses < 12 && await currentNode(page) === ''; presses++) {
             await page.keyboard.press(tab);
         }
         await expectNode(page, 1, topC);
@@ -698,10 +698,10 @@ test.describe('WORKSPACE keyboard navigation', () => {
 
     test('Tab and Shift+Tab leave the item', async ({page, browserName}) => {
         const tab = browserName === 'webkit' ? 'Alt+Tab' : 'Tab';
-        for (let presses = 0; presses < 8 && !await button(page, '+ Add query after 1').evaluate((el) => el === document.activeElement); presses++) {
+        for (let presses = 0; presses < 8 && !await titleField(page, 1).evaluate((el) => el === document.activeElement); presses++) {
             await page.keyboard.press(tab);
         }
-        await expect(button(page, '+ Add query after 1')).toBeFocused();
+        await expect(titleField(page, 1)).toBeFocused();
         await selectItem(page, 0, topA);
         await page.keyboard.press(browserName === 'webkit' ? 'Alt+Shift+Tab' : 'Shift+Tab');
         await expect(button(page, 'Remove query 1')).toBeFocused();
@@ -717,6 +717,8 @@ test.describe('WORKSPACE keyboard navigation', () => {
         await page.keyboard.press('Enter');
         await expect(itemFrame(page, 0).locator('[role=treeitem]')).toHaveCount(1);
         await expect(button(page, 'Clear query A')).toBeFocused();
+        await page.keyboard.press(tab);
+        await expect(button(page, '+ Add query after 1')).toBeFocused();
         await page.keyboard.press(tab);
         await expect(button(page, 'Remove query 1')).toBeFocused();
     });
@@ -807,7 +809,7 @@ test.describe('WORKSPACE keyboard navigation', () => {
             }
         }
         await page.keyboard.press(tab);
-        await expect(button(page, 'Remove query 1')).toBeFocused();
+        await expect(button(page, '+ Add query after 1')).toBeFocused();
         await expect(more).toHaveAttribute('aria-expanded', 'false');
         await more.focus();
         await page.keyboard.press('Space');
@@ -915,15 +917,15 @@ test.describe('WORKSPACE centering', () => {
         await expectCentered(page, 4);
         await press(page, 'Alt+ArrowUp', 3, top(4));
         await expectCentered(page, 3);
-        await titleField(page, 5).focus();
-        await press(page, 'Escape', 5, top(6));
-        await expectCentered(page, 5);
-        await press(page, 'ArrowDown', 5, '(aa OR bb)');
+        await titleField(page, 4).focus();
+        await press(page, 'Escape', 4, top(5));
+        await expectCentered(page, 4);
+        await press(page, 'ArrowDown', 4, '(aa OR bb)');
         await page.waitForTimeout(600);
         await page.mouse.wheel(0, 150);
-        await expect.poll(() => offCenter(page, 5)).toBeGreaterThan(50);
-        await press(page, 'ArrowUp', 5, top(6));
-        await expectCentered(page, 5);
+        await expect.poll(() => offCenter(page, 4)).toBeGreaterThan(50);
+        await press(page, 'ArrowUp', 4, top(5));
+        await expectCentered(page, 4);
     });
 
     test('Escape in the query box, and editing the whole query, center the card', async ({page}) => {

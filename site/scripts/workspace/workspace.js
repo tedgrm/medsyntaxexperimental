@@ -241,12 +241,12 @@ function createItem(queryString) {
                             <button class="btn" data-part="clear">Clear query</button>
                         </div>
                     </div>
+                    <button class="btn primary" data-part="add" data-label="+ Add query after">+<span class="add-words"> Add query</span></button>
                     <button class="btn danger" data-part="remove" data-label="Remove">Remove</button>
                 </div>
             </div>
             <div class="item-editor" id="item_editor_${id}"></div>
-        </div>
-        <div class="after"><button class="btn primary" data-part="add" data-label="+ Add query after">+ Add query</button></div>`;
+        </div>`;
 
     const frame = document.createElement('iframe');
     frame.id = 'page_is_fresh_' + id;
@@ -665,6 +665,16 @@ function duplicateItem(item) {
     addItem(items.indexOf(item) + 1, currentQueryString(item), 'Duplicated as query');
 }
 
+// An item with a title or a query is only removed after a confirmation.
+function confirmRemoval(item) {
+    const query = decompress(new URLSearchParams(currentQueryString(item)).get('query')).trim();
+    const title = itemTitle(item);
+    if (title === '' && query === '') {
+        return true;
+    }
+    return window.confirm('Remove query ' + (items.indexOf(item) + 1) + (title ? ' "' + title + '"' : '') + '?');
+}
+
 function removeItem(item) {
     const position = items.indexOf(item);
     // Older missing references can't come back any more: Undo is for this removal only.
@@ -813,7 +823,9 @@ document.getElementById('myList').addEventListener('click', (event) => {
             duplicateItem(item);
             break;
         case 'remove':
-            removeItem(item);
+            if (confirmRemoval(item)) {
+                removeItem(item);
+            }
             break;
         case 'clear':
             clearItem(item);

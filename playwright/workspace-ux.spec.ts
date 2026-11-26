@@ -2,7 +2,7 @@
 import {test, expect, type Page} from '@playwright/test';
 import {
     captureAlerts, enterItemQuery, enterItemTitle, enterQuery, itemBox, itemFrame, itemQuery, linkQueries, linkTitles,
-    openItemBox, openWorkspace, stableMiddle, titleField, waitForItems, workspaceItem, workspaceItems,
+    openItemBox, openWorkspace, removalPrompts, stableMiddle, titleField, waitForItems, workspaceItem, workspaceItems,
 } from './helpers';
 
 // WORKSPACE UX: product-development/workspace-ux.md. The numbers are its scenarios; 14-17 are in
@@ -238,12 +238,46 @@ test.describe('WORKSPACE managing items', () => {
         expect(await page.evaluate(() => history.length)).toBe(before);
     });
 
-    test('Add query is below the card, also while it is collapsed', async ({page}) => {
+    test('Remove asks first: Cancel keeps the item, OK removes it', async ({page}) => {
+        const prompts = removalPrompts(page);
+        prompts.accept = false;
+        await button(page, 'Remove query 2').click();
+        await expect.poll(() => prompts.messages).toEqual(['Remove query 2 "B"?']);
+        expect(await titles(page)).toEqual(['A', 'B', 'C']);
+        prompts.accept = true;
+        await button(page, 'Remove query 2').click();
+        await waitForItems(page, 2);
+        expect(await titles(page)).toEqual(['A', 'C']);
+        expect(prompts.messages).toHaveLength(2);
+    });
+
+    test('Remove does not ask for an item without title and query, and names an item by number without a title', async ({page}) => {
+        const prompts = removalPrompts(page);
+        await button(page, '+ Add query after 1').click();
+        await waitForItems(page, 4);
+        await button(page, 'Remove query 2').click();
+        await waitForItems(page, 3);
+        expect(prompts.messages).toEqual([]);
+        await enterItemTitle(page, 2, '');
+        await button(page, 'Remove query 3').click();
+        await expect.poll(() => prompts.messages).toEqual(['Remove query 3?']);
+    });
+
+    test('New workspace opens an empty WORKSPACE in a new tab', async ({page, context}) => {
+        const link = page.getByRole('link', {name: 'New workspace (opens in a new tab)'});
+        const [tab] = await Promise.all([context.waitForEvent('page'), link.click()]);
+        await waitForItems(tab, 1);
+        expect(new URL(tab.url()).pathname).toBe('/workspace/');
+        expect(await titles(tab)).toEqual(['']);
+        expect(await titles(page)).toEqual(['A', 'B', 'C']);
+    });
+
+    test('Add query is in the button row, before Remove, also while it is collapsed', async ({page}) => {
         const add = button(page, '+ Add query after 1');
-        await expect(workspaceItem(page, 0).locator('.card').getByRole('button', {name: /Add query/})).toHaveCount(0);
         await button(page, 'Collapse query 1').click();
-        const card = (await workspaceItem(page, 0).locator('.card').boundingBox())!;
-        expect((await add.boundingBox())!.y).toBeGreaterThan(card.y + card.height);
+        await expect(workspaceItem(page, 0).locator('.actions > .btn:visible').nth(-2)).toHaveAccessibleName('+ Add query after 1');
+        const remove = (await button(page, 'Remove query 1').boundingBox())!;
+        expect(Math.abs((await add.boundingBox())!.y - remove.y)).toBeLessThan(2);
         await add.click();
         await waitForItems(page, 4);
         expect(await titles(page)).toEqual(['A', '', 'B', 'C']);
@@ -396,6 +430,7 @@ test.describe('WORKSPACE example', () => {
     });
 
     test('it shows only while every item is clear', async ({page}) => {
+        removalPrompts(page);
         await enterItemTitle(page, 0, 'x');
         await expect(show(page)).toBeHidden();
         await enterItemTitle(page, 0, '  ');
@@ -436,9 +471,9 @@ test.describe('WORKSPACE Clear query', () => {
         await expect.poll(() => linkQueries(page)).toEqual([A.query, '', C.query]);
     });
 
-    test('it is directly before Remove, and the item has no clear button of its own', async ({page}) => {
+    test('it is just before + Add query and Remove, and the item has no clear button of its own', async ({page}) => {
         await expect(workspaceItem(page, 0).locator('.actions button:visible')).toHaveText(
-            ['Collapse', '↑', '↓', 'Duplicate', 'Edit query', 'Copy query', 'Clear query', 'Remove']);
+            ['Collapse', '↑', '↓', 'Duplicate', 'Edit query', 'Copy query', 'Clear query', '+ Add query', 'Remove']);
         await expect(itemFrame(page, 0).locator('#clear-button')).toBeHidden();
     });
 
@@ -535,10 +570,10 @@ test.describe('WORKSPACE Edit, Copy and the More menu', () => {
         await openWorkspace(page, [A, B, D]);
     });
 
-    test('26. all buttons are next to the title from 1000px, and four are in a menu below that', async ({page}) => {
-        const all = ['Collapse', '↑', '↓', 'Duplicate', 'Edit query', 'Copy query', 'Clear query', 'Remove'];
-        const few = ['Collapse', '↑', '↓', 'More ▾', 'Remove'];
-        for (const [width, texts] of [[1920, all], [1000, all], [999, few], [640, few], [375, few]] as const) {
+    test('26. all buttons are next to the title from 1140px, and four are in a menu below that', async ({page}) => {
+        const all = ['Collapse', '↑', '↓', 'Duplicate', 'Edit query', 'Copy query', 'Clear query', '+ Add query', 'Remove'];
+        const few = ['Collapse', '↑', '↓', 'More ▾', '+ Add query', 'Remove'];
+        for (const [width, texts] of [[1920, all], [1140, all], [1139, few], [640, few], [375, few]] as const) {
             await page.setViewportSize({width, height: 900});
             await expect(shown(page)).toHaveText([...texts]);
             const tops = await shown(page).evaluateAll((buttons) => [...new Set(buttons.map((b) => Math.round(b.getBoundingClientRect().top)))]);
