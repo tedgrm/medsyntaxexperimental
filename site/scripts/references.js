@@ -52,10 +52,19 @@ function renumberText(text, mapping, positions = []) {
 
 // As the warnings in editor.js that turn scope editing off
 function hasUnbalancedSyntax(query) {
-    const count = (character) => query.split(character).length - 1;
-    const wrongOrder = (open, close) => query.includes(close) && query.indexOf(open) > query.indexOf(close);
-    return count('"') % 2 !== 0 || count('\'') % 2 !== 0 || count('(') !== count(')') || count('[') !== count(']')
-        || wrongOrder('(', ')') || wrongOrder('[', ']');
+    // Brackets inside quotes are text.
+    const brackets = query.replace(/(["'])(?:(?=(\\?))\2.)*?\1/g, (quoted) => ' '.repeat(quoted.length));
+    const count = (text, character) => text.split(character).length - 1;
+    // Every closing bracket closes the last open one, of its own kind (as bracketOrderProblems in editor.js).
+    const open = [];
+    const wrongOrder = [...brackets].some((character) => {
+        if (character === '(' || character === '[') {
+            open.push(character);
+        }
+        return (character === ')' || character === ']') && open.pop() !== (character === ')' ? '(' : '[');
+    });
+    return count(query, '"') % 2 !== 0 || count(query, '\'') % 2 !== 0 || count(brackets, '(') !== count(brackets, ')')
+        || count(brackets, '[') !== count(brackets, ']') || wrongOrder;
 }
 
 // In brackets, unless one pair is around all of it already
