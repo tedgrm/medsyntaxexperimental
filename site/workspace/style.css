@@ -38,7 +38,8 @@ nav [aria-current] { color: var(--ink); font-weight: 600; text-decoration: none;
 
 main.wrap { padding-top: 18px; padding-bottom: 90px; }
 .btn { font: inherit; font-size: .9rem; font-weight: 500; color: inherit; background: var(--card); border: 1px solid var(--line); border-radius: 7px; padding: 5px 12px; min-height: 32px; cursor: pointer; }
-.btn:hover:enabled { border-color: var(--accent); }
+.btn:hover:enabled, a.btn:hover { border-color: var(--accent); }
+a.btn { display: inline-flex; align-items: center; gap: 4px; text-decoration: none; }
 .btn:disabled { opacity: .45; cursor: default; }
 .btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
 .btn.danger { background: var(--danger-bg); border-color: var(--danger-line); color: var(--danger-ink); }
@@ -55,18 +56,18 @@ main.wrap { padding-top: 18px; padding-bottom: 90px; }
 .list-actions { display: flex; flex-wrap: wrap; gap: 8px; }
 .actions, .more-menu { display: flex; flex-wrap: wrap; gap: 6px; }
 /* Enough room for all buttons next to the title: the menu is part of the row. */
-@media (min-width: 1000px) {
+@media (min-width: 1140px) {
     .more, .more-menu { display: contents; }
     [data-part="more"] { display: none; }
 }
-@media (max-width: 999.98px) {
+@media (max-width: 1139.98px) {
     .more { position: relative; }
     .more-menu { position: absolute; z-index: 1; top: calc(100% + 4px); right: 0; width: max-content; flex-direction: column; padding: 8px; background: var(--card); border: 1px solid var(--field-line); border-radius: 10px; box-shadow: 0 6px 18px rgb(0 0 0 / .25); }
     .item:not(.menu-open) .more-menu { display: none; }
     .more-menu .btn { text-align: left; }
 }
-/* With Copy full query, there is enough room from 1150px. */
-@media (min-width: 1000px) and (max-width: 1149.98px) {
+/* With Copy full query, there is enough room from 1270px. */
+@media (min-width: 1140px) and (max-width: 1269.98px) {
     .has-references .more { display: block; position: relative; }
     .has-references [data-part="more"] { display: inline-block; }
     .has-references .more-menu { display: flex; position: absolute; z-index: 1; top: calc(100% + 4px); right: 0; width: max-content; flex-direction: column; padding: 8px; background: var(--card); border: 1px solid var(--field-line); border-radius: 10px; box-shadow: 0 6px 18px rgb(0 0 0 / .25); }
@@ -76,7 +77,11 @@ main.wrap { padding-top: 18px; padding-bottom: 90px; }
 @media (max-width: 420px) {
     .brand { gap: 6px 10px; }
     .brand-mark { font-size: 1.15rem; padding-right: 10px; }
-    .actions > .btn, .more > .btn { padding-inline: 8px; }
+}
+/* Room for the whole button row next to the title down to 640px. */
+@media (max-width: 799.98px) {
+    .actions > .btn, .more > .btn { padding-inline: 6px; }
+    .add-words { display: none; }
 }
 .color-modes { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; margin-top: 10px; font-size: .9rem; }
 #color-modes-label { margin-right: 6px; }
@@ -90,7 +95,6 @@ main.wrap { padding-top: 18px; padding-bottom: 90px; }
 .keys summary { cursor: pointer; width: fit-content; }
 .keys ul { margin: 6px 0 0; padding-left: 20px; }
 .keys label { display: block; width: fit-content; margin-top: 6px; }
-.after { margin-top: 10px; }
 
 .is-collapsed .item-editor { display: none; }
 

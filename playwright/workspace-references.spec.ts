@@ -249,17 +249,17 @@ test.describe('References: copying', () => {
         await expect(button(page, 'More actions for query 3')).toHaveText('Copied');
     });
 
-    for (const width of [1920, 1150, 1149, 1000, 999, 375]) {
+    for (const width of [1920, 1270, 1269, 1140, 1139, 375]) {
         test(`the buttons are in one row at ${width}px`, async ({page}) => {
             await page.setViewportSize({width, height: 900});
             await openWorkspace(page, base);
             for (const n of [0, 2]) {
-                const inMenu = width < (n === 0 ? 1000 : 1150);
+                const inMenu = width < (n === 0 ? 1140 : 1270);
                 const shown = workspaceItem(page, n).locator('.actions .btn:visible');
-                await expect(shown).toHaveCount(inMenu ? 5 : n === 0 ? 8 : 9);
+                await expect(shown).toHaveCount(inMenu ? 6 : n === 0 ? 9 : 10);
                 const tops = await shown.evaluateAll((all) => [...new Set(all.map((b) => Math.round(b.getBoundingClientRect().top)))]);
                 expect(tops.length).toBe(1);
-                if (width >= 999) {
+                if (width >= 1139) {
                     const title = (await titleField(page, n).boundingBox())!;
                     expect(Math.abs(tops[0] - title.y)).toBeLessThan(6);
                     expect(title.width).toBeGreaterThan(190);
