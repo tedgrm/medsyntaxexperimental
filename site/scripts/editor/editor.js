@@ -346,7 +346,13 @@ function getParameterByName(name, url) {
         results = regex.exec(url);
     if (!results) return null;
     if (!results[2]) return '';
-    return decodeURIComponent(results[2].replace(/\+/g, " "));
+    try {
+        return decodeURIComponent(results[2].replace(/\+/g, " "));
+    } catch (e) {
+        // Malformed percent-encoding: treat the parameter as empty, so start-up goes on.
+        if (e instanceof URIError) return '';
+        throw e;
+    }
 }
 
 const warningBracketCloseElementId = "warning-bracket-close";
