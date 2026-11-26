@@ -306,7 +306,6 @@ test.describe('EDITOR edge cases', () => {
         }
 
         test('a link with malformed percent-encoding opens an empty EDITOR', async ({page}) => {
-            knownBug('decodeURIComponent throws, so the rest of the start-up is skipped');
             await page.goto('/index.html?query=%E0%A4%A');
             await expect(queryBox(page)).toHaveValue('');
             // The title is set by the start-up code after the query is read.

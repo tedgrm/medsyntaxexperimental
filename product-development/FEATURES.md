@@ -86,7 +86,7 @@ Medsyntax is a syntax assistant for (medical) search engine queries with a scope
   - [x] Operators between tabs or non-breaking spaces were not recognised; these now become regular spaces (tests: "is recognised")
   - [ ] HTML, entities and `___` are changed in the visualisation, and can be lost when a scope edit is confirmed
   - [x] The Back button changed the link but not the query; Back and Forward now show the query and title of the link (`restoreFromLink` in `editor.js`; test: "the Back button", not run yet)
-  - [ ] A link with malformed percent-encoding stops the start-up code
+  - [x] A link with malformed percent-encoding stopped the start-up code; such a parameter is now read as empty (`getParameterByName` in `editor.js`; test: "malformed percent-encoding")
   - [ ] Emptying the query box by hand does not bring back the demo button
 
 ### Known risks: # references
