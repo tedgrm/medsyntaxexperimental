@@ -1,5 +1,5 @@
 // @ts-check
-import {test, expect} from '@playwright/test';
+import {test, expect} from './base-test';
 import {enterQuery, expectWarnings, target} from './helpers';
 
 // EDITOR (site/index.html): syntax warnings. Bracket warnings first, then quote,

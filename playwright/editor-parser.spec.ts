@@ -1,5 +1,5 @@
 // @ts-check
-import {test, expect} from '@playwright/test';
+import {test, expect} from './base-test';
 import {enterQuery, expectWarnings, queryBox, target} from './helpers';
 
 // EDITOR (site/index.html): how syntaxParser turns a query into visualisation
