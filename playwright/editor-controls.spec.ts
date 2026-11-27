@@ -156,7 +156,7 @@ test.describe('EDITOR menu', () => {
         await expect(links.nth(2)).toHaveAttribute('href', /\/LICENSE$/);
         await expect(links.nth(3)).toHaveAttribute('href', 'https://mrgtverleg-lgtm.github.io/MedsyntaxQA/framework/');
         await expect(links.nth(3)).toHaveText('MedSyntax Framework');
-        await expect(links.nth(4)).toHaveAttribute('href', './workspace');
+        await expect(links.nth(4)).toHaveAttribute('href', 'https://tedoutlook.github.io/medsyntaxqa/workspace/');
         await expect(links.nth(4)).toHaveText('MedSyntaxMulti');
     });
 
@@ -169,7 +169,7 @@ test.describe('EDITOR menu', () => {
         await expect(framework).toHaveAttribute('href', 'https://mrgtverleg-lgtm.github.io/MedsyntaxQA/framework/');
         await expect(framework).toHaveAttribute('target', '_blank');
         await expect(multi).toBeVisible();
-        await expect(multi).toHaveAttribute('href', './workspace');
+        await expect(multi).toHaveAttribute('href', 'https://tedoutlook.github.io/medsyntaxqa/workspace/');
         await expect(multi).toHaveAttribute('target', '_blank');
         // On the same line as the menu button.
         const button = await menuButton(page).boundingBox();
