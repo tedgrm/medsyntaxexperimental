@@ -170,15 +170,12 @@ test.describe('WORKSPACE number keys', () => {
         await press(page, '1', 0, topA);
     });
 
-    test('from the More menu, which closes; not for a missing number', async ({page}) => {
-        await page.setViewportSize({width: 800, height: 800});
-        const more = button(page, 'More actions for query 1');
-        await more.focus();
-        await page.keyboard.press('Enter');
+    test('from a card button; not for a missing number', async ({page}) => {
+        const duplicate = button(page, 'Duplicate query 1');
+        await duplicate.focus();
         await page.keyboard.press('9');
-        await expect(more).toHaveAttribute('aria-expanded', 'true');
+        await expect(duplicate).toBeFocused();
         await press(page, '2', 1, topB);
-        await expect(more).toHaveAttribute('aria-expanded', 'false');
     });
 
     test('digits in text fields are typed', async ({page}) => {
@@ -324,13 +321,9 @@ test.describe('WORKSPACE Escape and Safari full screen', () => {
         expect(await escapeIsCancelled(page)).toBe(true);
     });
 
-    test('Escape is cancelled in the open More menu, but not on a button', async ({page}) => {
+    test('Escape is not cancelled on a card button', async ({page}) => {
         await openWorkspace(page, items);
-        await page.setViewportSize({width: 800, height: 800});
-        await button(page, 'More actions for query 1').focus();
-        expect(await escapeIsCancelled(page)).toBe(false);
-        await page.keyboard.press('Enter');
-        expect(await escapeIsCancelled(page)).toBe(true);
+        await button(page, 'Duplicate query 1').focus();
         expect(await escapeIsCancelled(page)).toBe(false);
     });
 });
@@ -793,14 +786,13 @@ test.describe('WORKSPACE keyboard navigation', () => {
         await press(page, 'Alt+ArrowDown', 2, topB);
     });
 
-    test('the keys do nothing in the More menu, and Tab goes through it and closes it', async ({page, browserName}) => {
+    test('Tab goes through the card buttons, and the keys do nothing on them', async ({page, browserName}) => {
         await page.setViewportSize({width: 800, height: 800});
         const tab = browserName === 'webkit' ? 'Alt+Tab' : 'Tab';
-        const more = button(page, 'More actions for query 1');
-        await more.focus();
-        await page.keyboard.press('Enter');
-        await expect(more).toHaveAttribute('aria-expanded', 'true');
-        for (const name of ['Duplicate query 1', 'Edit query A', 'Copy query A', 'Clear query A']) {
+        await button(page, 'Collapse query 1').focus();
+        // Move up is disabled on the first item.
+        for (const name of ['Move down query 1', 'Duplicate query 1', 'Edit query A', 'Copy query A', 'Clear query A',
+            '+ Add query after 1', 'Remove query 1']) {
             await page.keyboard.press(tab);
             await expect(button(page, name)).toBeFocused();
             for (const key of ['ArrowDown', 'Alt+ArrowDown', 't']) {
@@ -808,15 +800,6 @@ test.describe('WORKSPACE keyboard navigation', () => {
                 await expect(button(page, name)).toBeFocused();
             }
         }
-        await page.keyboard.press(tab);
-        await expect(button(page, '+ Add query after 1')).toBeFocused();
-        await expect(more).toHaveAttribute('aria-expanded', 'false');
-        await more.focus();
-        await page.keyboard.press('Space');
-        await page.keyboard.press(tab);
-        await page.keyboard.press('Escape');
-        await expect(more).toBeFocused();
-        await expect(more).toHaveAttribute('aria-expanded', 'false');
     });
 
     test('17. The keys do nothing on a card button', async ({page}) => {

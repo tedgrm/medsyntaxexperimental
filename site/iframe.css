@@ -11,12 +11,12 @@ body.ws-iframe-body {
     }
 }
 
-/* The colours are those of workspace/style.css. */
+/* The colours are those of workspace/style.css: the EDITOR's classic look, with a charcoal accent. */
 :root.ws-embedded {
     color-scheme: light;
-    --card: #fff; --ink: #1c2525; --muted: #586867;
-    --line: #c6d0cf; --field-line: #748382;
-    --accent: #127c79; --danger-bg: #fbe4e4; --danger-ink: #8b1d1d;
+    --card: lightgrey; --box: whitesmoke; --ink: #111; --muted: #3d3d3d;
+    --line: whitesmoke; --field-line: #5e5e5e;
+    --accent: #2b2b2b; --hover: darkorange; --hover-ink: #111; --danger-bg: #fbe4e4; --danger-ink: #8b1d1d;
     --item-color: #748382; /* until the WORKSPACE sends the item's colour */
     --item-line: var(--item-color);
     background: var(--card);
@@ -25,9 +25,9 @@ body.ws-iframe-body {
 /* data-theme comes from the WORKSPACE. Page and item need the same color-scheme. */
 :root.ws-embedded[data-theme="dark"] {
     color-scheme: dark;
-    --card: #222c2b; --ink: #e2eae9; --muted: #9bafad;
-    --line: #34413f; --field-line: #82928f;
-    --accent: #3db6b1; --danger-bg: #3b1d1d; --danger-ink: #f4b4b4;
+    --card: #26272b; --box: #383a3f; --ink: #eee; --muted: #b8b8b8;
+    --line: #4a4c52; --field-line: #8a8d94;
+    --accent: #ececec; --hover: #ffa64d; --danger-bg: #3b1d1d; --danger-ink: #f4b4b4;
     /* As lines on a dark card, the darker colours must be lighter. */
     --item-line: color-mix(in srgb, var(--item-color) 55%, white);
 }
@@ -37,7 +37,7 @@ body.ws-iframe-body {
     padding: 8px;
     background: var(--card);
     color: var(--ink);
-    font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif;
+    font: 15px/1.5 Tahoma, Verdana, sans-serif;
 }
 
 /* the elements the direct page hides in the item, before body.ws-iframe-body is set */
@@ -73,11 +73,10 @@ body.ws-iframe-body {
 .ws-embedded button {
     font: inherit;
     font-size: .9rem;
-    font-weight: 500;
-    color: inherit;
-    background: var(--card);
-    border: 1px solid var(--line);
-    border-radius: 7px;
+    color: var(--ink);
+    background: var(--box);
+    border: 1px solid var(--field-line);
+    border-radius: 5px;
     padding: 5px 12px;
     min-height: 32px;
     margin: 0 4px 0 0;
@@ -85,7 +84,9 @@ body.ws-iframe-body {
 }
 
 .ws-embedded button:hover:enabled {
-    border-color: var(--accent);
+    background: var(--hover);
+    border-color: var(--hover);
+    color: var(--hover-ink);
 }
 
 .ws-embedded .query-input {
@@ -96,9 +97,9 @@ body.ws-iframe-body {
     margin: 0 0 8px;
     padding: 7px 10px;
     color: inherit;
-    background: var(--card);
+    background: var(--box);
     border: 1px solid var(--field-line);
-    border-radius: 7px;
+    border-radius: 3px;
     font: inherit;
 }
 

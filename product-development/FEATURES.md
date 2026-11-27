@@ -43,7 +43,8 @@ Medsyntax is a syntax assistant for (medical) search engine queries with a scope
 - A work-in-progress warning (experimental v0.1, links may not open in later versions) as a modal, once per browser tab; the "v0.1 · work in progress" link in the header shows it again
 - Add, duplicate, move, collapse, clear the query, and remove (after a confirmation) with Undo, without disturbing other items
 - New workspace: opens an empty WORKSPACE in a new tab
-- Edit, copy and clear query in the card header, with a More menu on narrow screens
+- Edit, copy and clear query in the card header; the card's buttons are icons (Lucide) with their text in tooltips, without a More menu
+- The classic look of the EDITOR (light grey, whitesmoke, Tahoma, dark orange hover) with a charcoal accent, also in dark mode
 - Title per item in its card header, and a Show example button with four PICO queries while every item is clear
 - Number and colour per item; a switch for system, light, dark or greyscale colours, remembered in the browser
 - The query box shows while editing; otherwise only the visualisation

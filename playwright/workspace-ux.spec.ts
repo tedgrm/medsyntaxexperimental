@@ -275,7 +275,7 @@ test.describe('WORKSPACE managing items', () => {
     test('Add query is in the button row, before Remove, also while it is collapsed', async ({page}) => {
         const add = button(page, '+ Add query after 1');
         await button(page, 'Collapse query 1').click();
-        await expect(workspaceItem(page, 0).locator('.actions > .btn:visible').nth(-2)).toHaveAccessibleName('+ Add query after 1');
+        await expect(workspaceItem(page, 0).locator('.actions .btn:visible').nth(-2)).toHaveAccessibleName('+ Add query after 1');
         const remove = (await button(page, 'Remove query 1').boundingBox())!;
         expect(Math.abs((await add.boundingBox())!.y - remove.y)).toBeLessThan(2);
         await add.click();
@@ -472,8 +472,9 @@ test.describe('WORKSPACE Clear query', () => {
     });
 
     test('it is just before + Add query and Remove, and the item has no clear button of its own', async ({page}) => {
-        await expect(workspaceItem(page, 0).locator('.actions button:visible')).toHaveText(
-            ['Collapse', '↑', '↓', 'Duplicate', 'Edit query', 'Copy query', 'Clear query', '+ Add query', 'Remove']);
+        expect(await workspaceItem(page, 0).locator('.actions button:visible').evaluateAll(
+            (all) => all.map((b) => (b as HTMLElement).dataset.tip))).toEqual(
+            ['Collapse', 'Move up', 'Move down', 'Duplicate', 'Edit query', 'Copy query', 'Clear query', 'Add query after', 'Remove']);
         await expect(itemFrame(page, 0).locator('#clear-button')).toBeHidden();
     });
 
@@ -544,14 +545,14 @@ test.describe('WORKSPACE Clear query', () => {
     });
 });
 
-test.describe('WORKSPACE Edit, Copy and the More menu', () => {
+test.describe('WORKSPACE Edit, Copy and the icon buttons', () => {
     const D = {title: 'D', query: '"a b"[tiab] AND x*'};
     const status = (page: Page) => page.locator('#workspace-status');
     const copied = (page: Page) => page.evaluate(() => (window as any).copied);
-    const more = (page: Page, n: number) => button(page, 'More actions for query ' + n);
-    const menus = (page: Page) => page.locator('.more-menu:visible');
     const shown = (page: Page) => workspaceItem(page, 0).locator('.actions button:visible');
-    const narrow = (page: Page) => page.setViewportSize({width: 800, height: 900});
+    // Whether the tooltip of a card button (its ::after) shows.
+    const tipShown = (page: Page, name: string) => button(page, name)
+        .evaluate((element) => getComputedStyle(element, '::after').visibility === 'visible');
 
     test.beforeEach(async ({page}) => {
         await page.addInitScript(() => {
@@ -570,19 +571,25 @@ test.describe('WORKSPACE Edit, Copy and the More menu', () => {
         await openWorkspace(page, [A, B, D]);
     });
 
-    test('26. all buttons are next to the title from 1140px, and four are in a menu below that', async ({page}) => {
-        const all = ['Collapse', '↑', '↓', 'Duplicate', 'Edit query', 'Copy query', 'Clear query', '+ Add query', 'Remove'];
-        const few = ['Collapse', '↑', '↓', 'More ▾', '+ Add query', 'Remove'];
-        for (const [width, texts] of [[1920, all], [1140, all], [1139, few], [640, few], [375, few]] as const) {
+    test('26. every button is an icon with its text in a tooltip, in the row at any width', async ({page}) => {
+        const tips = ['Collapse', 'Move up', 'Move down', 'Duplicate', 'Edit query', 'Copy query', 'Clear query',
+            'Add query after', 'Remove'];
+        for (const width of [1920, 1140, 800, 640, 375]) {
             await page.setViewportSize({width, height: 900});
-            await expect(shown(page)).toHaveText([...texts]);
-            const tops = await shown(page).evaluateAll((buttons) => [...new Set(buttons.map((b) => Math.round(b.getBoundingClientRect().top)))]);
-            expect(tops.length).toBe(1);
-            const title = (await titleField(page, 0).boundingBox())!;
-            if (width >= 640) {
+            expect(await shown(page).evaluateAll((all) => all.map((b) => (b as HTMLElement).dataset.tip))).toEqual(tips);
+            expect(await shown(page).evaluateAll((all) => all.every((b) => b.textContent!.trim() === ''))).toBe(true);
+            // A narrow card wraps between groups, never inside one.
+            const groupTops = await workspaceItem(page, 0).locator('.button-group').evaluateAll((groups) => groups.map(
+                (group) => new Set([...group.querySelectorAll('button')].filter((b) => !(b as HTMLElement).hidden).map((b) => Math.round(b.getBoundingClientRect().top))).size));
+            expect(groupTops).toEqual([1, 1, 1]);
+            const tops = await shown(page).evaluateAll((all) => [...new Set(all.map((b) => Math.round(b.getBoundingClientRect().top)))]);
+            if (width >= 800) {
+                expect(tops.length).toBe(1);
+                const title = (await titleField(page, 0).boundingBox())!;
                 expect(Math.abs(tops[0] - title.y)).toBeLessThan(6);
                 expect(title.width).toBeGreaterThan(190);
             }
+            expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
         }
     });
 
@@ -622,14 +629,18 @@ test.describe('WORKSPACE Edit, Copy and the More menu', () => {
     test('27. Copy copies the query and says so for a moment', async ({page}) => {
         const copy = button(page, 'Copy query D');
         await copy.click();
-        await expect(copy).toHaveText('Copied');
+        await expect(copy).toHaveAttribute('data-tip', 'Copied');
+        await expect(copy.locator('.icon')).toHaveAttribute('data-icon', 'check');
+        expect(await tipShown(page, 'Copy query D')).toBe(true);
         await expect(status(page)).toHaveText('Query D: copied');
         expect(await copied(page)).toEqual([D.query]);
         await expect(copy).toBeFocused();
-        await expect(copy).toHaveText('Copy query', {timeout: 4000});
+        await expect(copy).toHaveAttribute('data-tip', 'Copy query', {timeout: 4000});
+        await expect(copy.locator('.icon')).toHaveAttribute('data-icon', 'copy');
         await page.evaluate(() => { (window as any).refuse = true; });
         await copy.click();
-        await expect(copy).toHaveText('Not copied');
+        await expect(copy).toHaveAttribute('data-tip', 'Not copied');
+        await expect(copy.locator('.icon')).toHaveAttribute('data-icon', 'x');
         await expect(status(page)).toHaveText('Query D: not copied');
     });
 
@@ -655,70 +666,31 @@ test.describe('WORKSPACE Edit, Copy and the More menu', () => {
         await expect(button(page, 'Copy query A')).toBeEnabled();
     });
 
-    test('28. every action works from the menu, and closes it', async ({page}) => {
-        await narrow(page);
-        await more(page, 3).click();
-        await expect(more(page, 3)).toHaveAttribute('aria-expanded', 'true');
-        await button(page, 'Copy query D').click();
-        await expect(menus(page)).toHaveCount(0);
-        await expect(more(page, 3)).toHaveText('Copied');
-        await expect(more(page, 3)).toBeFocused();
-        expect(await copied(page)).toEqual([D.query]);
-        await expect(more(page, 3)).toHaveText('More ▾', {timeout: 4000});
-
-        await more(page, 2).click();
-        await button(page, 'Clear query B').click();
-        await expect(menus(page)).toHaveCount(0);
-        await expect(more(page, 2)).toBeFocused();
-        await expect.poll(() => linkQueries(page)).toEqual([A.query, '', D.query]);
-
-        await more(page, 1).click();
-        await button(page, 'Edit query A').click();
-        await expect(itemBox(page, 0)).toBeFocused();
-        await expect(menus(page)).toHaveCount(0);
-
-        await more(page, 1).click();
-        await button(page, 'Duplicate query 1').click();
-        await waitForItems(page, 4);
-        await expect(titleField(page, 1)).toBeFocused();
-        await expect(menus(page)).toHaveCount(0);
-        expect(await titles(page)).toEqual(['A', 'A', 'B', 'D']);
-    });
-
-    test('29. the menu closes: More, Escape, a click elsewhere or in an item, another menu', async ({page}) => {
-        await narrow(page);
-        const open = async () => {
-            await more(page, 1).click();
-            await expect(menus(page)).toHaveCount(1);
-        };
-        await open();
-        await more(page, 1).click();
-        await expect(menus(page)).toHaveCount(0);
-        await open();
+    test('29. a tooltip shows on hover and keyboard focus; Escape hides it until the pointer moves', async ({page, browserName}) => {
+        // WebKit only tabs to buttons with Alt.
+        const tab = browserName === 'webkit' ? 'Alt+Tab' : 'Tab';
+        expect(await tipShown(page, 'Duplicate query 1')).toBe(false);
+        await button(page, 'Duplicate query 1').hover();
+        expect(await tipShown(page, 'Duplicate query 1')).toBe(true);
         await page.keyboard.press('Escape');
-        await expect(menus(page)).toHaveCount(0);
-        await open();
-        await page.getByRole('heading', {level: 1}).click();
-        await expect(menus(page)).toHaveCount(0);
-        await open();
-        await visual(page, 2).click({position: {x: 5, y: 5}});
-        await expect(menus(page)).toHaveCount(0);
-        await open();
-        await more(page, 3).click();
-        await expect(menus(page)).toHaveCount(1);
-        await expect(more(page, 1)).toHaveAttribute('aria-expanded', 'false');
-        await expect(more(page, 3)).toHaveAttribute('aria-expanded', 'true');
+        expect(await tipShown(page, 'Duplicate query 1')).toBe(false);
+        await page.mouse.move(5, 5);
+        await button(page, 'Edit query A').hover();
+        expect(await tipShown(page, 'Edit query A')).toBe(true);
+        await page.mouse.move(5, 5);
+        await button(page, 'Clear query B').focus();
+        await page.keyboard.press('Shift+' + tab);
+        await page.keyboard.press(tab);
+        await expect(button(page, 'Clear query B')).toBeFocused();
+        expect(await tipShown(page, 'Clear query B')).toBe(true);
     });
 
-    test('the open menu stays on the screen at 375px, also for the last item', async ({page}) => {
+    test('the tooltips of the last buttons stay on the screen at 375px', async ({page}) => {
         await page.setViewportSize({width: 375, height: 812});
-        for (const n of [1, 3]) {
-            await more(page, n).click();
-            const box = (await menus(page).boundingBox())!;
-            expect(box.x).toBeGreaterThanOrEqual(0);
-            expect(box.x + box.width).toBeLessThanOrEqual(375);
+        for (const name of ['Remove query 1', '+ Add query after 3', 'Remove query 3']) {
+            await button(page, name).hover();
+            expect(await tipShown(page, name)).toBe(true);
             expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(375);
-            await menus(page).locator('button').last().click({trial: true});
         }
     });
 });
@@ -827,10 +799,10 @@ test.describe('WORKSPACE style', () => {
 
     test('19./20. Dark mode: page and items are dark, the visualisation white, a direct EDITOR unchanged', async ({page}) => {
         await openWorkspace(page, [A]);
-        await expect(page.locator('body')).toHaveCSS('background-color', 'rgb(230, 234, 234)');
+        await expect(page.locator('body')).toHaveCSS('background-color', 'rgb(211, 211, 211)');
         await page.emulateMedia({colorScheme: 'dark'});
-        await expect(page.locator('body')).toHaveCSS('background-color', 'rgb(19, 25, 25)');
-        await expect(itemFrame(page, 0).locator('body')).toHaveCSS('background-color', 'rgb(34, 44, 43)');
+        await expect(page.locator('body')).toHaveCSS('background-color', 'rgb(38, 39, 43)');
+        await expect(itemFrame(page, 0).locator('body')).toHaveCSS('background-color', 'rgb(38, 39, 43)');
         await expect(visual(page, 0)).toHaveCSS('background-color', 'rgb(255, 255, 255)');
 
         await page.goto('/index.html');
@@ -867,14 +839,14 @@ test.describe('WORKSPACE colour switch', () => {
     async function expectTheme(page: Page, theme: string, count: number) {
         await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
         await expect(page.locator('body')).toHaveCSS('background-color',
-            {light: 'rgb(230, 234, 234)', dark: 'rgb(19, 25, 25)', greyscale: 'rgb(233, 233, 233)'}[theme]!);
+            {light: 'rgb(211, 211, 211)', dark: 'rgb(38, 39, 43)', greyscale: 'rgb(211, 211, 211)'}[theme]!);
         for (const part of ['header', 'main', '#undo-toast']) {
             await expect(page.locator(part)).toHaveCSS('filter', theme === 'greyscale' ? 'grayscale(1)' : 'none');
         }
         for (let n = 0; n < count; n++) {
             await expect(itemFrame(page, n).locator('html')).toHaveAttribute('data-theme', theme);
             await expect(itemFrame(page, n).locator('body')).toHaveCSS('background-color',
-                theme === 'dark' ? 'rgb(34, 44, 43)' : 'rgb(255, 255, 255)');
+                theme === 'dark' ? 'rgb(38, 39, 43)' : 'rgb(211, 211, 211)');
             await expect(visual(page, n)).toHaveCSS('background-color', 'rgb(255, 255, 255)');
         }
     }
