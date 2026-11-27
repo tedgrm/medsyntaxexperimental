@@ -666,7 +666,9 @@ test.describe('WORKSPACE Edit, Copy and the icon buttons', () => {
         await expect(button(page, 'Copy query A')).toBeEnabled();
     });
 
-    test('29. a tooltip shows on hover and keyboard focus; Escape hides it until the pointer moves', async ({page}) => {
+    test('29. a tooltip shows on hover and keyboard focus; Escape hides it until the pointer moves', async ({page, browserName}) => {
+        // WebKit only tabs to buttons with Alt.
+        const tab = browserName === 'webkit' ? 'Alt+Tab' : 'Tab';
         expect(await tipShown(page, 'Duplicate query 1')).toBe(false);
         await button(page, 'Duplicate query 1').hover();
         expect(await tipShown(page, 'Duplicate query 1')).toBe(true);
@@ -677,8 +679,8 @@ test.describe('WORKSPACE Edit, Copy and the icon buttons', () => {
         expect(await tipShown(page, 'Edit query A')).toBe(true);
         await page.mouse.move(5, 5);
         await button(page, 'Clear query B').focus();
-        await page.keyboard.press('Shift+Tab');
-        await page.keyboard.press('Tab');
+        await page.keyboard.press('Shift+' + tab);
+        await page.keyboard.press(tab);
         await expect(button(page, 'Clear query B')).toBeFocused();
         expect(await tipShown(page, 'Clear query B')).toBe(true);
     });
