@@ -1,6 +1,6 @@
 # Product development resources
 
-Material for planning and shaping Medsyntax (EDITOR) and MedsyntaxQA (WORKSPACE). Nothing here is loaded by the site.
+Material for planning and shaping MedSyntax (EDITOR) and MedSyntaxMulti (WORKSPACE). Nothing here is loaded by the site.
 
 Suggested contents:
 

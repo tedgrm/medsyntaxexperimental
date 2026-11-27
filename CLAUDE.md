@@ -9,7 +9,7 @@ See `product-development/FEATURES.md` for the feature list and the TODO list. Ke
 - `site/`: the published site. Everything the pages load is in here; nothing outside it is served or published. Paths in URLs are relative to it (`site/workspace/` is `/workspace/`).
 - `site/index.html`: the main Medsyntax app (markup only; its logic is in `site/scripts/editor/`).
 - `site/style.css`, `site/iframe.css`: styles for the main app.
-- `site/workspace/`: MedsyntaxQA (Query Augmentation), an experimental v0.1. It embeds several copies of `../index.html?ws=<id>&...` in iframes and loads `../scripts/...`, so it must be served from **`site/`**, not from `site/workspace/` on its own.
+- `site/workspace/`: MedSyntaxMulti, an experimental v0.1. It embeds several copies of `../index.html?ws=<id>&...` in iframes and loads `../scripts/...`, so it must be served from **`site/`**, not from `site/workspace/` on its own.
 - `site/scripts/`: client-side scripts loaded by the pages.
   - `third-party/`: vendored libraries, currently `lzstring.js` (MIT), `iframe-resizer/` (GPLv3) and `jquery/` (MIT). Anything added here later is third-party too. **Read-only**, and not to be tested. See Conventions.
   - `editor/`: the EDITOR's own scripts, loaded by `site/index.html` in this order. They are plain scripts (not modules) that share globals and are called from inline `on…` handlers, and they need the elements above their `<script>` tags, so keep the tags where they are.
@@ -45,14 +45,14 @@ See `product-development/FEATURES.md` for the feature list and the TODO list. Ke
 There are two pages, both called `index.html`. Each has a short identifier. Use it in chat, plans, commit messages and docs instead of a bare "index.html":
 
 - **EDITOR**: the Medsyntax query editor, `site/index.html`
-- **WORKSPACE**: the MedsyntaxQA workspace, `site/workspace/index.html`. It holds a list of EDITORs. A single EDITOR embedded in the WORKSPACE is an **item** (as in the code: `addItem`, `removeItem`, `li_item_<id>`).
+- **WORKSPACE**: the MedSyntaxMulti workspace, `site/workspace/index.html`. It holds a list of EDITORs. A single EDITOR embedded in the WORKSPACE is an **item** (as in the code: `addItem`, `removeItem`, `li_item_<id>`).
 
 If the user just says "index.html", ask which one they mean, unless the context makes it clear.
 
-| | EDITOR (Medsyntax app) | WORKSPACE (MedsyntaxQA workspace) |
+| | EDITOR (MedSyntax app) | WORKSPACE (MedSyntaxMulti workspace) |
 |---|---|---|
 | File | `site/index.html` | `site/workspace/index.html` |
-| `<title>` | `Medsyntax` | `MedsyntaxQA` |
+| `<title>` | `MedSyntax` | `MedSyntaxMulti` |
 | URL (dev) | http://127.0.0.1:8080/index.html | http://127.0.0.1:8080/workspace/ |
 | Styles | `site/style.css`, plus `site/iframe.css` when embedded (the look of items, with dark mode) | `site/workspace/style.css` |
 | Version | 1.0 (`README.md`) | 0.1, experimental (`site/workspace/README.md`) |

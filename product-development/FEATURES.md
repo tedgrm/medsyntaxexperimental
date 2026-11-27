@@ -17,6 +17,7 @@ Medsyntax is a syntax assistant for (medical) search engine queries with a scope
   - Proximity/NEAR operators
   - Embase-style field syntax
 - Colour or greyscale display mode
+- Menu with contact, issues, licence, the MedSyntax Framework and the WORKSPACE; the WORKSPACE header links to the EDITOR, the MedSyntax Framework and the issues
 
 ## Syntax checks (warnings)
 - Unbalanced `(` / `)` brackets
@@ -37,7 +38,7 @@ Medsyntax is a syntax assistant for (medical) search engine queries with a scope
 - The EDITOR writes its link 200 ms after the last key, as one Back step, or at once when you leave the field, finish an action, copy the link or leave the page
 - Copy-query and copy-link buttons (clipboard)
 
-## WORKSPACE (MedsyntaxQA)
+## WORKSPACE (MedSyntaxMulti)
 - A list of queries (items), each an embedded EDITOR, kept in one shareable link
 - Add, duplicate, move, collapse, clear the query, and remove (after a confirmation) with Undo, without disturbing other items
 - New workspace: opens an empty WORKSPACE in a new tab
@@ -63,7 +64,7 @@ Medsyntax is a syntax assistant for (medical) search engine queries with a scope
 - Claude Code hooks that report how long each shell command took (`.claude/settings.json`, needs `jq`)
 - GitHub Pages deployment via `.github/workflows/static.yml` (publishes only `site/`)
 - Qodana code analysis config
-- `site/workspace/`: MedsyntaxQA (Query Augmentation) experimental version (v0.1), see WORKSPACE above
+- `site/workspace/`: MedSyntaxMulti experimental version (v0.1), see WORKSPACE above
 
 ---
 
@@ -127,7 +128,7 @@ Not covered by the WORKSPACE's references between items (REF in `product-develop
 
 ### Docs / housekeeping
 - [ ] Update `README.md` (still says "medsyntaxexperimental"; add usage and dev instructions)
-- [ ] Document how `site/workspace/` (MedsyntaxQA) relates to the main app
+- [ ] Document how `site/workspace/` (MedSyntaxMulti) relates to the main app
 
 ### Ideas
 - [ ] Support more search engine syntaxes (PubMed, Ovid, etc.)

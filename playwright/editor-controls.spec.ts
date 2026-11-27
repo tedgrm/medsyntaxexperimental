@@ -16,12 +16,12 @@ test.describe('EDITOR title', () => {
         await titleBox(page).fill('Heart search');
         await titleBox(page).press('End');
 
-        await expect(page).toHaveTitle('Medsyntax: Heart search');
+        await expect(page).toHaveTitle('MedSyntax: Heart search');
         await expect(page).toHaveURL(/[?&]querytitle=(?!Q(&|$))/);
     });
 
-    test('without a title the page title is "Medsyntax:"', async ({page}) => {
-        await expect(page).toHaveTitle('Medsyntax:');
+    test('without a title the page title is "MedSyntax:"', async ({page}) => {
+        await expect(page).toHaveTitle('MedSyntax:');
     });
 });
 
@@ -147,15 +147,17 @@ test.describe('EDITOR menu', () => {
         await expect(dropdown(page)).toBeHidden();
     });
 
-    test('lists the contact, issues, licence, PICO and workspace links', async ({page}) => {
+    test('lists the contact, issues, licence, framework and workspace links', async ({page}) => {
         await menuButton(page).click();
         const links = dropdown(page).locator('a');
         await expect(links).toHaveCount(5);
         await expect(links.nth(0)).toHaveAttribute('href', /^mailto:/);
         await expect(links.nth(1)).toHaveAttribute('href', /\/issues$/);
         await expect(links.nth(2)).toHaveAttribute('href', /\/LICENSE$/);
-        await expect(links.nth(3)).toHaveAttribute('href', /picomedsyntax/);
+        await expect(links.nth(3)).toHaveAttribute('href', 'https://mrgtverleg-lgtm.github.io/MedsyntaxQA/framework/');
+        await expect(links.nth(3)).toHaveText('MedSyntax Framework');
         await expect(links.nth(4)).toHaveAttribute('href', './workspace');
+        await expect(links.nth(4)).toHaveText('MedSyntaxMulti');
     });
 });
 

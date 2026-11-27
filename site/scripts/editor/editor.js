@@ -37,7 +37,7 @@ $(document).ready(function () {
     document.getElementById("demo2").innerText = '(( librarian* OR "information specialist" OR informationist* OR "information professional" OR "knowledge worker" OR "information scientist*" OR "information services" ) AND ( librar* AND (medical OR academic OR research OR special OR college OR junior )) AND (DE "library orientation" OR DE "learning" OR DE "information services" OR "User education" OR instruct* OR educat* OR orient* OR teach* OR curricul* OR train* OR pedagog* OR tutor* OR lesson* OR lectur* OR learn * OR webinar* ) )';
     let param2 = getParameterByName('querytitle');
     let queryTitle = LZString.decompressFromEncodedURIComponent(param2)
-    document.title = 'Medsyntax: ' + queryTitle;
+    document.title = 'MedSyntax: ' + queryTitle;
     $("#query-title1").val(queryTitle);
     updateTitle("query-title1");
 
@@ -161,7 +161,7 @@ function outLinkFunc() {
 function updateTitle(titleId) {
     // console.log('updateTitle');
     const title = document.getElementById(titleId).value;
-    document.title = 'Medsyntax: ' + title;
+    document.title = 'MedSyntax: ' + title;
     updateUrl('querytitle', LZString.compressToEncodedURIComponent(title));
 }
 
@@ -283,7 +283,7 @@ function restoreFromLink() {
     restoringFromHistory = true;
     try {
         $("#query-title1").val(title);
-        document.title = 'Medsyntax: ' + title;
+        document.title = 'MedSyntax: ' + title;
         if (query === '') {
             clearButtonFunc();
         } else {
