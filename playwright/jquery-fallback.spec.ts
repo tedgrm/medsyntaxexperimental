@@ -1,7 +1,11 @@
 // @ts-check
 import {readFileSync} from 'node:fs';
 import {test, expect, type Page} from '@playwright/test';
+import {markWipNoticeSeen} from './base-test';
 import {enterItemQuery, enterQuery, linkQueries, target, waitForItems} from './helpers';
+
+// The WORKSPACE's work-in-progress warning must not cover the page.
+test.beforeEach(({context}) => markWipNoticeSeen(context));
 
 // Both pages load jQuery from code.jquery.com, then jsDelivr, then cdnjs, then
 // our local copy. Each source is only tried when the ones before it failed.

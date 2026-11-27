@@ -561,7 +561,7 @@ document.addEventListener('focusin', (event) => {
 // The focus goes into an item.
 window.addEventListener('blur', closeMenu);
 document.addEventListener('keydown', (event) => {
-    if (event.key === 'Escape' && itemWithMenu) {
+    if (event.key === 'Escape' && itemWithMenu && !wipNoticeIsOpen()) {
         event.preventDefault(); // Safari: stay in full screen
         const item = itemWithMenu;
         closeMenu();
@@ -618,7 +618,7 @@ numberKeysSwitch.addEventListener('change', () => {
 document.addEventListener('keydown', (event) => {
     if (!/^[0-9]$/.test(event.key) || event.ctrlKey || event.altKey || event.metaKey || event.repeat
         || event.isComposing || event.target.matches('textarea, input:not([type=radio], [type=checkbox])')
-        || !numberKeysEverywhere()) {
+        || !numberKeysEverywhere() || wipNoticeIsOpen()) { // not behind the work-in-progress warning
         return;
     }
     event.preventDefault();

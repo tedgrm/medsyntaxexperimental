@@ -1,6 +1,6 @@
 // The `test` that spec files import instead of the one of @playwright/test.
 // Not a spec file, so Playwright does not run it as tests.
-import {test as base} from '@playwright/test';
+import {test as base, type BrowserContext} from '@playwright/test';
 
 export {expect, type Locator, type Page} from '@playwright/test';
 
@@ -14,11 +14,33 @@ const localJquery = 'site/scripts/third-party/jquery/jquery-3.6.0.js';
 // The real CDN sends this too; a script with an SRI hash needs it.
 const cors = {'Access-Control-Allow-Origin': '*'};
 
-export const test = base.extend<{localJquery: void}>({
+// The WORKSPACE shows a work-in-progress warning once per tab (scripts/workspace/wip-notice.js). Tests start
+// with it seen, so it doesn't cover the page; tests of the warning itself use test.use({wipNotice: 'unseen'}).
+const wipNoticeKey = 'medsyntaxqa-wip-notice-seen';
+
+/** Pages of this context start with the work-in-progress warning seen. Also for jquery-fallback.spec.ts. */
+export async function markWipNoticeSeen(context: BrowserContext) {
+    await context.addInitScript((key) => {
+        try {
+            sessionStorage.setItem(key, 'yes');
+        } catch (error) {
+            // storage is blocked (about:blank)
+        }
+    }, wipNoticeKey);
+}
+
+export const test = base.extend<{localJquery: void, wipNotice: 'seen' | 'unseen', wipNoticeSetup: void}>({
     localJquery: [async ({context}, use) => {
         // On the context, so it also covers iframes and pages a test opens.
         await context.route(mainCdn, (route) =>
             route.fulfill({path: localJquery, contentType: 'text/javascript', headers: cors}));
+        await use();
+    }, {auto: true}],
+    wipNotice: ['seen', {option: true}],
+    wipNoticeSetup: [async ({context, wipNotice}, use) => {
+        if (wipNotice === 'seen') {
+            await markWipNoticeSeen(context);
+        }
         await use();
     }, {auto: true}],
 });

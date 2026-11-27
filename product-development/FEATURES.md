@@ -40,6 +40,7 @@ Medsyntax is a syntax assistant for (medical) search engine queries with a scope
 
 ## WORKSPACE (MedSyntaxMulti)
 - A list of queries (items), each an embedded EDITOR, kept in one shareable link
+- A work-in-progress warning (experimental v0.1, links may not open in later versions) as a modal, once per browser tab; the "v0.1 · work in progress" link in the header shows it again
 - Add, duplicate, move, collapse, clear the query, and remove (after a confirmation) with Undo, without disturbing other items
 - New workspace: opens an empty WORKSPACE in a new tab
 - Edit, copy and clear query in the card header, with a More menu on narrow screens
