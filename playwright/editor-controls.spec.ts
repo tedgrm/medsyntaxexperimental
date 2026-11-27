@@ -159,6 +159,23 @@ test.describe('EDITOR menu', () => {
         await expect(links.nth(4)).toHaveAttribute('href', './workspace');
         await expect(links.nth(4)).toHaveText('MedSyntaxMulti');
     });
+
+    test('shows the framework and MedSyntaxMulti links next to the menu', async ({page}) => {
+        await expect(dropdown(page)).toBeHidden();
+        const nav = page.getByRole('navigation', {name: 'MedSyntax tools'});
+        const framework = nav.getByRole('link', {name: 'MedSyntax Framework'});
+        const multi = nav.getByRole('link', {name: 'MedSyntaxMulti'});
+        await expect(framework).toBeVisible();
+        await expect(framework).toHaveAttribute('href', 'https://mrgtverleg-lgtm.github.io/MedsyntaxQA/framework/');
+        await expect(framework).toHaveAttribute('target', '_blank');
+        await expect(multi).toBeVisible();
+        await expect(multi).toHaveAttribute('href', './workspace');
+        await expect(multi).toHaveAttribute('target', '_blank');
+        // On the same line as the menu button.
+        const button = await menuButton(page).boundingBox();
+        const link = await framework.boundingBox();
+        expect(Math.abs((link!.y + link!.height / 2) - (button!.y + button!.height / 2))).toBeLessThan(8);
+    });
 });
 
 test.describe('EDITOR colour mode', () => {
