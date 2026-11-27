@@ -17,7 +17,7 @@ Medsyntax is a syntax assistant for (medical) search engine queries with a scope
   - Proximity/NEAR operators
   - Embase-style field syntax
 - Colour or greyscale display mode
-- Menu with contact, issues, licence, the MedSyntax Framework and the WORKSPACE; the WORKSPACE header links to the EDITOR, the MedSyntax Framework and the issues
+- Menu with contact, issues, licence, the MedSyntax Framework and the WORKSPACE, the last two also as links next to the menu button (not in items); the WORKSPACE header links to the EDITOR, the MedSyntax Framework and the issues
 
 ## Syntax checks (warnings)
 - Unbalanced `(` / `)` brackets

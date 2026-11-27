@@ -539,6 +539,19 @@ p {
     background-color: #ddd;
 }
 
+/* The framework and MedSyntaxMulti links next to the menu button (also in the menu). */
+.top-links {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 4px 16px;
+    margin-left: 12px;
+    vertical-align: middle;
+}
+
+.top-links a {
+    color: darkcyan;
+}
+
 .show {
     display: block;
 }

@@ -26,6 +26,7 @@ test.describe('EDITOR embedded mode (?ws=1)', () => {
         await expect(page.locator('link#iframeCss')).toHaveAttribute('href', './iframe.css');
         // iframe.css hides the menu, the spacing and the manual.
         await expect(page.getByRole('button', {name: 'menu'})).toBeHidden();
+        await expect(page.locator('.top-links')).toBeHidden();
         await expect(page.locator('.manual')).toBeHidden();
         await expect(page.locator('.iframe-hide:visible')).toHaveCount(0);
     });
