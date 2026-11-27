@@ -175,3 +175,64 @@ test.describe('WORKSPACE', () => {
 
 
 });
+
+// The work-in-progress warning (scripts/workspace/wip-notice.js): a modal dialog, once per tab.
+test.describe('WORKSPACE work-in-progress warning', () => {
+    test.use({wipNotice: 'unseen'});
+
+    const notice = (page: Page) => page.getByRole('dialog', {name: 'Work in progress'});
+    const okButton = (page: Page) => notice(page).getByRole('button', {name: 'I understand'});
+
+    test('shows on the first load, with the focus on its button', async ({page}) => {
+        await page.goto('/workspace/');
+        await expect(notice(page)).toBeVisible();
+        await expect(notice(page)).toContainText('experimental work in progress (v0.1)');
+        await expect(notice(page)).toContainText('links you share now may not open in later versions');
+        await expect(okButton(page)).toBeFocused();
+        // modal: the page behind it is inert
+        expect(await page.evaluate(() => document.querySelector('#wip-notice')!.matches(':modal'))).toBe(true);
+    });
+
+    test('I understand closes it, and it stays closed in this tab but shows in a new one', async ({page, context}) => {
+        await page.goto('/workspace/');
+        await okButton(page).click();
+        await expect(notice(page)).toBeHidden();
+        await page.reload();
+        await waitForItems(page, 1);
+        await expect(notice(page)).toBeHidden();
+
+        const newTab = await context.newPage();
+        await newTab.goto('/workspace/');
+        await expect(notice(newTab)).toBeVisible();
+    });
+
+    test('Escape closes it, and it stays closed', async ({page}) => {
+        await page.goto('/workspace/');
+        await expect(okButton(page)).toBeFocused();
+        await page.keyboard.press('Escape');
+        await expect(notice(page)).toBeHidden();
+        await page.reload();
+        await waitForItems(page, 1);
+        await expect(notice(page)).toBeHidden();
+    });
+
+    test('a number key does not select a query behind it', async ({page}) => {
+        await page.goto('/workspace/');
+        await waitForItems(page, 1);
+        await expect(okButton(page)).toBeFocused();
+        await page.keyboard.press('1');
+        await expect(notice(page)).toBeVisible();
+        await expect(okButton(page)).toBeFocused();
+        // workspace.js keeps a typed number for a second after it selected that item
+        expect(await page.evaluate('typedNumber')).toBe('');
+    });
+
+    test('the header button opens it again', async ({page}) => {
+        await page.goto('/workspace/');
+        await okButton(page).click();
+        await expect(notice(page)).toBeHidden();
+        await page.getByRole('button', {name: 'v0.1 · work in progress'}).click();
+        await expect(notice(page)).toBeVisible();
+        await expect(okButton(page)).toBeFocused();
+    });
+});
