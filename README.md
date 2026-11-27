@@ -4,7 +4,7 @@
 
 syntax assistant for (medical) search engines with a scope-driven editor
 
-Page: https://tedgrm.github.io/medsyntaxexperimental
+Page: https://www.medsyntax.org
 Version: 1.0
 ##
 
