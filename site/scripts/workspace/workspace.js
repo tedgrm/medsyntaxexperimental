@@ -217,6 +217,17 @@ function queryStringsFromLink() {
 
 // --- Building items
 
+// A button in the card header: a Lucide icon (style.css), with its text in a tooltip (data-tip). The accessible
+// name is set elsewhere (aria-label).
+function iconButton(name, tip, icon, attributes = '', kind = '') {
+    return `<button class="btn icon-button ${kind}" data-part="${name}" data-tip="${tip}" ${attributes}>`
+        + `<span class="icon" data-icon="${icon}" aria-hidden="true"></span></button>`;
+}
+
+function setIcon(button, icon) {
+    button.querySelector('.icon').dataset.icon = icon;
+}
+
 function createItem(queryString) {
     const id = nextItemId++;
     const element = document.createElement('li');
@@ -228,21 +239,22 @@ function createItem(queryString) {
                 <span class="badge" data-part="badge"></span>
                 <input class="item-title" data-part="title" type="text">
                 <div class="actions">
-                    <button class="btn" data-part="collapse" data-label="Collapse" aria-controls="item_editor_${id}"></button>
-                    <button class="btn" data-part="up" data-label="Move up">↑</button>
-                    <button class="btn" data-part="down" data-label="Move down">↓</button>
-                    <div class="more">
-                        <button class="btn" data-part="more" data-label="More actions for" aria-expanded="false" aria-controls="item_menu_${id}">More ▾</button>
-                        <div class="more-menu" id="item_menu_${id}">
-                            <button class="btn" data-part="duplicate" data-label="Duplicate">Duplicate</button>
-                            <button class="btn" data-part="edit">Edit query</button>
-                            <button class="btn" data-part="copy">Copy query</button>
-                            <button class="btn" data-part="copy-full" hidden>Copy full query</button>
-                            <button class="btn" data-part="clear">Clear query</button>
-                        </div>
-                    </div>
-                    <button class="btn primary" data-part="add" data-label="+ Add query after">+<span class="add-words"> Add query</span></button>
-                    <button class="btn danger" data-part="remove" data-label="Remove">Remove</button>
+                    <span class="button-group">
+                        ${iconButton('collapse', 'Collapse', 'chevron-up', `data-label="Collapse" aria-controls="item_editor_${id}"`)}
+                        ${iconButton('up', 'Move up', 'arrow-up', 'data-label="Move up"')}
+                        ${iconButton('down', 'Move down', 'arrow-down', 'data-label="Move down"')}
+                    </span>
+                    <span class="button-group">
+                        ${iconButton('duplicate', 'Duplicate', 'copy-plus', 'data-label="Duplicate"')}
+                        ${iconButton('edit', 'Edit query', 'pencil')}
+                        ${iconButton('copy', 'Copy query', 'copy')}
+                        ${iconButton('copy-full', 'Copy full query', 'files', 'hidden')}
+                        ${iconButton('clear', 'Clear query', 'eraser')}
+                    </span>
+                    <span class="button-group">
+                        ${iconButton('add', 'Add query after', 'plus', 'data-label="+ Add query after"', 'primary')}
+                        ${iconButton('remove', 'Remove', 'trash-2', 'data-label="Remove"', 'danger')}
+                    </span>
                 </div>
             </div>
             <div class="item-editor" id="item_editor_${id}"></div>
@@ -409,9 +421,9 @@ function refreshItem(item) {
 function refreshCollapse(item) {
     const collapsed = item.element.classList.contains('is-collapsed');
     const button = part(item, 'collapse');
-    button.textContent = collapsed ? 'Expand' : 'Collapse';
-    button.dataset.label = button.textContent;
-    button.setAttribute('aria-label', button.textContent + ' query ' + (items.indexOf(item) + 1));
+    button.dataset.label = button.dataset.tip = collapsed ? 'Expand' : 'Collapse';
+    setIcon(button, collapsed ? 'chevron-down' : 'chevron-up');
+    button.setAttribute('aria-label', button.dataset.label + ' query ' + (items.indexOf(item) + 1));
     button.setAttribute('aria-expanded', String(!collapsed));
 }
 
@@ -516,57 +528,20 @@ function selectItem(item) {
 function focusPart(item, name) {
     stopCentering();
     clearPendingFocus();
-    // Not shown: in the closed More menu.
-    const button = part(item, name).offsetParent ? part(item, name) : part(item, 'more');
-    button.focus({preventScroll: true});
+    part(item, name).focus({preventScroll: true});
     item.element.scrollIntoView({block: 'nearest'});
 }
 
-// --- The More menu, on narrow screens (see style.css)
+// --- Tooltips of the card's icon buttons (style.css). Escape hides them until the pointer moves or the focus
+// goes elsewhere (WCAG 1.4.13). Escape keeps its other jobs.
 
-let itemWithMenu = null;
-
-function closeMenu() {
-    if (itemWithMenu) {
-        itemWithMenu.element.classList.remove('menu-open');
-        part(itemWithMenu, 'more').setAttribute('aria-expanded', 'false');
-        itemWithMenu = null;
-    }
-}
-
-function toggleMenu(item) {
-    const open = itemWithMenu !== item;
-    closeMenu();
-    if (open) {
-        itemWithMenu = item;
-        item.element.classList.add('menu-open');
-        part(item, 'more').setAttribute('aria-expanded', 'true');
-    }
-}
-
-function isOutsideMenu(element) {
-    return itemWithMenu && !itemWithMenu.element.querySelector('.more').contains(element);
-}
-
-document.addEventListener('pointerdown', (event) => {
-    if (isOutsideMenu(event.target)) {
-        closeMenu();
-    }
-}, true);
-document.addEventListener('focusin', (event) => {
-    if (isOutsideMenu(event.target)) {
-        closeMenu();
+document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') {
+        document.body.classList.add('tips-hidden');
     }
 });
-// The focus goes into an item.
-window.addEventListener('blur', closeMenu);
-document.addEventListener('keydown', (event) => {
-    if (event.key === 'Escape' && itemWithMenu && !wipNoticeIsOpen()) {
-        event.preventDefault(); // Safari: stay in full screen
-        const item = itemWithMenu;
-        closeMenu();
-        part(item, 'more').focus();
-    }
+['pointermove', 'focusin'].forEach((type) => {
+    document.addEventListener(type, () => document.body.classList.remove('tips-hidden'));
 });
 
 // --- Number keys: a digit selects the item with that number. A digit soon after it extends the number, if
@@ -588,7 +563,6 @@ function selectByDigit(digit) {
         announce('No query ' + digit);
         return;
     }
-    closeMenu();
     typedNumber = number;
     typedNumberTimer = setTimeout(clearTypedNumber, numberPause);
     selectItem(items[number - 1]);
@@ -735,20 +709,25 @@ function editQuery(item) {
     focusItem(item, 'editQuery');
 }
 
-const copyLabels = {copy: 'Copy query', 'copy-full': 'Copy full query', more: 'More ▾'};
+const copyButtons = {copy: {tip: 'Copy query', icon: 'copy'}, 'copy-full': {tip: 'Copy full query', icon: 'files'}};
 
-// The text of the button that the user sees becomes the result for a moment.
+function resetCopyButton(item, name) {
+    const button = part(item, name);
+    button.dataset.tip = copyButtons[name].tip;
+    setIcon(button, copyButtons[name].icon);
+    button.classList.remove('tip-shown');
+}
+
+// For a moment, the button's icon and tooltip show the result.
 function showCopyResult(item, name, text) {
-    const button = part(item, name).offsetParent ? part(item, name) : part(item, 'more');
+    const button = part(item, name);
     clearTimeout(item.copyTimer);
-    Object.entries(copyLabels).forEach(([other, label]) => {
-        part(item, other).textContent = label;
-    });
-    button.textContent = text;
+    Object.keys(copyButtons).forEach((other) => resetCopyButton(item, other));
+    button.dataset.tip = text;
+    setIcon(button, text === 'Copied' ? 'check' : 'x');
+    button.classList.add('tip-shown');
     announce('Query ' + itemName(item) + ': ' + text.toLowerCase());
-    item.copyTimer = setTimeout(() => {
-        button.textContent = copyLabels[button.dataset.part];
-    }, 2000);
+    item.copyTimer = setTimeout(() => resetCopyButton(item, name), 2000);
 }
 
 async function copyQuery(item) {
@@ -798,13 +777,7 @@ document.getElementById('myList').addEventListener('click', (event) => {
         return;
     }
     const item = itemOf(button);
-    if (button.dataset.part !== 'more') {
-        closeMenu();
-    }
     switch (button.dataset.part) {
-        case 'more':
-            toggleMenu(item);
-            break;
         case 'edit':
             editQuery(item);
             break;
@@ -933,7 +906,6 @@ window.addEventListener('message', (event) => {
             focusPart(item, 'title');
             break;
         case 'pointerState':
-            closeMenu();
             setPointerDown(event.data.payload);
             break;
         case 'queryBoxLeft':

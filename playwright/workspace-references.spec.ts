@@ -218,10 +218,10 @@ test.describe('References: copying', () => {
         expect(await page.evaluate(() => (window as any).copied)).toEqual(['#3 AND #1']);
         const copyFull = button(page, 'Copy full query D');
         await copyFull.click();
-        await expect(copyFull).toHaveText('Copied');
+        await expect(copyFull).toHaveAttribute('data-tip', 'Copied');
         await expect(copyFull).toBeFocused();
         expect(await page.evaluate(() => (window as any).copied)).toEqual(['#3 AND #1', fullD]);
-        await expect(copyFull).toHaveText('Copy full query', {timeout: 4000});
+        await expect(copyFull).toHaveAttribute('data-tip', 'Copy full query', {timeout: 4000});
     });
 
     test('brackets around a whole query are not doubled', async ({page}) => {
@@ -232,7 +232,7 @@ test.describe('References: copying', () => {
         expect(tidy(await fullQuery(page, 3))).toBe('(aa OR bb) AND ((aa) OR (bb)) AND ("(x)" OR cc)');
     });
 
-    test('collapsed, just typed, while loading, and from the More menu', async ({page}) => {
+    test('collapsed, just typed, while loading, and on a narrow screen', async ({page}) => {
         await openWorkspace(page, base);
         await button(page, 'Collapse query 3').click();
         expect(await fullQuery(page, 2)).toBe(fullC);
@@ -244,23 +244,21 @@ test.describe('References: copying', () => {
         expect(await fullQuery(page, 2)).toBe('(aax) OR (bb)');
         await waitForItems(page, 4);
         await page.setViewportSize({width: 800, height: 800});
-        await expect(partOf(page, 2, 'copy-full')).toBeHidden();
-        await button(page, 'More actions for query 3').click();
+        await expect(partOf(page, 2, 'copy-full')).toBeVisible();
         await button(page, 'Copy full query C').click();
-        await expect(button(page, 'More actions for query 3')).toHaveText('Copied');
+        await expect(button(page, 'Copy full query C')).toHaveAttribute('data-tip', 'Copied');
     });
 
-    for (const width of [1920, 1270, 1269, 1140, 1139, 375]) {
-        test(`the buttons are in one row at ${width}px`, async ({page}) => {
+    for (const width of [1920, 1140, 800, 375]) {
+        test(`all buttons show, with Copy full query, at ${width}px`, async ({page}) => {
             await page.setViewportSize({width, height: 900});
             await openWorkspace(page, base);
             for (const n of [0, 2]) {
-                const inMenu = width < (n === 0 ? 1140 : 1270);
                 const shown = workspaceItem(page, n).locator('.actions .btn:visible');
-                await expect(shown).toHaveCount(inMenu ? 6 : n === 0 ? 9 : 10);
+                await expect(shown).toHaveCount(n === 0 ? 9 : 10);
                 const tops = await shown.evaluateAll((all) => [...new Set(all.map((b) => Math.round(b.getBoundingClientRect().top)))]);
-                expect(tops.length).toBe(1);
-                if (width >= 1139) {
+                if (width >= 800) {
+                    expect(tops.length).toBe(1);
                     const title = (await titleField(page, n).boundingBox())!;
                     expect(Math.abs(tops[0] - title.y)).toBeLessThan(6);
                     expect(title.width).toBeGreaterThan(190);

@@ -46,29 +46,35 @@ Make the WORKSPACE easy to recognise, scan and rearrange.
 
 | Use | Value | Contrast |
 |---|---|---|
-| Page background | `#e6eaea` | |
-| Card | `#ffffff` | |
-| Text / secondary text | `#1c2525` / `#586867` | secondary: 4.82:1 on the page, 5.85:1 on a card |
-| Card and plain button border | `#c6d0cf` | 1.58:1 on a card; see A11Y-1 |
-| Accent, with white text | `#127c79` | 5.02:1 |
-| Text field border | `#748382` (not in the fork) | 3.95:1 on white; a field needs 3:1, as nothing else marks it |
-| Link text on the page | `#0e6663` (not in the fork: the accent has only 4.14:1 there) | at least 4.5:1 |
-| Danger button: text, background, border | `#8b1d1d`, `#fbe4e4`, `#e3a5a5` | text: 7.56:1 |
+The classic look of the EDITOR (`site/style.css`): light grey page, whitesmoke boxes with thick borders, Tahoma, dark orange on hover. The accent is charcoal (the EDITOR's dark cyan is not used).
+
+| Use | Value | Contrast |
+|---|---|---|
+| Page background and inside of a card | `lightgrey` (`#d3d3d3`) | |
+| Fields and plain buttons | `whitesmoke` (`#f5f5f5`) | |
+| Font | Tahoma, Verdana, sans-serif | |
+| Text / secondary text | `#111` / `#3d3d3d` | secondary: 7.26:1 on the page, 9.96:1 on a field |
+| Card border | `whitesmoke`, 5px, 10px radius (as the EDITOR's `.manual` box) | 1.37:1; see A11Y-1 |
+| Accent (buttons, selected colour mode, links, focus), with white text | `#2b2b2b` | text 14.16:1, as link 9.46:1 |
+| Hover of every button, with `#111` text | `darkorange` (`#ff8c00`) | 8.10:1 |
+| Text field and plain button border | `#5e5e5e` | 4.33:1 on the page, 5.95:1 on a field |
+| Danger button: text, background, border | `#8b1d1d`, `#fbe4e4`, `#b86b6b` | text: 7.56:1 |
 | Items with white badge text: 1, 4, 5, 8, 9, 10 | `#E12A39` `#7527A1` `#1F6FD1` `#7A4A2B` `#5B6B7B` `#14613B` | text: at least 4.57:1 |
-| Items with dark badge text (`#1c2525`): 2, 3, 6, 7 | `#FFB407` `#89CA26` `#17B8C9` `#F2760C` | text: at least 5.50:1. As a line on white only 1.78:1 to 2.85:1, see STYLE-8 |
+| Items with dark badge text (`#1c2525`): 2, 3, 6, 7 | `#FFB407` `#89CA26` `#17B8C9` `#F2760C` | text: at least 5.50:1. As a line on white only 1.78:1 to 2.85:1, see STYLE-8. As the card's left edge on light grey from 1.19:1: decoration, the badge and the frames carry the colour |
 
 Dark mode:
 
 | Use | Value | Contrast |
 |---|---|---|
-| Page background / card | `#131919` / `#222c2b` | |
-| Text / secondary text and placeholders | `#e2eae9` / `#9bafad` | on a card 11.74:1 / 6.24:1 |
-| Card and plain button border | `#34413f` | 1.35:1; see A11Y-1 |
-| Text field border | `#82928f` (not in the fork) | 4.41:1 |
-| Accent (also links), with `#052120` text | `#3db6b1` | text 6.85:1, as link 7.22:1 |
-| Danger: text, background, border | `#f4b4b4`, `#3b1d1d`, `#703636` | text 8.72:1 |
+| Page background and inside of a card / fields and plain buttons | `#26272b` / `#383a3f` | |
+| Text / secondary text and placeholders | `#eee` / `#b8b8b8` | on the page 12.86:1 / 7.52:1, on a field 9.81:1 / 5.74:1 |
+| Card border | `#4a4c52` | 1.74:1; see A11Y-1 |
+| Text field and plain button border | `#8a8d94` | 4.49:1 on the page, 3.42:1 on a field |
+| Accent (buttons, focus), with `#1e1e1e` text / links | `#ececec` / `#f2f2f2` | text 14.11:1, link 13.33:1 |
+| Hover of every button, with `#111` text | `#ffa64d` | 9.72:1 |
+| Danger: text, background, border | `#f4b4b4`, `#3b1d1d`, `#a05555` | text 8.72:1 |
 | Item badge | the same colours and text as in light mode | text: at least 4.57:1 |
-| Item edge, query box and visualisation border | the item colour, 55% mixed with white | at least 5.00:1 on a card |
+| Item edge, query box and visualisation border | the item colour, 55% mixed with white | at least 5.19:1 on a card |
 | Marker of the current item or scope (every mode) | dashes in the item's colour on a white (`#fff`) line, 3px, with a glow. Around an item the dashes are slightly longer (9px, gaps 4px) | dashes: at least 3:1 on the white; the brightest colours are darkened for that |
 
 ## Requirements
@@ -78,13 +84,13 @@ Dark mode:
 | ID | Requirement | Priority |
 |---|---|---|
 | STYLE-1 | A header shows the brand mark (text only, so it does not look like a button), the name MedSyntaxMulti as the page heading, the line "Workspace for multiline searches", and links to the EDITOR and to "Report an issue" (the same issues page as the EDITOR's menu). | Must |
-| STYLE-2 | Each item is a white card with a 1px line, a 10px radius and a 3px left edge in the item's colour. It replaces the random border. | Must |
-| STYLE-3 | The card's header shows a badge with the item's number in its colour (white text, or dark where white has less than 4.5:1), the title field, and the item's buttons: Collapse, up, down, Duplicate, Edit query, Copy query, Clear query, + Add query, Remove. Below a viewport of 1140px, Duplicate to Clear query are in a More menu. Below 800px, + Add query shows only "+" (its accessible name stays "+ Add query after <number>"). On a phone the buttons are below the title. After item 10 the colours repeat. | Must |
+| STYLE-2 | Each item is a light grey card with a 5px whitesmoke border, a 10px radius and its left edge in the item's colour (the EDITOR's classic look). It replaces the random border. | Must |
+| STYLE-3 | The card's header shows a badge with the item's number in its colour (white text, or dark where white has less than 4.5:1), the title field, and the item's buttons as icons (Lucide, `site/scripts/third-party/lucide/`) in three groups with a line between them: Collapse/Expand, Move up, Move down · Duplicate, Edit query, Copy query, Copy full query (with references), Clear query · Add query after, Remove. Each icon's text shows in a tooltip on hover and keyboard focus; Escape hides it until the pointer moves (WCAG 1.4.13). Their accessible names stay as before ("Collapse query 1", "+ Add query after 1"). There is no More menu: a narrow card wraps between groups, never inside one; on a phone the buttons are below the title, without the lines. After item 10 the colours repeat. | Must |
 | STYLE-4 | The content is centred and at most 1240px wide. | Must |
-| STYLE-5 | Add is a primary (accent) button, Remove a danger button, the others are plain. | Must |
-| STYLE-6 | Colours are CSS variables in `site/workspace/style.css`. Fonts come from the system. | Must |
-| STYLE-7 | The title field has a 1px border and a 7px radius. While an item is collapsed and has no title, the field's placeholder is the start of the query, or "Empty query". The item has no title field of its own. | Should |
-| STYLE-8 | Items have no grey background. The query box is white, monospace, with a 3px border in the item's colour and a 1px line in the text field border colour around it, because some item colours have less than 3:1 on white. | Must |
+| STYLE-5 | Add is a primary (accent) button, Remove a danger button, the others are plain. Every button except Remove turns dark orange on hover, like the EDITOR's menu button. | Must |
+| STYLE-6 | Colours are CSS variables in `site/workspace/style.css` and, for items, `site/iframe.css`. The font is Tahoma, as in the EDITOR. | Must |
+| STYLE-7 | The title field is whitesmoke and bold, with a 1px border and a 3px radius. While an item is collapsed and has no title, the field's placeholder is the start of the query, or "Empty query". The item has no title field of its own. | Should |
+| STYLE-8 | Items have the card's grey background. The query box is whitesmoke, monospace, with a 3px border in the item's colour and a 1px line in the text field border colour around it, because some item colours have less than 3:1 on white. | Must |
 | STYLE-9 | The visualisation is on white, in a frame with a 3px border in the item's colour and an 8px radius. Its syntax colours stay as now. | Must |
 | STYLE-10 | Warnings in items are dark red on light red with a dark red left edge. | Must |
 | STYLE-11 | With Dark, or with System and a dark system setting, the WORKSPACE and its items use the dark colours. They change at once when the choice or the setting changes, without reloading items. The visualisation, and a scope edit in it, stay light. | Must |
@@ -112,8 +118,8 @@ Dark mode:
 | ITEM-14 | The title can be edited in the card's header, also while the item is collapsed or still loading. A title is never lost by an action right after typing. | Must |
 | ITEM-15 | "Show a multiline search example", next to "Show example", puts nine items, the last one with nested references, in place of the clear ones, under the same conditions. "Show example", next to "Add query at the top", puts four items with the labels, queries and order of the Medsyntax PICO demo in place of the clear ones (C has no query; O is nested, with brackets in brackets in brackets). It shows only while every item is clear, so it never replaces work. Like add, it ends a pending Undo. Items have no demo button. | Should |
 | ITEM-16 | The button that adds a query after an item is below its card, also while the item is collapsed. | Must |
-| ITEM-17 | "Copy query" in the card's header copies the query, also while the item is collapsed or loading. The button (More, if it is in the menu) says "Copied" or "Not copied" for two seconds. It is disabled without a query. Items have no Edit or Copy buttons of their own. | Must |
-| ITEM-18 | The More menu closes on More, Escape (the focus goes to More), a choice, a click elsewhere or in an item, when the focus leaves it, and when another one opens. | Must |
+| ITEM-17 | "Copy query" in the card's header copies the query, also while the item is collapsed or loading. For two seconds its tooltip says "Copied" (with a check icon) or "Not copied" (with a cross). It is disabled without a query. Items have no Edit or Copy buttons of their own. | Must |
+| ITEM-18 | (Dropped: the More menu is gone; all buttons always show as icons, see STYLE-3.) | — |
 
 ### References between items
 
@@ -205,10 +211,10 @@ To become Playwright tests. Unless stated otherwise: three items with the titles
 23. **Title:** rename B in its card header. The link, the Clear query button's name and the tree label follow, also after a reload.
 24. **Title while collapsed:** collapse B and empty its title. The field shows the query as placeholder.
 25. **Example:** open `/workspace/` and click Show example. The four PICO items are there, with Medsyntax PICO's colours, also after a reload, and the button is gone.
-26. **Button row:** at 1140px all nine buttons are next to the title; at 1139px there are six, with More.
+26. **Button row:** every icon button is in the row at any width, with its tooltip on hover and focus; at 375px the groups wrap below the title without sideways scrolling.
 27. **Copy query:** it copies the query and says so; if the browser refuses, it says that.
-28. **More menu:** every action works from it and closes it.
-29. **Closing the menu:** each way of ITEM-18.
+28. (Dropped with the More menu.)
+29. **Tooltips:** hover or Tab to an icon button shows its text; Escape hides it until the pointer moves.
 30. **Colour switch:** choose Dark, Greyscale and Light: the page and all items change at once, and the link stays the same. After a reload the last choice is still there.
 31. **References:** with A `aa`, B `bb`, C `#1 OR #2` and D `#3 AND #1`: Copy full query of D gives `((aa) OR (bb)) AND (aa)`. Move B up: C is `#2 OR #1`, D is `#3 AND #2`, and the full queries are the same. Remove B: C is `#1 OR #2?`, with a warning in C and D; Undo restores both. All scenarios are in `playwright/workspace-references.spec.ts`.
 
@@ -220,7 +226,7 @@ To become Playwright tests. Unless stated otherwise: three items with the titles
 - The iframes allow alerts now (`allow-modals`), which the existing sandbox blocked.
 - Clear query asks the item to clear itself (message `clearQuery`). The prototype doesn't have this button in the header.
 - The title field is in the WORKSPACE, which decides about titles: it puts its value in the item's query string, and sends it to the item (message `setTitle`) for the tree label. T sends `focusTitle`.
-- The prototype still has the summary, the title, Edit, Copy and demo buttons in the item, and Add in the card. It has no More menu.
+- The prototype still has the summary, the title, Edit, Copy and demo buttons in the item, and Add in the card. It has no More menu, and neither has the WORKSPACE now.
 - The numbers change before the list does, at once in each item (`renumberItemReferences`, a direct call). What an item holds is always the newest; its `updateUrl` message is only a sign. An item that hasn't read its query yet (`itemIsReady`) loads again with the new numbers.
 - An item that loads without its scripts (WebKit, during quick changes) loads again, at most three times.
 - A moved item loses its own unfinished scope edit, because its iframe loads again.
