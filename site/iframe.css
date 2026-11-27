@@ -1,0 +1,285 @@
+/* An EDITOR embedded in the WORKSPACE (an item). Only loaded with ?ws=<id>. */
+body.ws-iframe-body {
+    /*.tooltip,*/
+    #copy-link-button,
+    /*#copy-query-button,*/
+    .dropdown-menu,
+    .iframe-hide,
+    .medsyntax-title,
+    .manual {
+        display: none !important;
+    }
+}
+
+/* The colours are those of workspace/style.css: the EDITOR's classic look, with a charcoal accent. */
+:root.ws-embedded {
+    color-scheme: light;
+    --card: lightgrey; --box: whitesmoke; --ink: #111; --muted: #3d3d3d;
+    --line: whitesmoke; --field-line: #5e5e5e;
+    --accent: #2b2b2b; --hover: darkorange; --hover-ink: #111; --danger-bg: #fbe4e4; --danger-ink: #8b1d1d;
+    --item-color: #748382; /* until the WORKSPACE sends the item's colour */
+    --item-line: var(--item-color);
+    background: var(--card);
+}
+
+/* data-theme comes from the WORKSPACE. Page and item need the same color-scheme. */
+:root.ws-embedded[data-theme="dark"] {
+    color-scheme: dark;
+    --card: #26272b; --box: #383a3f; --ink: #eee; --muted: #b8b8b8;
+    --line: #4a4c52; --field-line: #8a8d94;
+    --accent: #ececec; --hover: #ffa64d; --danger-bg: #3b1d1d; --danger-ink: #f4b4b4;
+    /* As lines on a dark card, the darker colours must be lighter. */
+    --item-line: color-mix(in srgb, var(--item-color) 55%, white);
+}
+
+.ws-embedded body {
+    margin: 0;
+    padding: 8px;
+    background: var(--card);
+    color: var(--ink);
+    font: 15px/1.5 Tahoma, Verdana, sans-serif;
+}
+
+/* the elements the direct page hides in the item, before body.ws-iframe-body is set */
+.ws-embedded .dropdown-menu,
+.ws-embedded .manual,
+.ws-embedded .medsyntax-title,
+.ws-embedded .iframe-hide,
+.ws-embedded #copy-link-button,
+.ws-embedded #demo-button,
+/* the WORKSPACE has these in the card header */
+.ws-embedded #query-title1,
+.ws-embedded #clear-button,
+.ws-embedded .tooltip,
+.ws-embedded body > br {
+    display: none !important;
+}
+
+/* Until the scripts are ready every warning shows, which would make the item very tall for a moment. */
+.ws-embedded body:not(.ws-iframe-body) .warning-medsyntax {
+    display: none;
+}
+
+/* Until then the query box has the height of its 10 rows; a clear one gets its minimum height. */
+.ws-embedded body:not(.ws-iframe-body) .query-input {
+    height: 84px;
+}
+
+.ws-embedded :focus-visible {
+    outline: 3px solid var(--accent);
+    outline-offset: 2px;
+}
+
+.ws-embedded button {
+    font: inherit;
+    font-size: .9rem;
+    color: var(--ink);
+    background: var(--box);
+    border: 1px solid var(--field-line);
+    border-radius: 5px;
+    padding: 5px 12px;
+    min-height: 32px;
+    margin: 0 4px 0 0;
+    cursor: pointer;
+}
+
+.ws-embedded button:hover:enabled {
+    background: var(--hover);
+    border-color: var(--hover);
+    color: var(--hover-ink);
+}
+
+.ws-embedded .query-input {
+    display: block;
+    box-sizing: border-box;
+    width: 100% !important; /* textAreaAdjust sets a width */
+    max-width: 760px;
+    margin: 0 0 8px;
+    padding: 7px 10px;
+    color: inherit;
+    background: var(--box);
+    border: 1px solid var(--field-line);
+    border-radius: 3px;
+    font: inherit;
+}
+
+.ws-embedded .query-input {
+    min-height: 84px;
+    margin-top: 8px;
+    border: 3px solid var(--item-line);
+    /* at least 3:1 contrast, also around the bright colours */
+    box-shadow: 0 0 0 1px var(--field-line);
+    font: .9rem/1.5 ui-monospace, Menlo, Consolas, monospace;
+    resize: vertical;
+}
+
+.ws-embedded ::placeholder {
+    color: var(--muted);
+    opacity: 1;
+    font-weight: 400;
+}
+
+.ws-embedded p.warning-medsyntax {
+    margin: 0 0 6px;
+    padding: 4px 10px;
+    color: var(--danger-ink);
+    background: var(--danger-bg);
+    border-left: 4px solid var(--danger-ink);
+    border-radius: 4px;
+    font-size: .9rem;
+}
+
+.ws-embedded #medsyntax {
+    margin: 8px 0;
+}
+
+/* Always white paper, also in dark mode: its colours carry meaning. */
+.ws-embedded #medsyntax-target1 {
+    display: block;
+    box-sizing: border-box;
+    margin: 0;
+    padding: 6px 10px;
+    color-scheme: light;
+    color: #1c2525;
+    background: #fff;
+    border: 3px solid var(--item-line);
+    border-radius: 8px;
+    overflow-wrap: anywhere;
+}
+
+.ws-embedded #medsyntax-target1:empty {
+    display: none;
+}
+
+.ws-embedded .medsyntax div.search-string {
+    padding: 0;
+    background: #fff;
+    font-family: var(--font-sans);
+}
+
+.ws-embedded .dynamic-input {
+    max-width: 100%;
+    box-sizing: border-box;
+    color: #1c2525;
+}
+
+.ws-embedded #demo2 {
+    display: none;
+}
+
+/* A reference to another item. Here only its room: it is drawn over the visualisation, in its item's colour
+   (scripts/editor/item-references.js). A problem also has a dashed line. */
+.ws-embedded .item-ref {
+    padding: 0 5px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+#item-refs .drawn-ref {
+    position: absolute;
+    box-sizing: border-box;
+    border-radius: 4px;
+    font: 700 15px var(--font-sans);
+    text-align: center;
+    pointer-events: none;
+}
+
+#item-refs .drawn-ref.has-problem {
+    outline: 1px dashed #8b1d1d;
+    outline-offset: -1px;
+    background: #fbe4e4;
+    color: #8b1d1d;
+}
+
+/* --- Keyboard navigation (scripts/editor/item-keyboard.js) --- */
+
+/* The tree has the focus; the marker shows where it is. */
+#item-tree,
+#item-tree div {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    outline: none;
+}
+
+/* The marker of the current item or scope: dashes in the item's colour on a white line. The brightest colours are
+   darkened, so that each has at least 3:1 contrast with the white: all of them a bit in browsers without relative
+   colours. The dashes make it differ from the solid borders around it. */
+.ws-embedded {
+    --dash: color-mix(in srgb, var(--item-color) 70%, black);
+}
+
+@supports (color: oklch(from red min(l, .64) c h)) {
+    .ws-embedded {
+        --dash: oklch(from var(--item-color) min(l, .64) c h);
+    }
+}
+
+.item-is-current body::before,
+#item-marker .current-scope {
+    --glow: var(--item-color);
+    border: 3px solid #fff;
+    border-radius: 6px;
+    /* Only decoration: the dashes on white have the contrast. */
+    box-shadow: 0 0 8px 2px var(--glow);
+    animation: marker-pulse .6s ease-out;
+    pointer-events: none;
+}
+
+/* Around an item it lies on the card, which can be dark; a scope is always on white paper. */
+.item-is-current body::before {
+    --glow: var(--item-line);
+}
+
+/* When the selection moves; item-keyboard.js keeps it from starting again when a marker is drawn again. */
+@keyframes marker-pulse {
+    from { box-shadow: 0 0 0 0 var(--glow); }
+    35% { box-shadow: 0 0 14px 5px var(--glow); }
+}
+
+.item-is-current body::before,
+.item-is-current body::after {
+    content: "";
+    position: fixed;
+    z-index: 1;
+    inset: 13px 5px; /* against the borders inside it */
+    pointer-events: none;
+}
+
+/* Dashes of 9px with gaps of 4px, slightly longer than those of a scope: CSS can't set that for a dashed border. */
+.item-is-current body::after {
+    --dashes-across: repeating-linear-gradient(90deg, var(--dash) 0 9px, transparent 9px 13px);
+    --dashes-down: repeating-linear-gradient(180deg, var(--dash) 0 9px, transparent 9px 13px);
+    background:
+        var(--dashes-across) top / 100% 3px no-repeat,
+        var(--dashes-across) bottom / 100% 3px no-repeat,
+        var(--dashes-down) left / 3px 100% no-repeat,
+        var(--dashes-down) right / 3px 100% no-repeat;
+    border-radius: 6px;
+}
+
+#item-marker .current-scope {
+    position: absolute;
+    box-sizing: border-box;
+}
+
+#item-marker .current-scope::after {
+    content: "";
+    position: absolute;
+    inset: -3px;
+    border: 3px dashed var(--dash);
+    border-radius: 6px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .ws-embedded .medsyntax div {
+        transition: none;
+    }
+
+    .item-is-current body::before,
+    #item-marker .current-scope {
+        animation: none;
+    }
+}

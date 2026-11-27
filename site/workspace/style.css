@@ -1,0 +1,138 @@
+/* WORKSPACE (index.html). The look of the items themselves is in ../iframe.css.
+   The classic look of the EDITOR (../style.css): light grey page, whitesmoke boxes with thick borders, Tahoma,
+   dark orange on hover. The accent is charcoal. --card is the inside of an item, --box a field or button on it. */
+:root {
+    color-scheme: light;
+    --bg: lightgrey; --card: lightgrey; --box: whitesmoke; --ink: #111; --muted: #3d3d3d;
+    --line: whitesmoke; --field-line: #5e5e5e;
+    --accent: #2b2b2b; --accent-ink: #fff; --hover: darkorange; --hover-ink: #111;
+    --danger-bg: #fbe4e4; --danger-ink: #8b1d1d; --danger-line: #b86b6b;
+    --link: #2b2b2b; --badge-dark-ink: #1c2525;
+    --font-sans: Tahoma, Verdana, sans-serif;
+}
+/* data-theme is set by scripts/workspace/color-mode.js. */
+:root[data-theme="dark"] {
+    color-scheme: dark;
+    --bg: #26272b; --card: #26272b; --box: #383a3f; --ink: #eee; --muted: #b8b8b8;
+    --line: #4a4c52; --field-line: #8a8d94;
+    --accent: #ececec; --accent-ink: #1e1e1e; --hover: #ffa64d; --hover-ink: #111;
+    --danger-bg: #3b1d1d; --danger-ink: #f4b4b4; --danger-line: #a05555;
+    --link: #f2f2f2;
+}
+/* The light colours, in grey. The filter covers the items' iframes too. Not on :root: Firefox then leaves out
+   what is below the first screen in full-page screenshots. */
+:root[data-theme="greyscale"] :is(header, main, #undo-toast, #wip-notice) { filter: grayscale(1); }
+:root[data-theme="greyscale"] {
+    --badge-dark-ink: #000; /* in grey, #1c2525 has only 4.47:1 on item colour 7 */
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.5 var(--font-sans); }
+.wrap { max-width: 1240px; margin: 0 auto; padding: 0 16px; }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+a { color: var(--link); }
+
+header { padding: 18px 0 6px; }
+.brand { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; }
+/* A wordmark: no fill, border or rounded corners, so it doesn't look like a button. */
+.brand-mark { color: var(--link); font-size: 1.6rem; font-weight: 700; line-height: 1.25; padding-right: 14px; border-right: 2px solid var(--field-line); }
+.brand p { font-style: italic; }
+h1 { font-size: 1.25rem; margin: 0; line-height: 1.25; }
+.brand p { margin: 0; color: var(--muted); font-size: .9rem; }
+nav { display: flex; flex-wrap: wrap; gap: 4px 16px; margin-top: 10px; font-size: .9rem; }
+nav [aria-current] { color: var(--ink); font-weight: 600; text-decoration: none; }
+
+main.wrap { padding-top: 18px; padding-bottom: 90px; }
+/* Like the EDITOR's menu button (.dropbtn): 5px corners, dark orange on hover. */
+.btn { font: inherit; font-size: .9rem; color: var(--ink); background: var(--box); border: 1px solid var(--field-line); border-radius: 5px; padding: 5px 12px; min-height: 32px; cursor: pointer; }
+.btn:hover:enabled, a.btn:hover { background: var(--hover); border-color: var(--hover); color: var(--hover-ink); }
+a.btn { display: inline-flex; align-items: center; gap: 4px; text-decoration: none; }
+.btn:disabled { opacity: .45; cursor: default; }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.btn.danger { background: var(--danger-bg); border-color: var(--danger-line); color: var(--danger-ink); }
+.btn.danger:hover:enabled { background: var(--danger-bg); border-color: var(--danger-ink); color: var(--danger-ink); }
+
+#myList { list-style: none; margin: 14px 0 0; padding: 0; display: grid; gap: 14px; }
+.item { --item-line: var(--item-color); min-width: 0; }
+/* Like the EDITOR's .manual box: a thick whitesmoke border. The left edge has the item's colour. */
+.card { background: var(--card); border: 5px solid var(--line); border-left-color: var(--item-line); border-radius: 10px; padding: 8px 10px; }
+/* As lines on a dark card, the darker colours must be lighter. */
+:root[data-theme="dark"] .item { --item-line: color-mix(in srgb, var(--item-color) 55%, white); }
+.item-head { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.badge { display: inline-grid; place-items: center; min-width: 26px; height: 26px; padding: 0 6px; border-radius: 5px; background: var(--item-color); color: var(--item-ink); font-weight: 700; font-size: .85rem; }
+.item-title { flex: 1 1 200px; min-width: 0; font: inherit; font-weight: 700; color: inherit; background: var(--box); border: 1px solid var(--field-line); border-radius: 3px; padding: 4px 10px; min-height: 32px; text-overflow: ellipsis; }
+.item-title::placeholder { color: var(--muted); opacity: 1; font-weight: 400; }
+.list-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+/* Three groups of buttons, with a line between them. A narrow card wraps between groups, never inside one. */
+.actions { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 0; }
+.button-group { display: flex; gap: 6px; padding: 0 8px; border-left: 1px solid var(--field-line); }
+.button-group:first-child { padding-left: 0; border-left: 0; }
+.button-group:last-child { padding-right: 0; }
+/* On a phone the groups wrap, and a line would stand at the start of a row. */
+@media (max-width: 479.98px) {
+    .button-group { border-left: 0; padding-left: 4px; }
+}
+
+/* The card's buttons are icons: Lucide (../scripts/third-party/lucide/, ISC), unmodified SVG files used as masks,
+   so that they take the button's colour. Their text is in a tooltip (data-tip). */
+.icon-button { position: relative; display: inline-grid; place-items: center; width: 32px; padding: 0; }
+.icon { display: block; width: 18px; height: 18px; background: currentColor; mask: var(--icon) center / contain no-repeat; }
+[data-icon="chevron-up"] { --icon: url("../scripts/third-party/lucide/icons/chevron-up.svg"); }
+[data-icon="chevron-down"] { --icon: url("../scripts/third-party/lucide/icons/chevron-down.svg"); }
+[data-icon="arrow-up"] { --icon: url("../scripts/third-party/lucide/icons/arrow-up.svg"); }
+[data-icon="arrow-down"] { --icon: url("../scripts/third-party/lucide/icons/arrow-down.svg"); }
+[data-icon="copy-plus"] { --icon: url("../scripts/third-party/lucide/icons/copy-plus.svg"); }
+[data-icon="pencil"] { --icon: url("../scripts/third-party/lucide/icons/pencil.svg"); }
+[data-icon="copy"] { --icon: url("../scripts/third-party/lucide/icons/copy.svg"); }
+[data-icon="files"] { --icon: url("../scripts/third-party/lucide/icons/files.svg"); }
+[data-icon="eraser"] { --icon: url("../scripts/third-party/lucide/icons/eraser.svg"); }
+[data-icon="plus"] { --icon: url("../scripts/third-party/lucide/icons/plus.svg"); }
+[data-icon="trash-2"] { --icon: url("../scripts/third-party/lucide/icons/trash-2.svg"); }
+[data-icon="check"] { --icon: url("../scripts/third-party/lucide/icons/check.svg"); }
+[data-icon="x"] { --icon: url("../scripts/third-party/lucide/icons/x.svg"); }
+
+/* The tooltip, above the button: on hover, keyboard focus, and for a moment after Copy (.tip-shown). Escape hides
+   it (body.tips-hidden, workspace.js). The last group aligns it right, so it stays on the page. */
+.icon-button::before, .icon-button::after { position: absolute; z-index: 2; left: 50%; transform: translateX(-50%); pointer-events: none; visibility: hidden; }
+.icon-button::after { content: attr(data-tip); bottom: calc(100% + 8px); width: max-content; padding: 3px 8px; border-radius: 5px; background: var(--accent); color: var(--accent-ink); font-size: .8rem; line-height: 1.4; }
+.icon-button::before { content: ""; bottom: calc(100% - 2px); border: 5px solid transparent; border-top-color: var(--accent); }
+.button-group:last-child .icon-button::after { left: auto; right: 0; transform: none; }
+.icon-button:is(:hover, :focus-visible, .tip-shown)::before, .icon-button:is(:hover, :focus-visible, .tip-shown)::after { visibility: visible; }
+.tips-hidden .icon-button:not(.tip-shown)::before, .tips-hidden .icon-button:not(.tip-shown)::after { visibility: hidden; }
+
+@media (max-width: 420px) {
+    .brand { gap: 6px 10px; }
+    .brand-mark { font-size: 1.15rem; padding-right: 10px; }
+}
+.color-modes { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; margin-top: 10px; font-size: .9rem; }
+#color-modes-label { margin-right: 6px; }
+.color-modes label { position: relative; cursor: pointer; }
+.color-modes input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
+.color-modes label span { display: block; padding: 2px 10px; background: var(--box); border: 1px solid var(--field-line); border-radius: 5px; }
+.color-modes label:hover input:not(:checked) + span { background: var(--hover); border-color: var(--hover); color: var(--hover-ink); }
+.color-modes input:checked + span { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.color-modes input:focus-visible + span { outline: 3px solid var(--accent); outline-offset: 2px; }
+.keys { margin-top: 10px; font-size: .9rem; }
+.keys summary { cursor: pointer; width: fit-content; padding: 3px 12px; background: var(--accent); color: var(--accent-ink); border-radius: 5px; }
+.keys summary:hover { background: var(--hover); color: var(--hover-ink); }
+.keys ul { margin: 6px 0 0; padding-left: 20px; }
+.keys label { display: block; width: fit-content; margin-top: 6px; }
+
+.is-collapsed .item-editor { display: none; }
+
+[hidden] { display: none !important; }
+#undo-toast { position: fixed; left: 50%; bottom: 18px; transform: translateX(-50%); display: flex; align-items: center; gap: 14px; width: max-content; max-width: calc(100% - 32px); background: var(--ink); color: var(--bg); padding: 8px 14px; border-radius: 8px; }
+#undo-toast .btn { flex: none; color: var(--ink); }
+#undo-toast :focus-visible { outline-color: var(--bg); }
+/* The work-in-progress warning (scripts/workspace/wip-notice.js) and the header button that opens it again. */
+#wip-notice { width: min(460px, calc(100% - 32px)); background: var(--box); color: var(--ink); border: 5px solid var(--line); border-radius: 10px; padding: 18px 20px; box-shadow: 0 6px 18px rgb(0 0 0 / .25); }
+#wip-notice::backdrop { background: rgb(0 0 0 / .45); }
+#wip-notice h2 { font-size: 1.1rem; margin: 0 0 8px; }
+#wip-notice p { margin: 0 0 14px; }
+#wip-notice form { display: flex; justify-content: flex-end; }
+#show-wip-notice { font: inherit; color: var(--link); background: none; border: 0; padding: 0; margin-left: 6px; text-decoration: underline; cursor: pointer; }
+.visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+
+.item-editor { margin-top: 6px; }
+/* iframe-resizer sets the height, and needs width and min-width like this to fit the content. Until it
+   has, the height of a clear item, so that what is below a new item doesn't move while it loads. */
+.item-editor iframe { display: block; width: 1px; min-width: 100%; height: 116px; border: 0; }

@@ -1,0 +1,1010 @@
+let medsyntaxTargetWidth;
+let stringLatestString = "";
+let queryParamsLatestParams;
+// true while Back or Forward restores a query: the link is already right then
+let restoringFromHistory = false;
+let time = Date.now();
+let latestInputTime = Date.now();
+// the item's id when embedded in the WORKSPACE, otherwise null
+const ws = new URLSearchParams(window.location.search).get('ws');
+
+$(document).ready(function () {
+    $(document).click(function (event) {
+        const $target = $(event.target);
+        if (!$target.closest('#dynamic-input').length &&
+            $('#dynamic-input').is(":visible")) {
+            syntaxCheck("query-input1", "medsyntax-target1", true);
+            // console.log("click");
+        }
+    });
+
+    hideWarnings();
+
+    if (location.search.length > 1) {
+        let param1 = getParameterByName('query');
+        let queryInput1 = $("#query-input1")
+        queryInput1.val(LZString.decompressFromEncodedURIComponent(param1));
+        if (queryInput1.val() !== "") {
+            syntaxCheck("query-input1", "medsyntax-target1");
+        }
+    }
+
+    // with quotes to replace:
+    // document.getElementById("demo2").innerText = '(COVID-19 [mh] OR COVID-19 Testing[mh] OR COVID-19 Vaccines[mh] OR SARS-CoV-2[mh] OR spike glycoprotein, COVID-19 virus [Supplementary Concept] OR ((Coronavirus[mh:noexp] OR Betacoronavirus[mh:noexp] OR Coronavirus Infections[mh:noexp]) AND (Disease Outbreaks[mh:noexp] OR Epidemics[mh:noexp] OR Pandemics[mh])) OR nCoV[tiab] OR nCoV[tt] OR 2019nCoV[tiab] OR 2019nCoV[tt] OR 19nCoV[tiab] OR 19nCoV[tt] OR COVID19*[tiab] OR COVID19*[tt] OR COVID[tiab] OR COVID[tt] OR SARS-CoV-2[tiab] OR SARS-CoV-2[tt] OR SARSCOV-2[tiab] OR SARSCOV-2[tt] OR SARS-COV2[tiab] OR SARS-COV2[tt] OR SARSCOV2[tiab] OR SARSCOV2[tt] OR SARS coronavirus 2[tiab] OR SARS coronavirus 2[tt] OR Severe Acute Respiratory Syndrome Coronavirus 2[tiab] OR Severe Acute Respiratory Syndrome Coronavirus 2[tt] OR ((severe acute respiratory syndrome[tiab] OR severe acute respiratory syndrome[tt]) AND (corona virus 2[tiab] OR corona virus 2[tt])) OR new coronavirus[tiab] OR (new[tt] AND coronavirus[tt]) OR novel coronavirus[tiab] OR novel coronavirus[tt] OR novel corona virus[tiab] OR (novel[tt] AND corona virus[tt]) OR novel CoV[tiab] OR (novel[tt] AND CoV[tt]) OR novel HCoV[tiab] OR (novel[tt] AND HCoV[tt]) OR ((“19″[tiab] OR “19”[tt] OR “2019”[tiab] OR “2019”[tt] OR Wuhan[tiab] OR Wuhan[tt] OR Hubei[tiab] OR Hubei[tt]) AND (coronavirus*[tiab] OR coronavirus*[tt] OR corona virus*[tiab] OR corona virus*[tt] OR CoV[tiab] OR CoV[tt] OR HCoV[tiab] OR HCoV[tt])) OR longCOVID*[tiab] OR longCOVID*[tt] OR postCOVID*[tiab] OR postCOVID*[tt] OR postcoronavirus*[tiab] OR postcoronavirus*[tt] OR postSARS*[tiab] OR postSARS*[tt] OR ((coronavirus*[tiab] OR coronavirus*[tt] OR corona virus*[tiab] OR corona virus*[tt] OR betacoronavirus*[tiab] OR betacoronavirus*[tt]) AND (outbreak*[tiab] OR outbreak*[tt] OR epidemic*[tiab] OR epidemic*[tt] OR pandemic*[tiab] OR pandemic*[tt] OR crisis[tiab] OR crisis[tt])) OR ((Wuhan[tiab] OR Wuhan[tt] OR Hubei[tiab] OR Hubei[tt]) AND (pneumonia[tiab] OR pneumonia[tt]))) AND 2019/10/31:3000/12/31[Date – Publication]';
+    // without errors:
+    // document.getElementById("demo2").innerText = '(COVID-19 [mh] OR COVID-19 Testing[mh] OR COVID-19 Vaccines[mh] OR SARS-CoV-2[mh] OR spike glycoprotein, COVID-19 virus [Supplementary Concept] OR ((Coronavirus[mh:noexp] OR Betacoronavirus[mh:noexp] OR Coronavirus Infections[mh:noexp]) AND (Disease Outbreaks[mh:noexp] OR Epidemics[mh:noexp] OR Pandemics[mh])) OR nCoV[tiab] OR nCoV[tt] OR 2019nCoV[tiab] OR 2019nCoV[tt] OR 19nCoV[tiab] OR 19nCoV[tt] OR COVID19*[tiab] OR COVID19*[tt] OR COVID[tiab] OR COVID[tt] OR SARS-CoV-2[tiab] OR SARS-CoV-2[tt] OR SARSCOV-2[tiab] OR SARSCOV-2[tt] OR SARS-COV2[tiab] OR SARS-COV2[tt] OR SARSCOV2[tiab] OR SARSCOV2[tt] OR SARS coronavirus 2[tiab] OR SARS coronavirus 2[tt] OR Severe Acute Respiratory Syndrome Coronavirus 2[tiab] OR Severe Acute Respiratory Syndrome Coronavirus 2[tt] OR ((severe acute respiratory syndrome[tiab] OR severe acute respiratory syndrome[tt]) AND (corona virus 2[tiab] OR corona virus 2[tt])) OR new coronavirus[tiab] OR (new[tt] AND coronavirus[tt]) OR novel coronavirus[tiab] OR novel coronavirus[tt] OR novel corona virus[tiab] OR (novel[tt] AND corona virus[tt]) OR novel CoV[tiab] OR (novel[tt] AND CoV[tt]) OR novel HCoV[tiab] OR (novel[tt] AND HCoV[tt]) OR (("19"[tiab] OR "19"[tt] OR "2019"[tiab] OR "2019"[tt] OR Wuhan[tiab] OR Wuhan[tt] OR Hubei[tiab] OR Hubei[tt]) AND (coronavirus*[tiab] OR coronavirus*[tt] OR corona virus*[tiab] OR corona virus*[tt] OR CoV[tiab] OR CoV[tt] OR HCoV[tiab] OR HCoV[tt])) OR longCOVID*[tiab] OR longCOVID*[tt] OR postCOVID*[tiab] OR postCOVID*[tt] OR postcoronavirus*[tiab] OR postcoronavirus*[tt] OR postSARS*[tiab] OR postSARS*[tt] OR ((coronavirus*[tiab] OR coronavirus*[tt] OR corona virus*[tiab] OR corona virus*[tt] OR betacoronavirus*[tiab] OR betacoronavirus*[tt]) AND (outbreak*[tiab] OR outbreak*[tt] OR epidemic*[tiab] OR epidemic*[tt] OR pandemic*[tiab] OR pandemic*[tt] OR crisis[tiab] OR crisis[tt])) OR ((Wuhan[tiab] OR Wuhan[tt] OR Hubei[tiab] OR Hubei[tt]) AND (pneumonia[tiab] OR pneumonia[tt]))) AND 2019/10/31:3000/12/31[Date – Publication]';
+    //voor IFLA WLIC 2023:
+    document.getElementById("demo2").innerText = '(( librarian* OR "information specialist" OR informationist* OR "information professional" OR "knowledge worker" OR "information scientist*" OR "information services" ) AND ( librar* AND (medical OR academic OR research OR special OR college OR junior )) AND (DE "library orientation" OR DE "learning" OR DE "information services" OR "User education" OR instruct* OR educat* OR orient* OR teach* OR curricul* OR train* OR pedagog* OR tutor* OR lesson* OR lectur* OR learn * OR webinar* ) )';
+    let param2 = getParameterByName('querytitle');
+    let queryTitle = LZString.decompressFromEncodedURIComponent(param2)
+    document.title = 'MedSyntax: ' + queryTitle;
+    $("#query-title1").val(queryTitle);
+    updateTitle("query-title1");
+
+    $('.medsyntax-target').mouseleave(function (event) {
+        $(".hover").removeClass('hover');
+    });
+
+    const input = document.getElementById("query-input1");
+    textAreaAdjust(input);
+
+    // indien workspace (iframe)
+    if (ws) {
+        // console.log('ws: ' + ws);
+
+        // load iframe css
+        $("body").addClass("ws-iframe-body");
+        const cssId = 'iframeCss';
+        if (!document.getElementById(cssId)) {
+            const head = document.getElementsByTagName('head')[0];
+            const link = document.createElement('link');
+            link.id = cssId;
+            link.rel = 'stylesheet';
+            link.type = 'text/css';
+            link.href = './iframe.css';
+            link.media = 'all';
+            head.appendChild(link);
+        }
+
+        // if (ws !== '0') {
+        //     $('#demo-button').hide();
+        // }
+
+        setEditMode(false);
+    }
+
+    // The link of the opened page, as the start-up has made it: in place of the current entry, not as a Back step.
+    replaceEditorLink();
+});
+
+function textAreaAdjust(element, updateHeight, targetWidth) {
+    element.style.height = "50px";
+    if (targetWidth > 0) {
+        if (bracketAncestorCount(element) > 0) {
+            element.style.width = (targetWidth) - (bracketAncestorCount(element) * 25) + "px";
+            // console.log(bracketAncestorCount(element));
+        }
+    } else {
+        element.style.width = ($(window).width() - 200) + "px";
+    }
+    if (updateHeight) {
+        element.style.height = "1px";
+        element.style.height = (12 + element.scrollHeight) + "px";
+    }
+}
+
+function bracketAncestorCount(element) {
+    // number of brackets in ancestors
+    let nodes = [];
+    let element1 = element;
+    nodes.push(element1);
+    while (element1.parentElement) {
+        if (element1.parentElement.classList.contains('brackets')) {
+            nodes.unshift(element1.parentElement);
+        }
+        element1 = element1.parentElement;
+    }
+    return nodes.length;
+}
+
+function copyQueryFunction() {
+    const copyText = document.getElementById("myQueryInput");
+    copyText.value = "test";
+    copyText.value = document.getElementById("query-input1").value;
+    copyText.select();
+    copyText.setSelectionRange(0, 99999);
+    navigator.clipboard.writeText(copyText.value);
+
+    const tooltip = document.getElementById("myQueryTooltip");
+    tooltip.innerHTML = "Copied: " + copyText.value;
+}
+
+function outQueryFunc() {
+    const tooltip = document.getElementById("myQueryTooltip");
+    tooltip.innerHTML = "Copy query to clipboard";
+}
+
+function clearButtonFunc() {
+    document.getElementById('query-input1').value = null;
+    // syntaxCheck("query-input1", "medsyntax-target1");
+    updateUrl('query', '');
+    document.getElementById("demo-button").hidden = false;
+    $('#medsyntax-target1').text('');
+    // No warnings for an empty query.
+    hideWarnings();
+    // Forget the cleared text, so re-entering the same query renders it again
+    // (syntaxCheck skips input equal to stringLatestString).
+    stringLatestString = "";
+    announceRendered();
+    flushEditorLink();
+}
+
+
+function copyLinkFunction() {
+    flushEditorLink();
+    const copyText = document.getElementById("myLinkInput");
+    copyText.value = "test";
+    copyText.value = window.location.href;
+    copyText.select();
+    copyText.setSelectionRange(0, 99999);
+    navigator.clipboard.writeText(copyText.value);
+
+    const tooltip = document.getElementById("myLinkTooltip");
+    tooltip.innerHTML = "Copied: " + copyText.value;
+}
+
+function outLinkFunc() {
+    const tooltip = document.getElementById("myLinkTooltip");
+    tooltip.innerHTML = "Copy link to clipboard";
+}
+
+function updateTitle(titleId) {
+    // console.log('updateTitle');
+    const title = document.getElementById(titleId).value;
+    document.title = 'MedSyntax: ' + title;
+    updateUrl('querytitle', LZString.compressToEncodedURIComponent(title));
+}
+
+function updateUrl(name, value) {
+    // Construct URLSearchParams object instance from current URL querystring. Opened directly, the link can be
+    // behind (see writeEditorLink): start from the last state.
+    let queryParams = new URLSearchParams(!ws && queryParamsLatestParams ? queryParamsLatestParams : window.location.search);
+    if (ws && typeof window.itemQueryString === 'string') {
+        queryParams = new URLSearchParams(window.itemQueryString);
+    }
+    // console.log('queryParams:', queryParams.toString());
+
+    // Set new or modify existing page value
+    queryParams.set(name, value);
+
+    if (queryParamsLatestParams && queryParamsLatestParams.toString() === queryParams.toString()) {
+        console.log('queryParamsLatestParams === queryParams');
+        return false;
+    } else {
+        queryParamsLatestParams = queryParams;
+    }
+    if (restoringFromHistory) {
+        return false;
+    }
+
+
+    // send to parent window if iframe
+    if (ws) {
+        // remove ws parameters from querystring
+        while (queryParams.get('ws') != null) {
+            queryParams.delete('ws');
+        }
+
+        // Only replace: an item must not add to the browser history of the WORKSPACE.
+        window.itemQueryString = queryParams.toString();
+        try {
+            history.replaceState(null, null, "?ws=" + encodeURIComponent(ws) + "&" + window.itemQueryString);
+        } catch (error) {
+            // Safari allows 100 changes in 10 seconds; the WORKSPACE keeps the state.
+        }
+
+        // console.log('queryParams without ws:', queryParams.toString());
+
+        const messageData = {
+            status: "success",
+            type: "updateUrl",
+            payload: ws + "%index%" + queryParams.toString()
+        };
+
+        // console.log('Sending updateUrl message:', messageData);
+        // Use postMessage to send data to the parent window
+        window.parent.postMessage(messageData);
+    } else {
+        // Not on every key: Safari allows 100 history changes in 10 seconds, and each step would be a Back step.
+        pendingEditorLink = "?" + queryParams.toString();
+        clearTimeout(editorLinkTimer);
+        editorLinkTimer = setTimeout(writeEditorLink, editorLinkPause);
+    }
+}
+
+// The EDITOR opened directly writes its link after a pause in typing, as one history entry: one Back step.
+const editorLinkPause = 200;
+let pendingEditorLink = null;
+let editorLinkTimer = null;
+
+function writeEditorLink() {
+    clearTimeout(editorLinkTimer);
+    if (pendingEditorLink === null) {
+        return;
+    }
+    if (pendingEditorLink === window.location.search) {
+        pendingEditorLink = null;
+        return;
+    }
+    try {
+        history.pushState(null, null, pendingEditorLink);
+        pendingEditorLink = null;
+    } catch (error) {
+        // The browser refused (too many changes): try again; the rendering goes on.
+        editorLinkTimer = setTimeout(writeEditorLink, 1000);
+    }
+}
+
+// At once, without the pause: after a finished action, and before the link is used or the page is left.
+function flushEditorLink() {
+    if (!ws) {
+        writeEditorLink();
+    }
+}
+
+function replaceEditorLink() {
+    clearTimeout(editorLinkTimer);
+    if (!ws && pendingEditorLink !== null) {
+        try {
+            history.replaceState(null, null, pendingEditorLink);
+        } catch (error) {
+            // refused: the link stays as it was opened
+        }
+        pendingEditorLink = null;
+    }
+}
+
+// Back and Forward: a link that wasn't written yet must not undo the step.
+function dropEditorLink() {
+    clearTimeout(editorLinkTimer);
+    pendingEditorLink = null;
+}
+
+// Back and Forward change the link: show its query and title again. Without changing the link, so the history stays.
+// Not in the WORKSPACE, whose items never add to the history.
+function restoreFromLink() {
+    if (ws) {
+        return;
+    }
+    dropEditorLink();
+    const decompress = (name) => LZString.decompressFromEncodedURIComponent(getParameterByName(name) || '') || '';
+    const query = decompress('query');
+    const title = decompress('querytitle');
+    restoringFromHistory = true;
+    try {
+        $("#query-title1").val(title);
+        document.title = 'MedSyntax: ' + title;
+        if (query === '') {
+            clearButtonFunc();
+        } else {
+            document.getElementById('query-input1').value = query;
+            stringLatestString = ''; // render it, also if it was shown before
+            syntaxCheck('query-input1', 'medsyntax-target1');
+        }
+    } finally {
+        restoringFromHistory = false;
+        queryParamsLatestParams = new URLSearchParams(window.location.search);
+    }
+}
+
+window.addEventListener('popstate', restoreFromLink);
+window.addEventListener('pagehide', flushEditorLink);
+document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') {
+        flushEditorLink();
+    }
+});
+document.addEventListener('focusout', (event) => {
+    if (event.target.id === 'query-title1') {
+        flushEditorLink();
+    }
+});
+
+// Tells item.js and item-keyboard.js that the visualisation or the query changed.
+function announceRendered() {
+    document.dispatchEvent(new CustomEvent('medsyntax:rendered'));
+}
+
+function setEditMode(trueFalse) {
+    console.log('setEditMode' + ' ' + trueFalse);
+    if (!ws) {
+        return;
+    }
+
+    const messageData = {
+        status: "success",
+        type: "setEditMode",
+        payload: trueFalse
+    };
+
+    // console.log('Sending updateUrl message:', messageData);
+    // Use postMessage to send data to the parent window
+    window.parent.postMessage(messageData);
+}
+
+function demoClickFunction() {
+    $("#query-input1").val($("#demo2").text());
+    syntaxCheck("query-input1", "medsyntax-target1", true);
+}
+
+function getParameterByName(name, url) {
+    if (!url) {
+        url = window.location.href;
+    }
+    name = name.replace(/[\[\]]/g, "\\$&");
+    const regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
+        results = regex.exec(url);
+    if (!results) return null;
+    if (!results[2]) return '';
+    try {
+        return decodeURIComponent(results[2].replace(/\+/g, " "));
+    } catch (e) {
+        // Malformed percent-encoding: treat the parameter as empty, so start-up goes on.
+        if (e instanceof URIError) return '';
+        throw e;
+    }
+}
+
+const warningBracketCloseElementId = "warning-bracket-close";
+const warningBracketOpenElementId = "warning-bracket-open";
+const warningSquareBracketCloseElementId = "warning-square-bracket-close";
+const warningSquareBracketOpenElementId = "warning-square-bracket-open";
+const warningQuotesElementId = "warning-quotes";
+const warningAmbiguousAndElementId = "warning-ambiguous-and";
+const warningDoubleOrElementId = "warning-double-or";
+const warningDoubleAndElementId = "warning-double-and";
+
+function hideWarnings() {
+    document.getElementById(warningBracketCloseElementId).hidden = true;
+    document.getElementById(warningBracketOpenElementId).hidden = true;
+    document.getElementById(warningSquareBracketCloseElementId).hidden = true;
+    document.getElementById(warningSquareBracketOpenElementId).hidden = true;
+    document.getElementById(warningQuotesElementId).hidden = true;
+    document.getElementById(warningAmbiguousAndElementId).hidden = true;
+    document.getElementById(warningDoubleOrElementId).hidden = true;
+    document.getElementById(warningDoubleAndElementId).hidden = true;
+}
+
+//*** Syntax highlighter code ***//
+
+function syntaxCheck(sourceElementId, targetElementId, force) {
+    // console.log('syntaxCheck');
+    latestInputTime = Date.now();
+    const savedLatestInputTime = latestInputTime;
+    let str = document.getElementById(sourceElementId).value;
+
+    // Nothing new to render. This also keeps an open scope edit open; when the
+    // query did change, rendering it again cancels that edit.
+    if (stringLatestString && stringLatestString === str && !force) {
+        return false;
+    } else {
+        stringLatestString = str;
+    }
+
+    str = str.replace(/[\u000A\u000D\u2028\u2029]/g, ' ')
+    str = str.replace(/\r?\n|\r/g, ' ');
+    // Tabs and non-breaking spaces (also narrow and figure spaces) become regular spaces, so operators between
+    // them are recognised.
+    str = str.replace(/[\t\u00A0\u2007\u202F]/g, ' ');
+    if (force) {
+        str = str.replace(/  +/g, ' ');
+    }
+
+    const strCleanedDoubleQuotes = str.replace(/[“”″‶]/g, '"');
+    if (str !== strCleanedDoubleQuotes) {
+        alert("Your input query included one (or some) unexpected types of double quote signs. "
+            + "These quote signs have been replaced with regular double quote signs.");
+    }
+    str = strCleanedDoubleQuotes;
+
+    const strCleanedSingleQuotes = str.replace(/[‘’′‵]/g, '\'');
+    if (str !== strCleanedSingleQuotes) {
+        alert("Your input query included one (or some) unexpected types of single quote signs. "
+            + "These quote signs have been replaced with regular single quote signs.");
+    }
+    str = strCleanedSingleQuotes;
+
+    str = str.replaceAll(new RegExp(/AND\(/gi), 'AND (');
+    str = str.replaceAll(new RegExp(/\)AND/gi), ') AND');
+    str = str.replaceAll(new RegExp(/\)OR/gi), ') OR');
+    str = str.replaceAll(new RegExp(/OR\(/gi), 'OR (');
+    str = str.replaceAll(new RegExp(/\)NOT/gi), ') NOT');
+    str = str.replaceAll(new RegExp(/NOT\(/gi), 'NOT (');
+
+    updateUrl('query', LZString.compressToEncodedURIComponent(str));
+
+    document.getElementById("demo-button").hidden = true; // move somewhere else
+
+    hideWarnings();
+    let hasError = false;
+
+    // double quote check
+    let quotesCount = (str.match(new RegExp('(")', 'gi')) || []).length;
+    if (quotesCount % 2 !== 0) {
+        document.getElementById(warningQuotesElementId).hidden = false;
+        hasError = true;
+    }
+    // single quote check
+    quotesCount = (str.match(new RegExp('(\')', 'gi')) || []).length;
+    if (quotesCount % 2 !== 0) {
+        document.getElementById(warningQuotesElementId).hidden = false;
+        hasError = true;
+    }
+    afterParseFunction(syntaxParser(str), targetElementId, hasError, savedLatestInputTime);
+    if (grayscale) {
+        $("#search-string").css("filter", "grayscale(100%)");
+    }
+    $("#query-input1").val(str);
+    stringLatestString = str; // after clean-up, as it is now in the query box
+    announceRendered();
+    if (force) {
+        // A finished action: leaving the box, a scope edit, the demo. Typing waits for a pause.
+        flushEditorLink();
+    }
+}
+
+//*** Syntax 'parser' code ***//
+
+const quotedTermRe = new RegExp('([\"\'])(?:(?=(\\\\?))\\2.)*?\\1', 'gi');
+const termRe = new RegExp('(\\\/div>([A-Z].{1,}?)<div)|(\\\/div>( +[A-Z].{1,}?)<div)', 'gi');
+const termStrayRe = new RegExp('(\\/div>([0-9]{1,}?)\\w+<div)', 'gi');
+const termStrayExtraRe = new RegExp('(\\/div>([0-9]{1,}?)(.{1,}?)<div)', 'gi');
+const termStrayNumberRe = new RegExp('(\\/div>([0-9]{1,}?)<div)', 'gi');
+const termStraySpaceNumberRe = new RegExp('(\\/div>[ ]([0-9]{1,}?)<div)', 'gi');
+const termStraySpaceNumberSpaceRe = new RegExp('(\\/div>[ ]([0-9]{1,}?)[ ]<div)', 'gi');
+const termStrayNumberSpaceRe = new RegExp('(\\/div>([0-9]{1,}?)[ ]<div)', 'gi');
+// any other text between two elements, such as D, #1 or écart (not spaces alone)
+const termRestRe = new RegExp('<\\/div>(\\s*[^<\\s][^<]*)(?=<div)', 'g');
+const andRe = new RegExp('( AND | and )', 'gi');
+const doubleAndRe = new RegExp('( AND AND | AND and | and AND | and and )', 'gi');
+const orRe = new RegExp('( OR | or )', 'gi');
+const doubleOrRe = new RegExp('( OR OR | OR or | or OR | or or )', 'gi');
+const notRe = new RegExp('( NOT | not )', 'gi');
+const nearOpRe = new RegExp('(( \\w+[A-Za-z][\/][0-9]+)|( [A-Za-z][\/][0-9]+))', 'gi');
+const embaseRe = new RegExp('(([\/][A-Za-z])\\w+|([\:][A-Za-z])\\w+|([,][A-Za-z])\\w+|([.][A-Za-z])\\w+)', 'gi');
+const bracketPairRe = new RegExp('[(][^()]*?[^()\\[]*[)]', 'gm');
+const squareBracketPairRe = new RegExp('[\\[][^\\[\\]]*?[^\\[\\]]*[\\]]', 'gm');
+
+const specialColon = str_Random();
+const specialSlash = str_Random();
+const specialBracketOpen = str_Random();
+const specialBracketClose = str_Random();
+const specialSquareBracketOpen = str_Random();
+const specialSquareBracketClose = str_Random();
+const special = "___";
+
+function str_Random() {
+    const length = 10;
+    let result = '';
+    const characters = 'abcdefghijklmnopqrstuvwxyz0123456789';
+
+    // Loop to generate characters for the specified length
+    for (let i = 0; i < length; i++) {
+        const randomInd = Math.floor(Math.random() * characters.length);
+        result += characters.charAt(randomInd);
+    }
+
+    result = '@' + result + '@';
+    return result;
+}
+
+function nearOpFunction(x) {
+    x = "<div class=near>" + x + " " + "</div>";
+    x = x.replace(new RegExp('/', 'gi'), specialSlash);
+    return x;
+}
+
+function embaseFunction(x) {
+    x = "<div class=embase>" + x + "</div>";
+    return x;
+}
+
+function booleanAndFunction(x) {
+    x = "<div class=\"boolean and\">" + x + "</div>";
+    return x;
+}
+
+function booleanOrFunction(x) {
+    x = "<div class=\"boolean or\">" + x + "</div>";
+    return x;
+}
+
+function doubleBooleanAndFunction(x) {
+    x = x.replace(new RegExp(' ', 'gi'), special);
+    x = "<div class=\"double-boolean-and\">" + x + "</div>";
+    document.getElementById(warningDoubleAndElementId).hidden = false;
+    return x;
+}
+
+function doubleBooleanOrFunction(x) {
+    x = x.replace(new RegExp(' ', 'gi'), special);
+    x = "<div class=\"double-boolean-or\">" + x + "</div>";
+    document.getElementById(warningDoubleOrElementId).hidden = false;
+    return x;
+}
+
+function booleanNotFunction(x) {
+    x = "<div class=\"boolean not\">" + x + "</div>";
+    return x;
+}
+
+function bracketPairFunction(x) {
+    x = x.replace("(", "<div class=\"brackets\"><div class=\"bracket-open\">(</div>");
+    x = x.replace(")", "<div class=\"bracket-close\">)</div></div>");
+    x = x.replace('(', specialBracketOpen);
+    x = x.replace(')', specialBracketClose);
+    return x;
+}
+
+function squareBracketPairFunction(x) {
+    x = x.replace("[", "<div class=\"square-brackets\">[");
+    x = x.replace("]", "]</div>");
+    x = x.replace('[', specialSquareBracketOpen);
+    x = x.replace(']', specialSquareBracketClose);
+    return x;
+}
+
+function quotedTermToElement(x) {
+    x = x.replace(new RegExp(' ', 'gi'), special);
+    x = "<div class=quote-term>" + x + "</div>";
+    x = x.replace(new RegExp('/', 'gi'), specialSlash);
+    x = x.replace(new RegExp(':', 'gi'), specialColon);
+    x = x.replace(new RegExp('[(]', 'gi'), specialBracketOpen);
+    x = x.replace(new RegExp('[)]', 'gi'), specialBracketClose);
+    return x;
+}
+
+function termReFunction(x) {
+    x = x.replace("<div", "</div><div");
+    x = x.replace("/div>", "/div><div class=\"term\">");
+    return x;
+}
+
+function syntaxParser(str) {
+    time = Date.now();
+
+    str = str.replace(quotedTermRe, function (x) {
+        return quotedTermToElement(x);
+    });
+
+    str = str.replace(embaseRe, function (x) {
+        return embaseFunction(x);
+    });
+
+    str = str.replace(nearOpRe, function (x) {
+        return nearOpFunction(x);
+    });
+
+    str = str.replace(doubleAndRe, function (x) {
+        return doubleBooleanAndFunction(x);
+    });
+
+    str = str.replace(doubleOrRe, function (x) {
+        return doubleBooleanOrFunction(x);
+    });
+
+    str = str.replace(andRe, function (x) {
+        return booleanAndFunction(x);
+    });
+
+    str = str.replace(orRe, function (x) {
+        return booleanOrFunction(x);
+    });
+
+    str = str.replace(notRe, function (x) {
+        return booleanNotFunction(x);
+    });
+
+    // brackets
+    let strPreBrackets = "";
+    while (str !== strPreBrackets) {
+        strPreBrackets = str;
+
+        str = str.replaceAll(bracketPairRe, function (x) {
+            return bracketPairFunction(x);
+        });
+
+        str = str.replaceAll(squareBracketPairRe, function (x) {
+            return squareBracketPairFunction(x);
+        });
+    }
+
+    // lonely brackets
+    str = str.replaceAll("(", "<div class=\"lonely-bracket-open\">(</div>");
+    str = str.replaceAll(")", "<div class=\"lonely-bracket-close\">)</div>");
+    str = str.replaceAll("[", "<div class=\"lonely-square-bracket-open\">[</div>");
+    str = str.replaceAll("]", "<div class=\"lonely-square-bracket-close\">]</div>");
+
+    str = str.replace(new RegExp(specialSlash, 'gi'), '/'); //un-special-fy
+    str = str.replace(new RegExp(specialColon, 'gi'), ':'); //un-special-fy
+    str = str.replace(new RegExp(special, 'gi'), ' '); //un-special-fy
+    str = str.replace('class=embase', 'class=\"embase\"'); //un-special-fy embase
+    str = str.replace('</div>.', '</div><div class="embase">.</div>'); //embas "." cleanup
+    str = str.replace('class=quote-term', 'class=\"quote-term\"'); //un-special-fy quote
+    str = str.replace(new RegExp(specialBracketOpen, 'gi'), '('); //un-special-fy
+    str = str.replace(new RegExp(specialBracketClose, 'gi'), ')'); //un-special-fy
+    str = str.replace(new RegExp(specialSquareBracketOpen, 'gi'), '['); //un-special-fy
+    str = str.replace(new RegExp(specialSquareBracketClose, 'gi'), ']'); //un-special-fy
+
+    // make stray words elements
+    str = "<div id=\"search-string\" class=\"search-string\"><div class=\"dummy\"></div>" + str + "<div class=\"dummy\"></div></div>"
+    let strOld = "";
+    while (str !== strOld) {
+        strOld = str;
+        str = str.replace(termRe, function (x) {
+            return termReFunction(x);
+        }); //make stray words elements
+
+        str = str.replace(termStrayRe, function (x) {
+            return termReFunction(x);
+        }); //make stray words elements
+
+        str = str.replace(termStrayExtraRe, function (x) {
+            return termReFunction(x);
+        }); //make stray words elements
+
+        str = str.replace(termStrayNumberRe, function (x) {
+            return termReFunction(x);
+        }); //make stray words elements
+
+        str = str.replace(termStraySpaceNumberRe, function (x) {
+            return termReFunction(x);
+        }); //make stray words elements
+
+        str = str.replace(termStraySpaceNumberSpaceRe, function (x) {
+            return termReFunction(x);
+        }); //make stray words elements
+
+        str = str.replace(termStrayNumberSpaceRe, function (x) {
+            return termReFunction(x);
+        }); //make stray words elements
+    }
+
+    // The patterns above need an ASCII letter or digit first; make what they missed elements too.
+    str = str.replace(termRestRe, function (x, term) {
+        return '</div><div class="term">' + term + '</div>';
+    });
+
+    console.log(str_Random() + ' syntaxParser duration: ' + (Date.now() - time) + 'ms');
+    return str;
+}
+
+// Brackets inside quotes are text, not brackets: blank out the quoted parts before counting them.
+function withoutQuotedText(text) {
+    return text.replace(quotedTermRe, (quoted) => ' '.repeat(quoted.length));
+}
+
+// Brackets in the wrong order: a closing bracket without an open one before it, or one that closes the other kind
+// (([)]). {round, square}: which kind is wrong; interleaving makes both wrong.
+function bracketOrderProblems(text) {
+    const open = [];
+    const problems = {round: false, square: false};
+    for (const character of text) {
+        if (character === '(' || character === '[') {
+            open.push(character);
+        } else if (character === ')' || character === ']') {
+            const kind = character === ')' ? 'round' : 'square';
+            const last = open.pop();
+            if (last === undefined) {
+                problems[kind] = true;
+            } else if (last !== (kind === 'round' ? '(' : '[')) {
+                problems.round = true;
+                problems.square = true;
+            }
+        }
+    }
+    return problems;
+}
+
+function afterParseFunction(str, targetElementId, hasError, savedLatestInputTime) {
+    document.getElementById(targetElementId).innerHTML = str;
+    // The query as text, for the bracket checks
+    const bracketText = withoutQuotedText(document.getElementById(targetElementId).textContent);
+
+    // WARNINGS
+    time = Date.now();
+
+    // bracket warnings ( and )
+    const bracketOpenCount = (bracketText.match(new RegExp('(\\()', 'gi')) || []).length;
+    const bracketCloseCount = (bracketText.match(new RegExp('(\\))', 'gi')) || []).length;
+    if (bracketOpenCount > bracketCloseCount) {
+        document.getElementById(warningBracketOpenElementId).hidden = false;
+        hasError = true;
+    }
+    if (bracketOpenCount < bracketCloseCount) {
+        document.getElementById(warningBracketCloseElementId).hidden = false;
+        hasError = true;
+    }
+
+    // bracket warnings [ and ]
+    const squareBracketOpenCount = (bracketText.match(new RegExp('(\\[)', 'gi')) || []).length;
+    const squareBracketCloseCount = (bracketText.match(new RegExp('(])', 'gi')) || []).length;
+    if (squareBracketOpenCount > squareBracketCloseCount) {
+        document.getElementById(warningSquareBracketOpenElementId).hidden = false;
+        hasError = true;
+    }
+    if (squareBracketOpenCount < squareBracketCloseCount) {
+        document.getElementById(warningSquareBracketCloseElementId).hidden = false;
+        hasError = true;
+    }
+    // Wrong order, where the numbers do match: both warnings of that kind. Not when they don't: the warning for the
+    // missing bracket says enough.
+    const orderProblems = bracketOrderProblems(bracketText);
+    const roundOrderWrong = orderProblems.round && bracketOpenCount === bracketCloseCount;
+    const squareOrderWrong = orderProblems.square && squareBracketOpenCount === squareBracketCloseCount;
+    if (roundOrderWrong) {
+        document.getElementById(warningBracketCloseElementId).hidden = false;
+        document.getElementById(warningBracketOpenElementId).hidden = false;
+        hasError = true;
+    }
+    if (squareOrderWrong) {
+        document.getElementById(warningSquareBracketCloseElementId).hidden = false;
+        document.getElementById(warningSquareBracketOpenElementId).hidden = false;
+        hasError = true;
+    }
+
+    //TODO does this "savedLatestInputTime != latestInputTime" thing even work?
+    let hasAmbiguousAndError = false;
+
+    if (hasError === false) {
+        // ambiguous ANDs and ORs
+        $(".brackets .boolean.and").each(function () {
+            if (hasAmbiguousAndError === true || savedLatestInputTime !== latestInputTime) {
+                return false; // breaks
+            }
+            $(this).siblings(".or").each(function () {
+                    hasAmbiguousAndError = true;
+                    return false; // breaks
+                }
+            )
+        });
+
+        $(".search-string .boolean.and").each(function () {
+            if (hasAmbiguousAndError === true || savedLatestInputTime !== latestInputTime) {
+                return false; // breaks
+            }
+            $(this).siblings(".or").each(function () {
+                    hasAmbiguousAndError = true;
+                    return false; // breaks
+                }
+            )
+        });
+
+        if (hasAmbiguousAndError) {
+            // add boolean error classes
+
+            $(".brackets .boolean.or").each(function () {
+                if (savedLatestInputTime !== latestInputTime) {
+                    return false; // breaks
+                }
+                $(this).siblings(".and").each(function () {
+                    if (savedLatestInputTime !== latestInputTime) {
+                        return false; // breaks
+                    }
+                    $(this).addClass("boolean-error-and");
+                });
+            });
+
+            $(".brackets .boolean.and").each(function () {
+                if (savedLatestInputTime !== latestInputTime) {
+                    return false; // breaks
+                }
+                $(this).siblings(".or").each(function () {
+                    if (savedLatestInputTime !== latestInputTime) {
+                        return false; // breaks
+                    }
+                    $(this).addClass("boolean-error-or");
+                });
+            });
+
+            $(".search-string .boolean.or").each(function () {
+                if (savedLatestInputTime !== latestInputTime) {
+                    return false; // breaks
+                }
+                $(this).siblings(".and").each(function () {
+                    if (savedLatestInputTime !== latestInputTime) {
+                        return false; // breaks
+                    }
+                    $(this).addClass("boolean-error-and");
+                });
+            });
+
+            $(".search-string .boolean.and").each(function () {
+                if (savedLatestInputTime !== latestInputTime) {
+                    return false; // breaks
+                }
+                $(this).siblings(".or").each(function () {
+                    if (savedLatestInputTime !== latestInputTime) {
+                        return false; // breaks
+                    }
+                    $(this).addClass("boolean-error-or");
+                });
+            });
+
+            document.getElementById(warningAmbiguousAndElementId).hidden = false;
+        }
+    }
+
+    if (squareBracketOpenCount === squareBracketCloseCount
+        && bracketOpenCount === bracketCloseCount && !roundOrderWrong && !squareOrderWrong
+        && document.getElementById(warningQuotesElementId).hidden) {
+        let elementForHover;
+        $('#' + targetElementId + ' .search-string div').mousemove(function (event) {
+            // console.log('elementForHover new?', (elementForHover !== this));
+            if (elementForHover !== this) {
+                if ($(this).hasClass('hover')) {
+                    // console.log('hover class already present');
+                    return false;
+                }
+                makeEditScope(targetElementId, this)
+                elementForHover = this;
+            }
+
+            elementForHover = null;
+            return false;
+        });
+    }
+
+    console.log(str_Random() + ' afterParseFunction duration: ' + (Date.now() - time) + 'ms');
+}
+
+// Determine edit scope
+function makeEditScope(targetElementId, element) {
+    // console.log('makeEditScope');
+    $('#' + targetElementId + ' div').removeClass('hover');
+    $('#' + targetElementId + ' div').off('mousedown');
+
+    let selectionForHover = $(element);
+    if ($(element).parent().hasClass('square-brackets')) {
+        element = $(element).parent();
+    }
+
+    if ($(element).hasClass('brackets')) {
+        selectionForHover = $(element).addClass('hover');
+        selectionForHover.mousedown(function (event) {
+            hoverMouseDown(event);
+        });
+    }
+
+    try {
+        addHoverThisAndNextElement(element);
+    } catch (err) {
+        // handle errors
+    }
+    try {
+        addHoverThisAndPrevElement(element);
+    } catch (err) {
+        // handle errors
+    }
+}
+
+function addHoverThisAndNextElement(element) {
+    if (!$(element).hasClass('brackets')) {
+        $(element).off('mousedown');
+        $(element).addClass('hover');
+        $(element).mousedown(function (event) {
+            hoverMouseDown(event);
+        });
+
+        addHoverThisAndNextElement($(element).next())
+    }
+}
+
+function addHoverThisAndPrevElement(element) {
+    if (!$(element).hasClass('brackets')) {
+        $(element).off('mousedown');
+        $(element).addClass('hover');
+        $(element).mousedown(function (event) {
+            hoverMouseDown(event);
+        });
+        addHoverThisAndPrevElement($(element).prev())
+    }
+}
+
+// Start edit on mouse down method
+function hoverMouseDown(event) {
+    event.preventDefault();
+    startScopeEdit($(".hover"));
+}
+
+// Replace these neighbouring parts of the visualisation with the dynamic input
+function startScopeEdit(scope) {
+    medsyntaxTargetWidth = $("#medsyntax-target1").width();
+    $('.medsyntax-target div').off('mousemove');
+
+    const text = scope.text();
+    scope.wrapAll("<div class='newInputTarget' />");
+    $(".medsyntax-target .newInputTarget")
+        .replaceWith('<textarea id="dynamic-input" class="dynamic-input"' +
+            ' onfocusin="setEditMode(true)" onfocusout="setEditMode(false)"/>');
+
+    $("#dynamic-input").val(text);
+    $("#dynamic-input").on('keydown', function (e) {
+        if (e.key === 'Enter') {
+            onEnterDynamicInput();
+        }
+    });
+
+    const input = document.getElementById("dynamic-input");
+    input.addEventListener("keyup", function () {
+        textAreaAdjust(this, true, medsyntaxTargetWidth);
+    });
+    textAreaAdjust(input, true, medsyntaxTargetWidth);
+    input.focus()
+}
+
+function onEnterDynamicInput() {
+    const dyText = $("#dynamic-input").val();
+    $("#dynamic-input").val(dyText.replace(/\n/g, ' '));
+    $("#dynamic-input").append('<div id="entered-text">' + " " + $("#dynamic-input").val() + " " + '</div>');
+    let str = $("#medsyntax-target1").text();
+
+    // double quote check
+    let quotesCount = (str.match(new RegExp('(")', 'gi')) || []).length;
+    if (quotesCount % 2 !== 0) {
+        alert("number of \" error: please fix before pressing Enter");
+        $("#entered-text").remove();
+        return false;
+    }
+    // single quote check
+    quotesCount = (str.match(new RegExp('(\')', 'gi')) || []).length;
+    if (quotesCount % 2 !== 0) {
+        alert("number of \' error: please fix before pressing Enter");
+        $("#entered-text").remove();
+        return false;
+    }
+
+    // bracket warnings ( and ), without those inside quotes
+    const bracketText = withoutQuotedText(str);
+    const bracketOpenCount = (bracketText.match(new RegExp('(\\()', 'gi')) || []).length;
+    const bracketCloseCount = (bracketText.match(new RegExp('(\\))', 'gi')) || []).length;
+    if (bracketOpenCount > bracketCloseCount) {
+        alert("( or ) bracket error: please fix before pressing Enter");
+        $("#entered-text").remove();
+        return false;
+    }
+    if (bracketOpenCount < bracketCloseCount) {
+        alert("( or ) bracket error: please fix before pressing Enter");
+        $("#entered-text").remove();
+        return false;
+    }
+    const orderProblems = bracketOrderProblems(bracketText);
+    if (orderProblems.round) {
+        alert("( or ) bracket error: please fix before pressing Enter");
+        $("#entered-text").remove();
+        return false;
+    }
+
+    // bracket warnings [ and ]
+    const squareBracketOpenCount = (bracketText.match(new RegExp('(\\[)', 'gi')) || []).length;
+    const squareBracketCloseCount = (bracketText.match(new RegExp('(])', 'gi')) || []).length;
+    if (squareBracketOpenCount > squareBracketCloseCount) {
+        alert("[ or ] bracket error: please fix before pressing Enter");
+        $("#entered-text").remove();
+        return false;
+    }
+    if (squareBracketOpenCount < squareBracketCloseCount) {
+        alert("[ or ] bracket error: please fix before pressing Enter");
+        $("#entered-text").remove();
+        return false;
+    }
+    if (orderProblems.square) {
+        alert("[ or ] bracket error: please fix before pressing Enter");
+        $("#entered-text").remove();
+        return false;
+    }
+
+    str = str.replace(/  +/g, ' ');
+    $("#query-input1").val(str);
+    syntaxCheck("query-input1", "medsyntax-target1", true);
+}

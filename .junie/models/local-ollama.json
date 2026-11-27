@@ -1,0 +1,11 @@
+{
+  "baseUrl": "http://localhost:11434/v1/responses",
+  "id": "granite4.1:3b",
+  "apiType": "OpenAIResponses",
+  "extraHeaders": {
+    "X-Custom-Source": "Junie"
+  },
+  "fasterModel": {
+    "id": "granite4.1:3b"
+  }
+}

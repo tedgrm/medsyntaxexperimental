@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description"
+          content="Syntax assistant for Pubmed, Embase, Scopus and other (medical) database search engines">
+    <title>MedSyntax</title>
+    <link rel="stylesheet" href="style.css">
+    <script>
+        // Embedded in the WORKSPACE (?ws=<id>): the look of an item, before anything is shown.
+        if (new URLSearchParams(window.location.search).get('ws')) {
+            document.documentElement.classList.add('ws-embedded');
+            // The WORKSPACE's theme; on its own, an item follows the system.
+            let theme;
+            try {
+                theme = window.parent.document.documentElement.dataset.theme;
+            } catch (error) {
+                // embedded in a page from another origin
+            }
+            document.documentElement.dataset.theme = theme
+                || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+            document.write('<link id="iframeCss" rel="stylesheet" href="./iframe.css" type="text/css" media="all">');
+        }
+    </script>
+    <script src="https://code.jquery.com/jquery-3.6.0.js" integrity="sha256-H+K7U5CnXl1h5ywQfKtSj8PCmoN9aaq30gDh27Xc0jk=" crossorigin="anonymous"></script>
+    <!-- jQuery fallbacks. Keep one script tag each: every check must wait for the script before it.
+         All three CDNs serve the same file, so they share one SRI hash. -->
+    <script>window.jQuery || document.write('<script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.js" integrity="sha256-H+K7U5CnXl1h5ywQfKtSj8PCmoN9aaq30gDh27Xc0jk=" crossorigin="anonymous"><\/script>')</script>
+    <script>window.jQuery || document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.js" integrity="sha256-H+K7U5CnXl1h5ywQfKtSj8PCmoN9aaq30gDh27Xc0jk=" crossorigin="anonymous"><\/script>')</script>
+    <script>window.jQuery || document.write('<script src="scripts/third-party/jquery/jquery-3.6.0.js"><\/script>')</script>
+    <script src="scripts/third-party/iframe-resizer/js/iframeResizer.contentWindow.js"></script>
+    <script src="scripts/third-party/lzstring.js"></script>
+</head>
+
+<body>
+<!-- #region Menu -->
+<div class="dropdown-menu">
+    <button onclick="myFunction()" class="dropbtn">menu</button>
+    <div id="myDropdown" class="dropdown-content">
+        <a href="mailto:m.verleg@mzh.nl" target="_blank">
+            Contact us!
+        </a>
+        <a href="https://github.com/tedgrm/medsyntaxexperimental/issues" target="_blank">
+            Report any issues here
+        </a>
+        <a href="https://github.com/tedgrm/medsyntaxexperimental/blob/main/LICENSE" target="_blank">
+            License (GNU v3.0)
+        </a>
+        <a href="https://mrgtverleg-lgtm.github.io/MedsyntaxQA/framework/" target="_blank">
+            MedSyntax Framework
+        </a>
+        <a href="https://tedoutlook.github.io/medsyntaxqa/workspace/" target="_blank">
+            MedSyntaxMulti
+        </a>
+        <form name="myForm" id="colors" class="grayscale">
+            <label><input type="radio" name="myRadios" value="1" checked="checked"/><i>color</i></label><br>
+            <label><input type="radio" name="myRadios" value="2"/><i>greyscale</i></label><br>
+        </form>
+    </div>
+</div>
+<nav class="top-links iframe-hide" aria-label="MedSyntax tools">
+    <a href="https://mrgtverleg-lgtm.github.io/MedsyntaxQA/framework/" target="_blank" rel="noopener">MedSyntax Framework</a>
+    <a href="https://tedoutlook.github.io/medsyntaxqa/workspace/" target="_blank">MedSyntaxMulti</a>
+</nav>
+<script src="scripts/editor/menu.js"></script>
+<br class="iframe-hide">
+<!-- #endregion -->
+
+<label for="query-title1" hidden="hidden">query title</label>
+<input type="text" id="query-title1" class="query-title"
+       name="query-title1" size="100"
+       onkeyup='updateTitle("query-title1")'
+       onfocusin="setEditMode(true);"
+       onfocusout="setEditMode(false);"
+       placeholder="Please input a title for your query here...">
+<button id="clear-button" onclick="clearButtonFunc()">
+    Click here to clear query
+</button>
+<br>
+<label class for="query-input1" hidden="hidden">query</label>
+<textarea id="query-input1" class="query-input"
+          name="query-input" rows="10" cols="100"
+          onkeyup='syntaxCheck("query-input1","medsyntax-target1")'
+          onchange='syntaxCheck("query-input1","medsyntax-target1")'
+          onclick='syntaxCheck("query-input1","medsyntax-target1")'
+          onfocusin="setEditMode(true)"
+          onfocusout='syntaxCheck("query-input1","medsyntax-target1", true); setEditMode(false);'
+          placeholder="Please input search query here..."></textarea>
+
+
+<p id="warning-bracket-open" class="warning-medsyntax">Too many ( in query. Or not enough ) in query.</p>
+<p id="warning-bracket-close" class="warning-medsyntax">Too many ) in query. Or not enough ( in query.</p>
+<p id="warning-square-bracket-open" class="warning-medsyntax">Too many [ in query. Or not enough ] in query.</p>
+<p id="warning-square-bracket-close" class="warning-medsyntax">Too many ] in query. Or not enough [] in query.</p>
+<p id="warning-quotes" class="warning-medsyntax">Incorrect number of quote signs.</p>
+<p id="warning-double-or" class="warning-medsyntax">Duplicate OR-operators.</p>
+<p id="warning-double-and" class="warning-medsyntax">Duplicate AND-operators.</p>
+<p id="warning-ambiguous-and" class="warning-medsyntax">Semantically potentially unclear boolean operator(s). Not
+    fixing these in very long strings may impact medsyntax performance.</p>
+
+<div id="medsyntax" class="medsyntax">
+    <h3 id="medsyntax-title" class="medsyntax-title">medsyntax:</h3>
+    <button id="demo-button" onclick="demoClickFunction()">demo button (click to demo)</button>
+    <p id="demo2" hidden="hidden">demo tekst uit variabele</p>
+
+    <div id="medsyntax-target1" class="medsyntax-target"></div>
+</div>
+<br class="iframe-hide">
+
+<!-- The button used to copy the query -->
+<label for="myQueryInput" hidden="hidden">myQueryInput</label>
+<input type="text" value="Hello World" id="myQueryInput" hidden="hidden">
+
+<div class="tooltip">
+    <button id="copy-query-button" onclick="copyQueryFunction()" onmouseout="outQueryFunc()">
+        <span class="tooltiptext" id="myQueryTooltip">Copy query to clipboard</span>
+        Copy query
+    </button>
+</div>
+
+<!-- The button used to copy the link -->
+<label for="myLinkInput" hidden="hidden">myLinkInput</label>
+<input type="text" value="Hello World" id="myLinkInput" hidden="hidden">
+
+<div class="tooltip">
+    <button id="copy-link-button" onclick="copyLinkFunction()" onmouseout="outLinkFunc()">
+        <span class="tooltiptext" id="myLinkTooltip">Copy link to clipboard</span>
+        Copy link
+    </button>
+</div>
+
+<br class="iframe-hide">
+<br class="iframe-hide">
+
+<!-- <div id="notifications">
+  <p>During the IFLA WLIC 2023 you can reach me at <a href="mailto:m.verleg@mzh.nl">m.verleg@mzh.nl</a></p>
+</div> -->
+
+<br class="iframe-hide">
+
+<div class="manual">
+
+    <h3>How to use the scope driven editor?</h3>
+    <p>Example (click image to enlarge): <img id="myImg" src="medsyntax_demo_1.gif"
+                                              alt="Press the Enter key to confirm edits"
+                                              style="width:100%;max-width:100px">
+    </p>
+    <p>Quick guide:</p>
+    <p>1. Hover over the medsyntax visualisation.</p>
+    <p>2. Move the mouse to determine the scope of the edit you wish to make. The scope will be the part that is
+        highlighted.</p>
+    <p>3. Click to create the dynamic input field. Click in the dynamic input field to edit the text.</p>
+    <p class="confirm">Confirming edits: press the <b>'Enter' key</b> on your keyboard. <b>(If you do not press 'Enter',
+        your edit will be undone.)</b></p>
+    <p class="cancel">Cancelling edits: <b>click</b> anywhere outside the dynamic input field. Your edit will be undone.
+    </p>
+</div>
+
+<!-- The Modal -->
+<div id="myModal" class="modal">
+    <span class="close">&times;</span>
+    <img class="modal-content" id="img01" alt="animated manual for scope based editor">
+    <div id="caption"></div>
+</div>
+
+<script src="scripts/editor/color-mode.js"></script>
+
+<script src="scripts/editor/help-image.js"></script>
+
+<script src="scripts/editor/editor.js"></script>
+
+<!-- Only for items of the WORKSPACE: without ws these do nothing. -->
+<script src="scripts/editor/item.js"></script>
+<script src="scripts/editor/item-keyboard.js"></script>
+<script src="scripts/references.js"></script>
+<script src="scripts/editor/item-references.js"></script>
+</body>
