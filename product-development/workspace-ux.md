@@ -77,7 +77,7 @@ Dark mode:
 
 | ID | Requirement | Priority |
 |---|---|---|
-| STYLE-1 | A header shows the brand mark (text only, so it does not look like a button), the name MedsyntaxQA as the page heading, the line "Workspace for multiline searches", and links to the EDITOR and to "Report an issue" (the same issues page as the EDITOR's menu). | Must |
+| STYLE-1 | A header shows the brand mark (text only, so it does not look like a button), the name MedSyntaxMulti as the page heading, the line "Workspace for multiline searches", and links to the EDITOR and to "Report an issue" (the same issues page as the EDITOR's menu). | Must |
 | STYLE-2 | Each item is a white card with a 1px line, a 10px radius and a 3px left edge in the item's colour. It replaces the random border. | Must |
 | STYLE-3 | The card's header shows a badge with the item's number in its colour (white text, or dark where white has less than 4.5:1), the title field, and the item's buttons: Collapse, up, down, Duplicate, Edit query, Copy query, Clear query, + Add query, Remove. Below a viewport of 1140px, Duplicate to Clear query are in a More menu. Below 800px, + Add query shows only "+" (its accessible name stays "+ Add query after <number>"). On a phone the buttons are below the title. After item 10 the colours repeat. | Must |
 | STYLE-4 | The content is centred and at most 1240px wide. | Must |

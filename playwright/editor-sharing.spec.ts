@@ -28,7 +28,7 @@ test.describe('EDITOR sharing', () => {
 
         await expect(queryBox(shared)).toHaveValue('(heart OR cardiac) AND lung');
         await expect(shared.locator('#query-title1')).toHaveValue('Heart search');
-        await expect(shared).toHaveTitle('Medsyntax: Heart search');
+        await expect(shared).toHaveTitle('MedSyntax: Heart search');
         await expect(target(shared).locator('.brackets')).toHaveCount(1);
         await expect(shared.locator('#demo-button')).toBeHidden();
     });
@@ -37,7 +37,7 @@ test.describe('EDITOR sharing', () => {
         await page.goto(await makeLink(page, 'lung NOT cancer', 'Lungs'));
 
         await expect(queryBox(page)).toHaveValue('lung NOT cancer');
-        await expect(page).toHaveTitle('Medsyntax: Lungs');
+        await expect(page).toHaveTitle('MedSyntax: Lungs');
         await expect(target(page).locator('.boolean.not')).toHaveCount(1);
     });
 

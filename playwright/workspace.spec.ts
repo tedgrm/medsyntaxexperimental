@@ -29,7 +29,7 @@ test.describe('WORKSPACE', () => {
         page.on('pageerror', (error) => errors.push(error.message));
         const response = await page.goto('/workspace/');
         expect(response?.status()).toBe(200);
-        await expect(page).toHaveTitle('MedsyntaxQA');
+        await expect(page).toHaveTitle('MedSyntaxMulti');
         await waitForItems(page, 1);
         expect(errors).toEqual([]);
     });

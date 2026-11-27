@@ -298,7 +298,7 @@ test.describe('EDITOR edge cases', () => {
                 const errors: string[] = [];
                 page.on('pageerror', (error) => errors.push(error.message));
                 await page.goto(`/index.html${search}`);
-                await expect(page).toHaveTitle('Medsyntax:');
+                await expect(page).toHaveTitle('MedSyntax:');
                 await expect(queryBox(page)).toHaveValue('');
                 await expect(page.locator('#demo-button')).toBeVisible();
                 expect(errors).toEqual([]);
@@ -309,7 +309,7 @@ test.describe('EDITOR edge cases', () => {
             await page.goto('/index.html?query=%E0%A4%A');
             await expect(queryBox(page)).toHaveValue('');
             // The title is set by the start-up code after the query is read.
-            await expect(page).toHaveTitle('Medsyntax:');
+            await expect(page).toHaveTitle('MedSyntax:');
         });
 
         test('the Back button brings back the previous query', async ({page}) => {

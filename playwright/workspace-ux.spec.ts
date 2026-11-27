@@ -804,9 +804,12 @@ test.describe('WORKSPACE query box', () => {
 test.describe('WORKSPACE style', () => {
     test('header with its links', async ({page}) => {
         await page.goto('/workspace/');
-        await expect(page.getByRole('heading', {level: 1})).toHaveText('MedsyntaxQA');
+        await expect(page.getByRole('heading', {level: 1})).toHaveText('MedSyntaxMulti');
         await expect(page.getByText('Workspace for multiline searches')).toBeVisible();
-        await expect(page.getByRole('link', {name: 'Medsyntax Editor'})).toHaveAttribute('href', '../index.html');
+        await expect(page.getByRole('link', {name: 'MedSyntax Editor'})).toHaveAttribute('href', '../index.html');
+        const framework = page.getByRole('link', {name: 'MedSyntax Framework'});
+        await expect(framework).toHaveAttribute('href', 'https://mrgtverleg-lgtm.github.io/MedsyntaxQA/framework/');
+        await expect(framework).toHaveAttribute('target', '_blank');
         await expect(page.getByRole('link', {name: 'Report an issue'}))
             .toHaveAttribute('href', 'https://github.com/tedgrm/medsyntaxexperimental/issues');
     });
